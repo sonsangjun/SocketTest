@@ -55,7 +55,7 @@ public class ServerThread extends Thread{
 			socket.close();
 			
 		} catch (IOException e) {
-			System.out.println("파일 IO 예외발생 "+e.getMessage());
+			System.out.println("파일 IO 예외발생 "+ e.getMessage());
 		}
 		//파일 전송을 완료하였습니다.
 		System.out.println("파일 전송을 끝냈습니다. 서버 종료합니다.");		
