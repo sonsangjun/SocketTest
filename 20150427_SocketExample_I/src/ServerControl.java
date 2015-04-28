@@ -18,7 +18,7 @@ public class ServerControl extends Thread{
 		
 		while(true)
 		{
-			System.out.println("서버를 중지시키려면 bye를 입력하세요.");
+			System.out.println("연결 대기 중인 서버를 중지시키려면 bye를 입력하세요.");
 			String response = input.nextLine();	
 			if(response.equals(bye))
 			{

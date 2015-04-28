@@ -18,12 +18,13 @@ public class ServerTop {
 	ServerTop(int interval,int portNum)
 	{
 		this.interval = interval;
+		this.portNum = portNum;
 	}
 	
 	public void mainServer()
 	{
 		try {
-			System.out.println("서버 초기화 중");
+			System.out.println("서버 초기화 중, 연결 포트는 "+portNum);
 			serversocket = new ServerSocket(portNum);
 			serverCtrl = new ServerControl(serversocket);
 			serverthread = new ServerThread(serversocket,portNum);

@@ -7,8 +7,7 @@ import java.net.Socket;
 
 
 public class ServerThread extends Thread{
-	final int ServerThreadWait = 30000; //서버스레드 30초간 정지
-	final String filename = "test.txt";
+	final String filename = "Test.jpeg";
 	int portNum;
 	ServerSocket serversocket = null;
 	Socket socket = null;
@@ -42,16 +41,23 @@ public class ServerThread extends Thread{
 		}			
 		//서버가 파일전송 준비를 합니다.
 		try {
-			System.out.println("30초간 스레드가 정지됩니다. 이후에 파일전송이 시작됩니다.");
-			Thread.sleep(ServerThreadWait);
+			System.out.println("파일전송이 시작됩니다.");
+			byte[] fileStream = new byte[fileInput.available()];
+			fileInput.read(fileStream);
+			fileSender.write(fileStream);
+			fileSender.close();
+			System.out.println("파일을 클라이언트에게 전송하였습니다.");
 			
+			System.out.println("FileInputStream을 닫습니다.");
+			fileInput.close();
 			
-		} catch (InterruptedException e) {
-			System.out.println("파일전송중에 문제생김 " + e.getMessage());
+			System.out.println("소켓을 닫습니다.");
+			socket.close();
+			
+		} catch (IOException e) {
+			System.out.println("파일 IO 예외발생 "+e.getMessage());
 		}
-		
-		
-		
-		
+		//파일 전송을 완료하였습니다.
+		System.out.println("파일 전송을 끝냈습니다. 서버 종료합니다.");		
 	}
 }
