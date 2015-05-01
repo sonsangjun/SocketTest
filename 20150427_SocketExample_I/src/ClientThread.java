@@ -54,7 +54,7 @@ public class ClientThread extends Thread{
 			byte[] filestream=null ;
 			while(true)
 			{
-				if(streamInput.available() > 0)
+				if(streamInput.available() > 0)	//이부분이 문제일거 같다. 파일사이즈를 보내줄수 있다면 미리 받아서 버퍼 사이즈를 결정하는 것도 한방법일듯..
 				{
 					filestream = new byte[streamInput.available()];
 					streamInput.read(filestream);
