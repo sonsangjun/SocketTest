@@ -1,5 +1,9 @@
 
 public class SharedData {
-	boolean checking = false;	//파일 사이즈를 클라이언트가 받았는지 여부 OR 
-								//파일 사이즈를 서버가 보냈는지 여부 (맞다면 true)
+	int fileSize = 0;			//클라이언트간 통신을 위해 선언(파일사이즈)	
+	byte[] fileSizeArray;
+	public SharedData(int fileSize , int fileSizeIndex) {
+		this.fileSize = fileSize;
+		this.fileSizeArray = new byte[fileSizeIndex];
+	}
 }

@@ -7,6 +7,7 @@ import java.util.ArrayList;
 public class Server {
 	final int intervalTime = 5000;
 	int portNum;
+	int fileSizeIndex;
 	String fileName;
 	
 	ServerSocket fileServerSize = null;
@@ -17,10 +18,11 @@ public class Server {
 	ArrayList<Thread> threadList = new ArrayList<Thread>();
 	
 	
-	Server(int portNum,String fileName)
+	Server(int portNum,String fileName,int fileSizeIndex)
 	{
 		this.portNum = portNum;
 		this.fileName = fileName;		
+		this.fileSizeIndex = fileSizeIndex;
 	}
 	
 	
@@ -32,7 +34,7 @@ public class Server {
 			System.out.println("서버 초기화 중");
 			fileServerSize = new ServerSocket(portNum);
 			fileServerSocket = new ServerSocket(portNum+1);
-			SharedData shared = new SharedData();
+			SharedData shared = new SharedData(0,fileSizeIndex);
 			
 			System.out.println("파일 사이즈 받는 소켓 연결대기");
 			fileSizeSocket = fileServerSize.accept();
@@ -44,7 +46,7 @@ public class Server {
 			System.out.println("두 소켓에 대한 스레드 작성");
 			
 			ServerCheckingThread SCT = new ServerCheckingThread(fileSizeSocket,shared);
-			ServerThread ST = new ServerThread(fileSocket,shared,fileName);
+			ServerThread ST = new ServerThread(fileSocket,shared,fileName,fileSizeIndex);
 			
 			threadList.add(SCT);
 			threadList.add(ST);
