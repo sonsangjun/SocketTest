@@ -5,6 +5,8 @@ import java.net.Socket;
 
 
 public class ServerThread extends Thread{ 
+	final int maxDelayTime = 100;	//최대대기시간(wait()항목)
+	
 	String fileName;
 	Socket socket;
 	SharedData shared;
@@ -15,9 +17,10 @@ public class ServerThread extends Thread{
 	
 	int fileSizeIndex;
 	int unitSize;
-	int counter;	//총 분할횟수
-	int sender;		//파일을 몇 번 분할해 보냈는지 카운트
-	int extra;		//마지막 분할 횟수 잔여크기
+	int counter;		//총 분할횟수
+	int sender;			//파일을 몇 번 분할해 보냈는지 카운트
+	int extra;			//마지막 분할 횟수 잔여크기
+	
 	
 	public ServerThread(Socket socket,SharedData shared,String fileName,int fileSizeIndex,int unitSize)
 	{
@@ -60,7 +63,6 @@ public class ServerThread extends Thread{
 			synchronized (shared) {
 				counter = shared.counter;
 				extra = shared.extra;
-				shared.wait();	//SCT 스레드가 인풋 스트림 받기전에 신호가 오는 경우가 발생하는거 같아 일단 적어놓
 			}
 			sender = 0;
 			
@@ -75,13 +77,15 @@ public class ServerThread extends Thread{
 				fileOutput.write(fileStream, sender*unitSize, unitSize);
 				fileOutput.flush();
 				sender++;
-				System.out.println("파일 "+sender*unitSize+"Byte 보냄");
+				if(sender % 100 == 0)
+					System.out.println("파일 "+sender*unitSize+"Byte 보냄");
 				synchronized (shared) {
-					shared.wait();
+					shared.wait(maxDelayTime);
 				}
 				if(sender > counter)
 				{
 					fileOutput.write(fileStream, sender*unitSize, extra );
+					fileOutput.flush();
 					System.out.println("파일 "+(sender*unitSize+extra)+"Byte 보냄");
 					System.out.println("클라이언트에게 파일 전송을 완료했습니다.");
 					break;

@@ -76,16 +76,15 @@ public class ServerCheckingThread extends Thread{
 		
 		if(!exceptionFlag)
 		{
-			synchronized (shared) {
-				shared.notify();
-			}
-
 			System.out.println("서버와 클라이언트간 파일전송을 중계합니다.");			
 			while(true)
 			{
 				byte[] OK = new byte[signal.signalSize];
 				try {
 					socketInput.read(OK);
+					//for(byte i:OK)
+					//	System.out.println("OK싸인 배열 :"+i);
+					
 				} catch (IOException e) {
 					System.out.println("파일 전송 중계중 예외"+e.getMessage());
 					e.printStackTrace();
@@ -102,11 +101,13 @@ public class ServerCheckingThread extends Thread{
 					synchronized (shared) {
 						shared.DownComplete=true;
 						shared.notify();
+						break;
 					}
 				}
 			}			
 		}	
 		
+		System.out.println("SSC를 닫습니다.");
 		try {
 			socketInput.close();
 			socketOutput.close();

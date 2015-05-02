@@ -45,6 +45,7 @@ public class ClientThread extends Thread {
 		synchronized (shared) {
 			try {
 				shared.wait();
+				shared.DownComplete=false;
 				fileSize = shared.fileSize;
 				counter = shared.counter;
 				extra = shared.extra;
@@ -61,24 +62,19 @@ public class ClientThread extends Thread {
 			fileStream = new byte[fileSize];
 			while(true)
 			{
-				try {
-					if(counter <0)
-					{
-						System.out.println("파일을 성공적으로 받았습니다.");
+				
+				if(counter <0)
+				{
+					System.out.println("파일을 성공적으로 받았습니다.");
+					try {
 						fileOutput.write(fileStream);
-						break;
+					} catch (IOException e) {
+						System.out.println("fileOutput.write예외 "+e.getMessage());
+						e.printStackTrace();
 					}
-					
-					packetInput.read(fileStream, receive*unitSize, unitSize);
-					receive++;
-					System.out.println("파일 "+receive*unitSize+"Byte 받음");
-				} catch (IOException e) {
-					System.out.println("IO예외 "+e.getMessage());
-					e.printStackTrace();
+					break;
 				}
-				synchronized (shared) {
-					shared.notify();
-				}
+				
 				if(receive > counter)
 				{
 					try {
@@ -96,6 +92,19 @@ public class ClientThread extends Thread {
 					}
 					break;					
 				}
+				try {
+					packetInput.read(fileStream, receive*unitSize, unitSize);
+					receive++;
+					if(receive % 100 == 0)
+						System.out.println("파일 "+receive*unitSize+"Byte 받음");
+				} catch (IOException e) {
+					System.out.println("IO예외 "+e.getMessage());
+					e.printStackTrace();
+				}
+				synchronized (shared) {
+					shared.notify();
+				}
+			
 			}
 		}
 		
