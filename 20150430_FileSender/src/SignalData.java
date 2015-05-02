@@ -12,3 +12,12 @@ public class SignalData {
 			return false;		
 	}
 }
+/* 혹시모르니 
+if(fileSize%unitSize == 0)
+counter = (fileSize/unitSize);
+else 
+{
+counter = (fileSize/unitSize) + 1;
+extra = fileSize%unitSize;
+}
+*/
