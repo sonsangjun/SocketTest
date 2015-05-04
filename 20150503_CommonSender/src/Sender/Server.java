@@ -16,8 +16,8 @@ import java.net.Socket;
  * 이미 짠 소스를 수정하기는 귀찮(사실 어디부터 손대야할지 모름)아서 새로 짠다.
  */
 public class Server {
-	final int waitTime = 100;
-	int PortNum;
+	int waitTime = 500;
+	int portNum;
 	String fileName = null;		//서버 테스트 용으로 만듬
 	
 	ServerSocket serverSocket;
@@ -26,15 +26,16 @@ public class Server {
 	SharedData shared;
 	byte[] fileStream;
 	
-	Server(int PortNum)
+	Server(int waitTime, int PortNum)
 	{
-		this.PortNum = PortNum;
+		this.waitTime = waitTime;
+		this.portNum = PortNum;
 	}
 	
 	Server(String fileName,int PortNum)
 	{
 		this.fileName = fileName;
-		this.PortNum = PortNum;
+		this.portNum = PortNum;
 	}
 	
 	public void mainServer()
@@ -49,7 +50,8 @@ public class Server {
 		while(true)
 		{
 			try {
-				serverSocket = new ServerSocket();
+				
+				serverSocket = new ServerSocket(portNum);
 				socket = serverSocket.accept();
 				Thread serverThread = new ServerThread(socket,waitTime);
 				
@@ -63,12 +65,12 @@ public class Server {
 	
 	//테스트 서버
 	public void testServer(String fileName)
-	{
-		
+	{		
 		while(true)
 		{
+			System.out.println("서버 연결 대기중");
 			try{
-				serverSocket = new ServerSocket(PortNum);
+				serverSocket = new ServerSocket(portNum);
 				socket = serverSocket.accept();
 				Thread serverThread = new ServerThread(socket,fileName,waitTime);
 				

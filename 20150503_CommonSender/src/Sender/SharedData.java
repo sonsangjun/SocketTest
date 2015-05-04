@@ -6,6 +6,7 @@ public class SharedData {
 	int fileSize = 0;				//클라이언트간 통신을 위해 선언(파일사이즈)	
 	int extra = 0;					//파일의 마지막 분할부분의 남은부분(인덱스경계초과 예외 방지)
 	byte[] fileSizeArray;
+	
 	public SharedData(int fileSize , int fileSizeIndex) {
 		this.fileSize = fileSize;
 		this.fileSizeArray = new byte[fileSizeIndex];
