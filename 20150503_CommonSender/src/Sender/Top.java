@@ -36,3 +36,20 @@ public class Top {
 		}
 	}
 }
+
+/*				 Top
+ * 				  │
+ * 			┌─────┴─────┐
+ * 		 Server		Client
+ * 			│			
+ * 		ServerThread
+ * 	┌────────────────────────── Server,Client에 사용되는 나머지 클래스들 관계
+ *  │
+ *	├─	SharedData
+ *	├─	SignalData	─	BufferedExceptionProcessingThread
+ *	├─	FileSizeChecking
+ *(나중에 추가)
+
+ * 
+ */
+ 
