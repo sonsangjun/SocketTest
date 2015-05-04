@@ -25,6 +25,7 @@ public class BufferedExceptionProcessingThread extends Thread{
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return ;
 		}
 		
 		try {
@@ -33,6 +34,6 @@ public class BufferedExceptionProcessingThread extends Thread{
 			System.out.println("BEPThread에서 버퍼 강제 닫기 예외발생");
 			e.printStackTrace();
 			return ;
-		}		
+		}
 	}
 }

@@ -19,7 +19,7 @@ public class Top {
 	
 	public static void main(String[] args) {
 		final String ServerIP = "221.156.9.145";
-		final int waitTime = 500;
+		final int waitTime = 2000;
 		final int portNum = 9000;
 		
 		if(_Server)

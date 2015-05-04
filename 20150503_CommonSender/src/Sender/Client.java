@@ -29,7 +29,6 @@ public class Client extends Thread {
 	
 	public void run()
 	{
-		signal = new SignalData(waitTime);
 		byte[] signalByte = new byte[signal.signalSize];
 		
 		try {
@@ -48,6 +47,8 @@ public class Client extends Thread {
 			e1.printStackTrace();
 			return;
 		}
+
+		signal = new SignalData(socket, waitTime);	//소켓연결후 시그널과 연결
 	}
 	
 	public void Test()
@@ -55,9 +56,16 @@ public class Client extends Thread {
 		while(true)
 		{
 			//원래대로면 방 만들던가 참여하던가 선택해야지( 테스트 이므로 제낀다. )
+			try {
+				this.sleep(waitTime);
+			} catch (InterruptedException e) {
+				System.out.println("Test메소드, 인터럽트 예외");
+				e.printStackTrace();
+				return ;
+			}
 			System.out.println("서버와 연결되었습니다.");
 			System.out.println("신호 테스트");
-			signal.toRequest(packetInput, packetOutput);
+			signal.toRequest();
 		}	
 	}
 }

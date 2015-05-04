@@ -3,8 +3,7 @@ package Sender;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
-
-import javax.xml.transform.OutputKeys;
+import java.net.Socket;
 
 //신호송수신 자체를 SignalData의 메소드로 작성할 예정이다.
 public class SignalData {
@@ -23,14 +22,39 @@ public class SignalData {
 	
 	int waitTime;
 	
+	Socket socket;
+	BufferedInputStream input=null;
+	BufferedOutputStream output=null;
+	
 	//BufferedExceptionProcessingThread	=> read()가 오랫동안 블락하는걸 방지
 	
-	public SignalData(int waitTime)
+	public SignalData(Socket socket, int waitTime)
 	{
 		this.waitTime = waitTime;		
+		this.socket = socket; 
 	}
 	
-	//신호 체킹
+	//초기화(초기화 안하며 신호를 보낼수가 없다.)
+	public boolean initial()
+	{
+		try {	//처음 초기화가 아니라면 버퍼가 둘중 하나는 열려있을 수 있으므로 닫아주고 다시 연다.
+			if(input != null)
+				input.close();
+			if(output != null)
+				output.close();
+			
+			input = new BufferedInputStream(socket.getInputStream());
+			output = new BufferedOutputStream(socket.getOutputStream());
+			
+		} catch (IOException e) {
+			System.out.println("초기화 실패");
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+	
+	//신호 equal
 	public boolean signalChecking(byte[] target, byte[] wantChecking)
 	{
 		for(int i=0; i<signalSize; i++)
@@ -71,12 +95,17 @@ public class SignalData {
 		}
 	}
 	
-	//요청 신호 보냄
-	public boolean toRequest(BufferedInputStream input, BufferedOutputStream output)
+	//요청 신호 보냄 (toDoRequest보다 먼저 보내라)
+	public boolean toRequest()	
 	{
 		BufferedExceptionProcessingThread thread = new BufferedExceptionProcessingThread(input, waitTime);
-		
 		byte[] signalByte = new byte[signalSize];
+		
+		if(input == null | output == null)
+		{
+			System.out.println("Signal 초기화 안했습니다.");
+			return false;
+		}
 		
 		try {
 			output.write(response);			
@@ -102,12 +131,17 @@ public class SignalData {
 	}
 	
 	//이 함수는 먼저 request를 보낸 이후에 호출할 수 있는 함수 (모양이 거의 같지만 엄연히 호출 순서가 있다.)
-	public boolean toDoRequest(BufferedInputStream input, BufferedOutputStream output, byte[] wantSignal)
+	public boolean toDoRequest(byte[] wantSignal)
 	{
 		BufferedExceptionProcessingThread thread = new BufferedExceptionProcessingThread(input, waitTime);
-		
 		byte[] signalByte = new byte[signalSize];
 		
+		if(input == null | output == null)
+		{
+			System.out.println("Signal 초기화 안했습니다.");
+			return false;
+		}
+					
 		try {
 			output.write(wantSignal);			
 		} catch (IOException e) {
@@ -130,15 +164,19 @@ public class SignalData {
 		else 
 			return false;
 	}
-		
-	
+			
 	//원하는 응답이 오는지 체킹
-	public boolean toResponse(BufferedInputStream input, BufferedOutputStream output, byte[] wantSignal)
+	public boolean toResponse(byte[] wantSignal)
 	{
 		BufferedExceptionProcessingThread thread = new BufferedExceptionProcessingThread(input, waitTime);
-		
 		byte[] signalByte = new byte[signalSize];
 		
+		if(input == null | output == null)
+		{
+			System.out.println("Signal 초기화 안했습니다.");
+			return false;
+		}
+					
 		try {
 			thread.start();
 			input.read(signalByte);

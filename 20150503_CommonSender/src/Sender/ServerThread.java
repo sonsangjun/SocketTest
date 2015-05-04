@@ -28,7 +28,7 @@ public class ServerThread extends Thread {
 		
 	public void run()
 	{
-		signal = new SignalData(waitTime);		
+		signal = new SignalData(socket,waitTime);		
 		
 		try {
 			packetInput = new BufferedInputStream(socket.getInputStream());
@@ -72,7 +72,8 @@ public class ServerThread extends Thread {
 				}
 				break;
 			}
-			signal.toResponse(packetInput, packetOutput, signal.request);
+			signal.toResponse(signal.request);
+			
 		}
 	}
 }
