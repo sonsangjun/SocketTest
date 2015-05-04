@@ -30,6 +30,7 @@ public class BufferedExceptionProcessingThread extends Thread{
 		
 		try {
 			input.close();
+			input = null;
 		} catch (IOException e) {
 			System.out.println("BEPThread에서 버퍼 강제 닫기 예외발생");
 			e.printStackTrace();
