@@ -8,10 +8,13 @@ import java.net.Socket;
 public class Client extends Thread {
 	int portNum;
 	int waitTime;
+	int fileSizeIndex;
 	
 	String ServerIP;
 	Socket socket;
 	SignalData signal;
+	SharedData shared;
+	FileSizeChecking fileSizeChecking;
 	
 	BufferedInputStream packetInput;
 	BufferedOutputStream packetOutput;
@@ -20,11 +23,12 @@ public class Client extends Thread {
 	//그러면 파일 송수신, 위치 정보 송수신등을 쉽게 관리할 수 있다.
 	//그외 정적변수로 방 목록을 담는 ArrayList 필요할듯 방을 만들거나 참여할때 참고해야하므로...
 	
-	public Client(String ServerIP, int portNum,int waitTime)
+	public Client(String ServerIP, int portNum,int waitTime, int fileSizeIndex)
 	{
 		this.ServerIP = ServerIP;		
 		this.portNum = portNum;
 		this.waitTime = waitTime;
+		this.fileSizeIndex = fileSizeIndex;
 		
 	}
 	
@@ -46,11 +50,11 @@ public class Client extends Thread {
 			e1.printStackTrace();
 			return;
 		}
-
+		
 		signal = new SignalData(socket, waitTime);	//소켓연결후 시그널과 연결
-		
-		byte[] signalByte = new byte[signal.signalSize];
-		
+		signal.initial();
+		//여기부터 클라이언트에서 작동될 메소드 호출
+
 		test_II();
 	}
 	
@@ -71,8 +75,6 @@ public class Client extends Thread {
 				System.out.println("서버와 연결을 종료합니다.");
 				try {
 					socket.close();
-					packetInput.close();
-					packetOutput.close();
 				} catch (IOException e) {
 					System.out.println("Client스레드 종료중에 예외");
 					e.printStackTrace();
@@ -85,8 +87,6 @@ public class Client extends Thread {
 				System.out.println("서버와 통신을 실패했습니다.");
 				try {
 					socket.close();
-					packetInput.close();
-					packetOutput.close();
 				} catch (IOException e) {
 					System.out.println("Client스레드 종료중에 예외");
 					e.printStackTrace();
@@ -99,8 +99,9 @@ public class Client extends Thread {
 	
 	public void test_II()
 	{
+		System.out.println("서버와 연결되었습니다.");
 		System.out.println("서버 연속 신호 송수신 테스트");
-		System.out.println("이건 굳이 server의 test_II 아니더라도 test_i과도 호환가능하다.");
+		
 		while(true)
 		{
 			try {
@@ -116,8 +117,6 @@ public class Client extends Thread {
 				System.out.println("통신실패");
 				try {
 					socket.close();
-					packetInput.close();
-					packetOutput.close();
 				} catch (IOException e) {
 					System.out.println("Client스레드 test_II메소드 종료중에 예외");
 					e.printStackTrace();
@@ -125,6 +124,5 @@ public class Client extends Thread {
 				return ;
 			}
 		}
-	}
-	
+	}	
 }

@@ -18,6 +18,7 @@ import java.net.Socket;
 public class Server {
 	int waitTime;
 	int portNum;
+	int fileSizeIndex;
 	String fileName = null;		//서버 테스트 용으로 만듬
 	
 	ServerSocket serverSocket;
@@ -26,17 +27,19 @@ public class Server {
 	SharedData shared;
 	byte[] fileStream;
 	
-	Server(int waitTime, int PortNum)
+	Server(int waitTime, int PortNum,int fileSizeIndex)
 	{
 		this.waitTime = waitTime;
 		this.portNum = PortNum;
+		this.fileSizeIndex = fileSizeIndex;
 	}
 	
-	Server(String fileName,int waitTime, int PortNum)
+	Server(String fileName,int waitTime, int PortNum, int fileSizeIndex)
 	{
 		this.fileName = fileName;
 		this.waitTime = waitTime;
 		this.portNum = PortNum;
+		this.fileSizeIndex = fileSizeIndex;
 	}
 	
 	public void mainServer()

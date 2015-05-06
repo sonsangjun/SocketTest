@@ -31,7 +31,6 @@ public class ServerThread extends Thread {
 	public void run()
 	{
 		System.out.println(socket.getInetAddress().getHostName()+"과 연결되었습니다.");
-		signal = new SignalData(socket,waitTime);
 		
 		try {
 			packetInput = new BufferedInputStream(socket.getInputStream());
@@ -48,6 +47,12 @@ public class ServerThread extends Thread {
 				return ;
 			}		
 		}
+		
+		signal = new SignalData(socket, waitTime);	//소켓연결후 시그널과 연결
+		signal.initial();
+		
+		//여기부터 서버에서 사용될 메소드 호출
+		
 		test_II();
 	}
 	

@@ -12,11 +12,13 @@ package Sender;
  * BufferedExceptionProcessingThread는 소켓 버퍼의 read()에 의한 블락을 막기위해 만든 스레드.
  * 
  * 20150506 테스트 메소드에 로마자 번호를 붙인다. 각 클라이언트와 서버의 테스트 메소드는 로마자 번호로 대응된다. 
+ * 위치정보겸 
  */
 
 public class Top {
 	static final boolean _Server =false;			//코드가 서버로 작동하는 경우 true
 	static final String fileName = "Test.jpeg";	//카메라 프리뷰 이미지 전송이 파일 전송과 비슷하므로 
+	static final int fileSizeIndex = 4;
 	
 	
 	public static void main(String[] args) {
@@ -28,13 +30,13 @@ public class Top {
 		if(_Server)
 		{
 			System.out.println("서버 시작");
-			Server server = new Server(waitTime, portNum);
+			Server server = new Server(waitTime, portNum, fileSizeIndex);
 			server.mainServer();
 		}
 		else
 		{
 			System.out.println("클라이언트 시작");
-			Client client = new Client(ServerIP, portNum, waitTime);
+			Client client = new Client(ServerIP, portNum, waitTime ,fileSizeIndex);
 			client.start();
 		}
 	}
