@@ -27,6 +27,7 @@ public class ServerThread extends Thread {
 	ClientManagement clientManagement;	//정적 배열리스트가 관리의 편의를 위해 선언
 	SignalData signal;
 	
+	//방 자체도 String이 아닌 String 와 해당 방의 사람 수를 포함한 클래스로 선언하면 관리하기 더 쉬울듯.
 	//서버에 존재하는 방이름과 각종 스트림은 정적 ArrayList로 관리한다.
 	static ArrayList<ClientManagement> clientManagementList = new ArrayList<ClientManagement>();
 	static ArrayList<String> joinRoomList = new ArrayList<String>();
