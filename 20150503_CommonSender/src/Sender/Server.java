@@ -16,7 +16,7 @@ import java.net.Socket;
  * 이미 짠 소스를 수정하기는 귀찮(사실 어디부터 손대야할지 모름)아서 새로 짠다.
  */
 public class Server {
-	int waitTime = 500;
+	int waitTime;
 	int portNum;
 	String fileName = null;		//서버 테스트 용으로 만듬
 	
@@ -32,9 +32,10 @@ public class Server {
 		this.portNum = PortNum;
 	}
 	
-	Server(String fileName,int PortNum)
+	Server(String fileName,int waitTime, int PortNum)
 	{
 		this.fileName = fileName;
+		this.waitTime = waitTime;
 		this.portNum = PortNum;
 	}
 	
@@ -47,11 +48,17 @@ public class Server {
 	//정식 서버
 	public void standardServer()
 	{
+		try {
+			serverSocket = new ServerSocket(portNum);
+		} catch (IOException e1) {
+			System.out.println("서버 소켓 생성중 예외");
+			e1.printStackTrace();
+			return ;
+		}
+		
 		while(true)
 		{
 			try {
-				
-				serverSocket = new ServerSocket(portNum);
 				socket = serverSocket.accept();
 				Thread serverThread = new ServerThread(socket,waitTime);
 				
@@ -66,11 +73,17 @@ public class Server {
 	//테스트 서버
 	public void testServer(String fileName)
 	{		
+		try {
+			serverSocket = new ServerSocket(portNum);
+		} catch (IOException e1) {
+			System.out.println("서버 소켓 생성중 예외");
+			e1.printStackTrace();
+			return ;
+		}
 		while(true)
 		{
 			System.out.println("서버 연결 대기중");
 			try{
-				serverSocket = new ServerSocket(portNum);
 				socket = serverSocket.accept();
 				Thread serverThread = new ServerThread(socket,fileName,waitTime);
 				
@@ -78,6 +91,7 @@ public class Server {
 			}catch(IOException e) {
 				System.out.println("테스트 서버 IO예외 발생 "+e.getMessage());
 				e.printStackTrace();
+				return ;
 			}
 		}
 		

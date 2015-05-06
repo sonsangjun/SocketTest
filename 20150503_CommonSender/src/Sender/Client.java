@@ -25,12 +25,11 @@ public class Client extends Thread {
 		this.ServerIP = ServerIP;		
 		this.portNum = portNum;
 		this.waitTime = waitTime;
+		
 	}
 	
 	public void run()
-	{
-		byte[] signalByte = new byte[signal.signalSize];
-		
+	{		
 		try {
 			System.out.println("서버 연결중");
 			socket = new Socket(ServerIP, portNum);
@@ -49,23 +48,83 @@ public class Client extends Thread {
 		}
 
 		signal = new SignalData(socket, waitTime);	//소켓연결후 시그널과 연결
+		
+		byte[] signalByte = new byte[signal.signalSize];
+		
+		test_II();
 	}
 	
-	public void Test()
+	
+	
+	
+	//Test메소드들
+	public void test_I()
 	{
+		System.out.println("서버와 연결되었습니다.");
 		while(true)
 		{
 			//원래대로면 방 만들던가 참여하던가 선택해야지( 테스트 이므로 제낀다. )
-			try {
-				this.sleep(waitTime);
-			} catch (InterruptedException e) {
-				System.out.println("Test메소드, 인터럽트 예외");
-				e.printStackTrace();
+			System.out.println("신호 테스트");
+			if(signal.toRequest())
+			{
+				System.out.println("서버와 통신을 성공했습니다.");
+				System.out.println("서버와 연결을 종료합니다.");
+				try {
+					socket.close();
+					packetInput.close();
+					packetOutput.close();
+				} catch (IOException e) {
+					System.out.println("Client스레드 종료중에 예외");
+					e.printStackTrace();
+					return ;
+				}
 				return ;
 			}
-			System.out.println("서버와 연결되었습니다.");
-			System.out.println("신호 테스트");
-			signal.toRequest();
+			else
+			{
+				System.out.println("서버와 통신을 실패했습니다.");
+				try {
+					socket.close();
+					packetInput.close();
+					packetOutput.close();
+				} catch (IOException e) {
+					System.out.println("Client스레드 종료중에 예외");
+					e.printStackTrace();
+					return ;
+				}
+				return;				
+			}
 		}	
 	}
+	
+	public void test_II()
+	{
+		System.out.println("서버 연속 신호 송수신 테스트");
+		System.out.println("이건 굳이 server의 test_II 아니더라도 test_i과도 호환가능하다.");
+		while(true)
+		{
+			try {
+				Thread.sleep(waitTime);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			if(signal.toRequest())
+				System.out.println("통신성공");
+			else
+			{
+				System.out.println("통신실패");
+				try {
+					socket.close();
+					packetInput.close();
+					packetOutput.close();
+				} catch (IOException e) {
+					System.out.println("Client스레드 test_II메소드 종료중에 예외");
+					e.printStackTrace();
+				}				
+				return ;
+			}
+		}
+	}
+	
 }
