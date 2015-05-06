@@ -9,15 +9,23 @@ public class Client extends Thread {
 	int portNum;
 	int waitTime;
 	int fileSizeIndex;
+	int clientID;
 	
 	String ServerIP;
-	Socket socket;
 	SignalData signal;
 	SharedData shared;
-	FileSizeChecking fileSizeChecking;
+	IntegerToByteArray integerToByteArray;
 	
-	BufferedInputStream packetInput;
-	BufferedOutputStream packetOutput;
+	Socket eventSocket;
+	Socket cameraSocket;
+	Socket voiceSocket;
+	
+	BufferedInputStream eventInput;
+	BufferedInputStream cameraInput;
+	BufferedInputStream voiceInput;
+	BufferedOutputStream eventOutput;
+	BufferedOutputStream cameraOutput;
+	BufferedOutputStream voiceOutput;
 	
 	//정적변수로 유틸리티 패키지에 ArrayList 선언하고, 타입은 사용자가 선언 한 클래스 . 클래스 안에는 스트림 입출력및 참여한 방번호를 넣어면 된다.
 	//그러면 파일 송수신, 위치 정보 송수신등을 쉽게 관리할 수 있다.
@@ -32,31 +40,93 @@ public class Client extends Thread {
 		
 	}
 	
+	//클라이언트 아이디를 서버로부터 받는다.
+	public boolean receiveClientID()
+	{
+		IntegerToByteArray clientID = new IntegerToByteArray();
+		if(signal.toResponse(signal.request))
+		{
+			
+			if(signal.toResponse(signal.byteReceive))
+			{
+				byte[] receiveID = new byte[fileSizeIndex];
+				try {
+					eventInput.read(receiveID);
+					this.clientID = clientID.getInt(receiveID);
+					System.out.println("서버로부터 ID를 할당받았습니다. ID : "+this.clientID);
+					return true;
+				} catch (IOException e) {
+					e.printStackTrace();
+				}				
+			}
+		}
+		System.out.println("Server로부터 ID할당받기를 실패했습니다.");
+		return false;
+	}
+	
+	//서버와 연결종료
+	public boolean exitClient()
+	{
+		try {
+			eventSocket.close();
+			cameraSocket.close();
+			voiceSocket.close();
+			return true;
+		} catch (IOException e) {
+			System.out.println("exitClient도중 예외발생");
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
 	public void run()
 	{		
 		try {
 			System.out.println("서버 연결중");
-			socket = new Socket(ServerIP, portNum);
+			eventSocket = new Socket(ServerIP, portNum);
+			cameraSocket = new Socket(ServerIP, portNum+1);
+			voiceSocket = new Socket(ServerIP, portNum+2);
+			
 		} catch (IOException e) {
 			System.out.println("서버로 연결중 예외");
 			e.printStackTrace();
 			return ;
 		}
 		try {
-			packetInput = new BufferedInputStream(socket.getInputStream());
-			packetOutput = new BufferedOutputStream(socket.getOutputStream());
+			eventInput = new BufferedInputStream(eventSocket.getInputStream());
+			eventOutput = new BufferedOutputStream(eventSocket.getOutputStream());
 		} catch (IOException e1) {
 			System.out.println(this.getName()+"스트림 예외");
 			e1.printStackTrace();
 			return;
 		}
 		
-		signal = new SignalData(socket, waitTime);	//소켓연결후 시그널과 연결
+		signal = new SignalData(eventSocket, waitTime);	//소켓연결후 시그널과 연결
 		signal.initial();
+		
+		if(!receiveClientID())
+			return ;
+		
 		//여기부터 클라이언트에서 작동될 메소드 호출
 
 		test_II();
+		
+		
+		
+		
+		
+		//여기까지 클라이언트에서 작성가능한 부분
+		exitClient();
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	
@@ -74,7 +144,9 @@ public class Client extends Thread {
 				System.out.println("서버와 통신을 성공했습니다.");
 				System.out.println("서버와 연결을 종료합니다.");
 				try {
-					socket.close();
+					eventSocket.close();
+					cameraSocket.close();
+					voiceSocket.close();
 				} catch (IOException e) {
 					System.out.println("Client스레드 종료중에 예외");
 					e.printStackTrace();
@@ -86,7 +158,9 @@ public class Client extends Thread {
 			{
 				System.out.println("서버와 통신을 실패했습니다.");
 				try {
-					socket.close();
+					eventSocket.close();
+					cameraSocket.close();
+					voiceSocket.close();
 				} catch (IOException e) {
 					System.out.println("Client스레드 종료중에 예외");
 					e.printStackTrace();
@@ -116,7 +190,9 @@ public class Client extends Thread {
 			{
 				System.out.println("통신실패");
 				try {
-					socket.close();
+					eventSocket.close();
+					cameraSocket.close();
+					voiceSocket.close();
 				} catch (IOException e) {
 					System.out.println("Client스레드 test_II메소드 종료중에 예외");
 					e.printStackTrace();

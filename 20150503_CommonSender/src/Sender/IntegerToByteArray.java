@@ -15,10 +15,13 @@ package Sender;
  * 
  * 	100MByte 이상은 필요없을듯 음성이 커봤자 얼마나 크겠어
  * 	그리고 int 데이터 범위내에서만 변환하고 싶당
+ * 
+ * 파일 사이즈 변환으로 썼지만, assignClientID변환에도 사용하므로
+ * 클래스 명을 바꾸었다.
  */
 
 
-public class FileSizeChecking {
+public class IntegerToByteArray {
 	final int divide = 100;
 	
 	//옳게 출력되는지 테스트 메소드

@@ -12,7 +12,15 @@ package Sender;
  * BufferedExceptionProcessingThread는 소켓 버퍼의 read()에 의한 블락을 막기위해 만든 스레드.
  * 
  * 20150506 테스트 메소드에 로마자 번호를 붙인다. 각 클라이언트와 서버의 테스트 메소드는 로마자 번호로 대응된다. 
- * 위치정보겸 
+ * 
+ * 카메라 프리뷰 이미지와, 음성, 위치정보를 보내는 포트를 다르게 해야할거 같다. 같은 소켓으로 두면
+ * 엉망이 될거 같다. 위치정보는 크기가 작지만, 나머지는 크기에 다른 포트로 하고, 스레드도 각각 필요할때만 돌리자.
+ * 9000포트는 위치정보겸, 각종 이벤트 뿌리기 (XX님이 화면 공유를 시작합니다.)
+ * 9001포트는 카메라 프리뷰 이미지
+ * 9002포트는 음성 
+ * 
+ * 서버 스레드에서 각 클라이언트 관리를 위해서 스트림 포트와 참여한 방번호를 기억하는 클래스를 하나 선언하고, 
+ * 각 클라이언트에 대한 인스턴스를 만들어 서버스레드의 정적 배열리스트에 추가해 관리하도록 계획.
  */
 
 public class Top {
@@ -41,20 +49,21 @@ public class Top {
 		}
 	}
 }
-
 /*				 Top
  * 				  │
  * 			┌─────┴─────┐
  * 		 Server		Client
  * 			│			
  * 		ServerThread
+ *  		│
+ *  	ClientManagement		(ClientManagement클래스는 서버스레드 정적배열리스트를 위해 선언된 클래스)	
  * 	┌────────────────────────── Server,Client에 사용되는 나머지 클래스들 관계
- *  │
+ *  │				
  *	├─	SharedData
- *	├─	SignalData	─	BufferedExceptionProcessingThread
- *	├─	FileSizeChecking
+ *	├─	SignalData
+ *	├─	IntegerToByteArray
+ *	├─	ByteArrayTransCeiverThread
  *(나중에 추가)
-
  * 
  */
  

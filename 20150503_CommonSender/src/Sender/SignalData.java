@@ -16,9 +16,14 @@ public class SignalData {
 	final byte[] location = 	{ 1,0 }; 	//위치
 	final byte[] camera	=		{ 1,1 }; 	//카메라 프리뷰 이미지
 	final byte[] voice	=		{ 1,2 }; 	//목소리
+	final byte[] makeRoom	=	{ 1,3 };	//방 만들기
+	final byte[] delRoom	=	{ 1,4 };	//방 없애기
 	
-	final byte[] fileSend = 	{ 2,0 }; 	//파일보냄
-	final byte[] fileReceive=	{ 2,1 }; 	//파일받음
+	
+	final byte[] byteSend = 	{ 2,0 }; 	//바이트배열보냄
+	final byte[] byteReceive=	{ 2,1 }; 	//바이트배열받음
+	
+	
 	
 	int waitTime;
 	
@@ -101,12 +106,14 @@ public class SignalData {
 			case 0: return "location";
 			case 1: return "camera";
 			case 2: return "voice";
+			case 3: return "makeRoom";
+			case 4: return "delRoom";
 			}
 		case 2:
 			switch(wantSignal[2])
 			{
-			case 0: return "fileSend";
-			case 1: return "fileReceive";
+			case 0: return "byteSend";
+			case 1: return "byteReceive";
 			}
 		default:return null;
 		}

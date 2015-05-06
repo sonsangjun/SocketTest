@@ -21,8 +21,13 @@ public class Server {
 	int fileSizeIndex;
 	String fileName = null;		//서버 테스트 용으로 만듬
 	
-	ServerSocket serverSocket;
-	Socket socket;
+	ServerSocket eventServerSocket;		//portNum : 9000
+	ServerSocket cameraServerSocket;	//portNum : 9001
+	ServerSocket voiceServerSocket;		//portNum : 9002
+	Socket eventSocket;
+	Socket cameraSocket;
+	Socket voiceSocket;
+
 	Socket fileReceiver;
 	SharedData shared;
 	byte[] fileStream;
@@ -52,7 +57,9 @@ public class Server {
 	public void standardServer()
 	{
 		try {
-			serverSocket = new ServerSocket(portNum);
+			eventServerSocket = new ServerSocket(portNum);
+			cameraServerSocket = new ServerSocket(portNum+1);
+			voiceServerSocket = new ServerSocket(portNum+2);			
 		} catch (IOException e1) {
 			System.out.println("서버 소켓 생성중 예외");
 			e1.printStackTrace();
@@ -62,8 +69,11 @@ public class Server {
 		while(true)
 		{
 			try {
-				socket = serverSocket.accept();
-				Thread serverThread = new ServerThread(socket,waitTime);
+				eventSocket = eventServerSocket.accept();
+				cameraSocket = cameraServerSocket.accept();
+				voiceSocket = voiceServerSocket.accept();
+				
+				Thread serverThread = new ServerThread(eventSocket, cameraSocket, voiceSocket, waitTime,fileSizeIndex);
 				
 				serverThread.start();				
 			} catch (IOException e) {
@@ -77,7 +87,9 @@ public class Server {
 	public void testServer(String fileName)
 	{		
 		try {
-			serverSocket = new ServerSocket(portNum);
+			eventServerSocket = new ServerSocket(portNum);
+			cameraServerSocket = new ServerSocket(portNum+1);
+			voiceServerSocket = new ServerSocket(portNum+2);	
 		} catch (IOException e1) {
 			System.out.println("서버 소켓 생성중 예외");
 			e1.printStackTrace();
@@ -87,9 +99,16 @@ public class Server {
 		{
 			System.out.println("서버 연결 대기중");
 			try{
-				socket = serverSocket.accept();
-				Thread serverThread = new ServerThread(socket,fileName,waitTime);
+				eventSocket = eventServerSocket.accept();
+				System.out.println("eventSocket연결성공");
 				
+				cameraSocket = cameraServerSocket.accept();
+				System.out.println("cameraSocket연결성공");
+				
+				voiceSocket = voiceServerSocket.accept();
+				System.out.println("voiceSocket연결성공");
+				
+				Thread serverThread = new ServerThread(eventSocket, cameraSocket, voiceSocket, waitTime,fileSizeIndex);
 				serverThread.start();
 			}catch(IOException e) {
 				System.out.println("테스트 서버 IO예외 발생 "+e.getMessage());
