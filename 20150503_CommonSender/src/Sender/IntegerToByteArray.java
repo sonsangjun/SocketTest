@@ -18,6 +18,12 @@ package Sender;
  * 
  * 파일 사이즈 변환으로 썼지만, assignClientID변환에도 사용하므로
  * 클래스 명을 바꾸었다.
+ * 
+ * 20150506 메소드 목록
+ * 	public void Test(int intFileSize,byte[] byteFileSize)		정상변환되었는지 테스트
+ * 	public void getBytes(int intFileSize,byte[] byteFileSize)	int를 byte배열로 변환
+ * 	public int getInt(byte[] byteFileSize)						byte[]를 int로 변환
+ * 	public void initialByteArray(byte[] byteFileSize)			배열 초기화(-1로 채움)
  */
 
 

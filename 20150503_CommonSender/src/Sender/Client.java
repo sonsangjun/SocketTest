@@ -5,6 +5,14 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
+
+/* 20150506 메소드 목록
+ * Client									생성자
+ * public boolean receiveClientID()			서버로부터 ID받음
+ * public void run()						스레드 코어
+ * public void test_I()						test_로마숫자 는 테스트 메소드
+ */
+
 public class Client extends Thread {
 	int portNum;
 	int waitTime;

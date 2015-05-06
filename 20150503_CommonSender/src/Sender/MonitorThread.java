@@ -2,6 +2,16 @@ package Sender;
 
 import java.util.ArrayList;
 
+/*
+ * 모니터 스레드
+ * 스레드가 어떤 상태인지 파악하기 위해 만든 클래스
+ * 
+ * 
+ * 20150506 메소드 목록
+ * public MonitorThread(ArrayList<Thread> threadList,int interval)	생성자
+ * public void run()												스레드 코어
+ */
+
 
 public class MonitorThread extends Thread{
 	ArrayList<Thread> threadList = new ArrayList<Thread>();	//작동중인 스레드 목록

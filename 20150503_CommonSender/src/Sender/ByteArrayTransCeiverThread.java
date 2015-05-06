@@ -5,6 +5,12 @@ import java.io.BufferedOutputStream;
 
 //서버,클라이언트 스레드와 독립적으로 돌아감 .
 //크기가 큰 카메라프리뷰나 음성 송수신에 사용.
+
+
+/* 20150506 메소드 목록
+ * 
+ * 
+ */
 public class ByteArrayTransCeiverThread {
 	boolean transCeive = true; //(true 송신, false 수신)(송수신이니깐 순서대로 불값줌)
 	byte[] fileByteArray;

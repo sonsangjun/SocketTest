@@ -14,6 +14,15 @@ import java.net.Socket;
  * 파일 송수신은 단일 스레드간에만 이루어진다.. (서버 1개 <-> 클라 1개)
  * 이유는 스레드를 각각 두개씩 두어 파일 체킹과 보내는걸 분리했는데, 둘 사이에 통신이 잘 안되서 락걸리더라... Busy loop 하면 되겠지만,
  * 이미 짠 소스를 수정하기는 귀찮(사실 어디부터 손대야할지 모름)아서 새로 짠다.
+ * 
+ * 
+ * 20150506 메소드 목록
+ * 	Server(int waitTime, int PortNum,int fileSizeIndex)						생성자
+ * 	Server(String fileName,int waitTime, int PortNum, int fileSizeIndex)	테스트 생성자
+ * 	public void mainServer()												서버의 시작점
+ * 	public void standardServer()											정식 서버 메소드
+ * 	public void testServer(String fileName)									테스트 서버 메소드
+ * 
  */
 public class Server {
 	int waitTime;
