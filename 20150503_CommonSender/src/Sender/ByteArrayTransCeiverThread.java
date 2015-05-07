@@ -168,11 +168,16 @@ public class ByteArrayTransCeiverThread {
 		transCeiveSuccess();
 		usedChecking(true);
 		byte[] fileSize = new byte[integerToByteArray.fileSizeIndex];
+		byte[] fileByteArray;
 		int intFileSize;
 		integerToByteArray.initialByteArray(fileSize);
 		
 		//자기 자신은 필요없다.
 		clientManagementList.remove(clientManagement);
+		
+		if(clientManagementList.size() <= 0)
+			return ;
+		
 		
 		if(signal.toResponse(signal.request))
 		{
@@ -181,7 +186,44 @@ public class ByteArrayTransCeiverThread {
 				try {
 					input.read(fileSize);
 					intFileSize = integerToByteArray.getInt(fileSize);
-					signal.toConfirm(signal.byteSize);
+					fileByteArray = new byte[intFileSize];		
+					if(!signal.toConfirm(signal.byteSize))
+					{
+						transCeiveFailed();
+						usedChecking(false);
+						return ;						
+					}
+					
+					byteArrayTransCeiverRule.Calc(intFileSize);
+					int counter=0;
+					int unitSize = byteArrayTransCeiverRule.fileUnitSize;
+					int maxCounter = byteArrayTransCeiverRule.counter;
+					
+					while(true)
+					{
+						if(counter >= maxCounter)
+						{
+							if(counter*unitSize == fileByteArray.length)
+							{
+								transCeiveSuccess();
+								usedChecking(false);
+								break;
+							}
+							
+							if(signal.toResponse(signal.byteSend))
+							{
+								input.read(fileByteArray, unitSize, byteArrayTransCeiverRule.extra);
+								transCeiveSuccess();
+								usedChecking(false);
+								break;								
+							}							
+						}
+						else if(signal.toResponse(signal.byteSend))
+						{
+							input.read(fileByteArray, counter*unitSize, unitSize);
+							counter++;
+						}						
+					}
 					
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
@@ -192,17 +234,21 @@ public class ByteArrayTransCeiverThread {
 				}							
 			}
 		}
+		//여기까지는 클라에게 서버가 파일 받는거고(정확히는 데이터스트림)
 		
+		//아래부터는 서버가 클라이언트에게 뿌린다.		
 		
 		//clientManagementList는 서버스레드의 정적배열리스트가 아니라 따로 추려서 만든 리스티이므로 안에 내용물을 수정해도 무방하다.
+		//여기는 쿠팡 인적성 보고나서 하려나...
 		while(true)
 		{
 			for(ClientManagement C:clientManagementList)
 			{
 				
+				
+				
 			}
-		}
-		
+		}		
 	}
 	
 	public void usedChecking(boolean used)	//사용하면 true,	안사용하면 false
@@ -227,7 +273,6 @@ public class ByteArrayTransCeiverThread {
 			clientManagement.cameraTransCeive = true;
 		else
 			clientManagement.voiceTransCeive = true;
-		
 	}
 }
 
