@@ -25,12 +25,13 @@ public class ServerThread extends Thread {
 	BufferedOutputStream voiceOutput;	//Buffered까지 위치정보, 카메라 프리뷰, 음성을 위해 각각 포트에 대응해 스트림을 할당했다.
 	
 	ClientManagement clientManagement;	//정적 배열리스트가 관리의 편의를 위해 선언
+	RoomManagement roomManagement;		//방 관리
 	SignalData signal;
 	
 	//방 자체도 String이 아닌 String 와 해당 방의 사람 수를 포함한 클래스로 선언하면 관리하기 더 쉬울듯.
 	//서버에 존재하는 방이름과 각종 스트림은 정적 ArrayList로 관리한다.
 	static ArrayList<ClientManagement> clientManagementList = new ArrayList<ClientManagement>();
-	static ArrayList<String> joinRoomList = new ArrayList<String>();
+	static ArrayList<RoomManagement> joinRoomList = new ArrayList<RoomManagement>();
 	static int assignedClientID = 0;
 	
 	public ServerThread(Socket eventSocket,	Socket cameraSocket,Socket voiceSocket,	int waitTime, int fileSizeIndex) 
@@ -83,47 +84,65 @@ public class ServerThread extends Thread {
 	//방 만들기
 	public boolean makeRoom(String roomName)
 	{
-		for(String S:joinRoomList)
+		if(roomName.equals(unname))
+			return false;				//unname은 쓸수없다.
+		for(RoomManagement R:joinRoomList)
 		{
-			if(S.equals(roomName))
+			if(R.roomName.equals(roomName))
 			{
 				return false;
 			}
 		}
-		joinRoomList.add(roomName);
+		System.out.println(roomName+" 이 추가되었습니다.");
+		clientManagement.joinRoom = new String(roomName);
+		joinRoomList.add(new RoomManagement(roomName));
 		return true;		
 	}
 	
 	//빈방 삭제하기
-	public void checkingJoinRoom()
+	public boolean checkingJoinRoom()
 	{
-		for(String S:joinRoomList)
+		for(RoomManagement R:joinRoomList)
 		{
-			if(S.equals(unname))	//unname은 기본이므로 삭제하면 안된다.
-				continue;
-			boolean flag = false;	//방에 사람이 없다면 false
-			for(ClientManagement C:clientManagementList)
+			if(R.joinNumber <= 0)
 			{
-				if(joinRoomList.equals(C.joinRoom))
-				{
-					flag = true;
-					break;
-				}					
+				System.out.println(R.roomName+" 삭제되었습니다.");
+				joinRoomList.remove(R);		//방 삭제
+				return true;
 			}
-			if(!flag)
-				joinRoomList.remove(S);
-		}		
+		}
+		return false;
 	}
 	
 	//방 출입
-	public void joinRoom(String roomName)
-	{
-		clientManagement.joinRoom = new String(roomName);		
+	public boolean joinRoom(String roomName)
+	{	
+		
+		for(RoomManagement R:joinRoomList)
+		{
+			if(R.equals(roomName))
+			{				
+				R.joinNumber++;
+				clientManagement.joinRoom = new String(roomName);
+				return true;
+			}
+		}
+		System.out.println(clientManagement.clientID+" 가 "+roomName+" 방에 참여하지 못했습니다.");
+		return false;
 	}
 	
-	public void exitRoom(String roomName)
+	public boolean exitRoom(String roomName)
 	{
-		clientManagement.joinRoom = new String(unname);		
+		for(RoomManagement R:joinRoomList)
+		{
+			if(R.equals(roomName))
+			{				
+				R.joinNumber--;
+				clientManagement.joinRoom = new String(unname);
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	//클라이언트 연결종료
@@ -175,9 +194,7 @@ public class ServerThread extends Thread {
 		//여기부터 서버에서 사용될 메소드 호출
 		//막 들어온 클라이언트는 방에 참여하기 전까지 clientManagement는 정적배열리스트에 추가하지 않는다.
 		
-		test_II();
-		
-		
+		test_II();		
 		//이 윗부분사이에 서버 코드를 작성하면 된다.
 		//클라이언트와 연결종료한다.
 		exitServer();		
