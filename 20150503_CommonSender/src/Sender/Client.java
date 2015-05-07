@@ -16,12 +16,11 @@ import java.net.Socket;
 public class Client extends Thread {
 	int portNum;
 	int waitTime;
-	int fileSizeIndex;
 	int clientID;
 	
 	String ServerIP;
 	SignalData signal;
-	SharedData shared;
+	ByteArrayTransCevierRule shared;
 	IntegerToByteArray integerToByteArray;
 	
 	Socket eventSocket;
@@ -29,23 +28,17 @@ public class Client extends Thread {
 	Socket voiceSocket;
 	
 	BufferedInputStream eventInput;
-	BufferedInputStream cameraInput;
-	BufferedInputStream voiceInput;
 	BufferedOutputStream eventOutput;
-	BufferedOutputStream cameraOutput;
-	BufferedOutputStream voiceOutput;
 	
 	//정적변수로 유틸리티 패키지에 ArrayList 선언하고, 타입은 사용자가 선언 한 클래스 . 클래스 안에는 스트림 입출력및 참여한 방번호를 넣어면 된다.
 	//그러면 파일 송수신, 위치 정보 송수신등을 쉽게 관리할 수 있다.
 	//그외 정적변수로 방 목록을 담는 ArrayList 필요할듯 방을 만들거나 참여할때 참고해야하므로...
 	
-	public Client(String ServerIP, int portNum,int waitTime, int fileSizeIndex)
+	public Client(String ServerIP, int portNum,int waitTime)
 	{
 		this.ServerIP = ServerIP;		
 		this.portNum = portNum;
-		this.waitTime = waitTime;
-		this.fileSizeIndex = fileSizeIndex;
-		
+		this.waitTime = waitTime;		
 	}
 	
 	//클라이언트 아이디를 서버로부터 받는다.
@@ -54,10 +47,9 @@ public class Client extends Thread {
 		IntegerToByteArray clientID = new IntegerToByteArray();
 		if(signal.toResponse(signal.request))
 		{
-			
 			if(signal.toResponse(signal.byteReceive))
 			{
-				byte[] receiveID = new byte[fileSizeIndex];
+				byte[] receiveID = new byte[clientID.fileSizeIndex];
 				try {
 					eventInput.read(receiveID);
 					this.clientID = clientID.getInt(receiveID);
@@ -109,7 +101,7 @@ public class Client extends Thread {
 			return;
 		}
 		
-		signal = new SignalData(eventSocket, waitTime);	//소켓연결후 시그널과 연결
+		signal = new SignalData(eventSocket);	//소켓연결후 시그널과 연결
 		signal.initial();
 		
 		if(!receiveClientID())
@@ -193,10 +185,10 @@ public class Client extends Thread {
 				e.printStackTrace();
 			}
 			if(signal.toRequest())
-				System.out.println("통신성공");
+				System.out.println(eventSocket.getInetAddress().getHostName()+"통신성공");
 			else
 			{
-				System.out.println("통신실패");
+				System.out.println(eventSocket.getInetAddress().getHostName()+"통신실패");
 				try {
 					eventSocket.close();
 					cameraSocket.close();

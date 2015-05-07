@@ -27,7 +27,6 @@ import java.net.Socket;
 public class Server {
 	int waitTime;
 	int portNum;
-	int fileSizeIndex;
 	String fileName = null;		//서버 테스트 용으로 만듬
 	
 	ServerSocket eventServerSocket;		//portNum : 9000
@@ -38,22 +37,20 @@ public class Server {
 	Socket voiceSocket;
 
 	Socket fileReceiver;
-	SharedData shared;
+	ByteArrayTransCevierRule shared;
 	byte[] fileStream;
 	
-	Server(int waitTime, int PortNum,int fileSizeIndex)
+	Server(int waitTime, int PortNum)
 	{
 		this.waitTime = waitTime;
 		this.portNum = PortNum;
-		this.fileSizeIndex = fileSizeIndex;
 	}
 	
-	Server(String fileName,int waitTime, int PortNum, int fileSizeIndex)
+	Server(String fileName,int waitTime, int PortNum)
 	{
 		this.fileName = fileName;
 		this.waitTime = waitTime;
 		this.portNum = PortNum;
-		this.fileSizeIndex = fileSizeIndex;
 	}
 	
 	public void mainServer()
@@ -82,7 +79,7 @@ public class Server {
 				cameraSocket = cameraServerSocket.accept();
 				voiceSocket = voiceServerSocket.accept();
 				
-				Thread serverThread = new ServerThread(eventSocket, cameraSocket, voiceSocket, waitTime,fileSizeIndex);
+				Thread serverThread = new ServerThread(eventSocket, cameraSocket, voiceSocket, waitTime);
 				
 				serverThread.start();				
 			} catch (IOException e) {
@@ -117,7 +114,7 @@ public class Server {
 				voiceSocket = voiceServerSocket.accept();
 				System.out.println("voiceSocket연결성공");
 				
-				Thread serverThread = new ServerThread(eventSocket, cameraSocket, voiceSocket, waitTime,fileSizeIndex);
+				Thread serverThread = new ServerThread(eventSocket, cameraSocket, voiceSocket, waitTime);
 				serverThread.start();
 			}catch(IOException e) {
 				System.out.println("테스트 서버 IO예외 발생 "+e.getMessage());

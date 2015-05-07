@@ -26,25 +26,25 @@ package Sender;
 public class Top {
 	static final boolean _Server =false;			//코드가 서버로 작동하는 경우 true
 	static final String fileName = "Test.jpeg";	//카메라 프리뷰 이미지 전송이 파일 전송과 비슷하므로 
-	static final int fileSizeIndex = 4;
+	
 	
 	
 	public static void main(String[] args) {
-		//final String ServerIP = "221.156.9.145";	//외부에서 테스트할때 IP
-		final String ServerIP = "192.168.0.3";
+		final String ServerIP = "221.156.9.145";	//외부에서 테스트할때 IP
+		//final String ServerIP = "192.168.0.3";
 		final int waitTime = 2000;
 		final int portNum = 9000;
 		
 		if(_Server)
 		{
 			System.out.println("서버 시작");
-			Server server = new Server(waitTime, portNum, fileSizeIndex);
+			Server server = new Server(waitTime, portNum);
 			server.mainServer();
 		}
 		else
 		{
 			System.out.println("클라이언트 시작");
-			Client client = new Client(ServerIP, portNum, waitTime ,fileSizeIndex);
+			Client client = new Client(ServerIP, portNum, waitTime);
 			client.start();
 		}
 	}

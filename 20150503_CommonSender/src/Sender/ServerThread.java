@@ -10,7 +10,6 @@ public class ServerThread extends Thread {
 	final String unname = new String("unname");	//방에 참여안했을때, unname으로 할당
 		
 	int waitTime;
-	int fileSizeIndex;
 	String fileName;
 	
 	Socket eventSocket;					//Socket부터
@@ -18,34 +17,30 @@ public class ServerThread extends Thread {
 	Socket voiceSocket;
 	
 	BufferedInputStream eventInput;
-	BufferedInputStream cameraInput;
-	BufferedInputStream voiceInput;
 	BufferedOutputStream eventOutput;
-	BufferedOutputStream cameraOutput;
-	BufferedOutputStream voiceOutput;	//Buffered까지 위치정보, 카메라 프리뷰, 음성을 위해 각각 포트에 대응해 스트림을 할당했다.
 	
 	ClientManagement clientManagement;	//정적 배열리스트가 관리의 편의를 위해 선언
 	RoomManagement roomManagement;		//방 관리
 	SignalData signal;
 	
+	//서버에서 ClientManageList를 일일이 뒤지려면 오래걸리므로 파일송수신 스레드를 돌리기전에 뿌려야하는 명단을 서버에게 추려서 주도록하자.
 	//방 자체도 String이 아닌 String 와 해당 방의 사람 수를 포함한 클래스로 선언하면 관리하기 더 쉬울듯.
 	//서버에 존재하는 방이름과 각종 스트림은 정적 ArrayList로 관리한다.
 	static ArrayList<ClientManagement> clientManagementList = new ArrayList<ClientManagement>();
 	static ArrayList<RoomManagement> joinRoomList = new ArrayList<RoomManagement>();
 	static int assignedClientID = 0;
 	
-	public ServerThread(Socket eventSocket,	Socket cameraSocket,Socket voiceSocket,	int waitTime, int fileSizeIndex) 
+	public ServerThread(Socket eventSocket,	Socket cameraSocket,Socket voiceSocket,	int waitTime) 
 	{
 		this.eventSocket = eventSocket;
 		this.cameraSocket = cameraSocket;
 		this.voiceSocket = voiceSocket;
 			
 		this.waitTime = waitTime;
-		this.fileSizeIndex = fileSizeIndex;
 	}
 	
 	//테스트 서버에 대응하는 생성자
-	public ServerThread(Socket eventSocket,	Socket cameraSocket,Socket voiceSocket, String fileName, int waitTime, int fileSizeIndex)
+	public ServerThread(Socket eventSocket,	Socket cameraSocket,Socket voiceSocket, String fileName, int waitTime)
 	{
 		this.eventSocket = eventSocket;
 		this.cameraSocket = cameraSocket;
@@ -53,7 +48,6 @@ public class ServerThread extends Thread {
 		
 		this.fileName = fileName;		
 		this.waitTime = waitTime;
-		this.fileSizeIndex = fileSizeIndex;
 	}
 	
 	//할당된 ID번호를 클라이언트에게 전송
@@ -64,7 +58,7 @@ public class ServerThread extends Thread {
 			if(signal.toDoRequest(signal.byteReceive))			//신호는 무조건 명령이다. 바이트신호 받는걸 요청한다. => 바이트 받아랏
 			{
 				IntegerToByteArray convert = new IntegerToByteArray();
-				byte[] ByteArrayID = new byte[fileSizeIndex];
+				byte[] ByteArrayID = new byte[convert.fileSizeIndex];
 				try {
 					convert.initialByteArray(ByteArrayID);
 					convert.getBytes(assignedClientID, ByteArrayID);
@@ -95,7 +89,10 @@ public class ServerThread extends Thread {
 		}
 		System.out.println(roomName+" 이 추가되었습니다.");
 		clientManagement.joinRoom = new String(roomName);
-		joinRoomList.add(new RoomManagement(roomName));
+		
+		synchronized (joinRoomList) {
+			joinRoomList.add(new RoomManagement(roomName));	
+		}		
 		return true;		
 	}
 	
@@ -106,9 +103,11 @@ public class ServerThread extends Thread {
 		{
 			if(R.joinNumber <= 0)
 			{
-				System.out.println(R.roomName+" 삭제되었습니다.");
-				joinRoomList.remove(R);		//방 삭제
-				return true;
+				synchronized (joinRoomList) {
+					System.out.println(R.roomName+" 삭제되었습니다.");
+					joinRoomList.remove(R);		//방 삭제
+				}				
+				return true;					
 			}
 		}
 		return false;
@@ -137,8 +136,10 @@ public class ServerThread extends Thread {
 		{
 			if(R.equals(roomName))
 			{				
-				R.joinNumber--;
-				clientManagement.joinRoom = new String(unname);
+				synchronized (R) {
+					R.joinNumber--;
+					clientManagement.joinRoom = new String(unname);					
+				}				
 				return true;
 			}
 		}
@@ -146,12 +147,25 @@ public class ServerThread extends Thread {
 	}
 	
 	//클라이언트 연결종료
+	//클라이언트에 대한 수많은 서버 스레드가 두 클래스에 접근시 예측이 어려움으로 동기화 작성
 	public boolean exitServer()
 	{
 		try {
 			eventSocket.close();
 			cameraSocket.close();
 			voiceSocket.close();
+			
+			for(RoomManagement R:joinRoomList)
+			{
+				if(clientManagement.joinRoom.equals(R.roomName))
+				{
+					synchronized (R) {
+						R.joinNumber--;						
+					}
+					break;
+				}
+			}
+			clientManagementList.remove(clientManagement);						
 			return true;
 		} catch (IOException e) {
 			System.out.println("exitServer도중 예외발생");
@@ -183,21 +197,23 @@ public class ServerThread extends Thread {
 			}		
 		}
 		
-		signal = new SignalData(eventSocket, waitTime);	//소켓연결후 시그널과 연결
+		signal = new SignalData(eventSocket);	//소켓연결후 시그널과 연결
 		signal.initial();
 		
 		assignedClientID++;
 		if(!transClientID(assignedClientID))
 			return ;
 		
-		clientManagement = new ClientManagement(assignedClientID, new String(eventSocket.getInetAddress().getHostName()), unname, signal, eventInput, cameraInput, voiceInput, eventOutput, cameraOutput, voiceOutput);
+		clientManagement = new ClientManagement(assignedClientID, new String(eventSocket.getInetAddress().getHostName()), unname, signal, eventSocket, cameraSocket, voiceSocket, eventInput, eventOutput);
+		
 		//여기부터 서버에서 사용될 메소드 호출
 		//막 들어온 클라이언트는 방에 참여하기 전까지 clientManagement는 정적배열리스트에 추가하지 않는다.
 		
 		test_II();		
 		//이 윗부분사이에 서버 코드를 작성하면 된다.
 		//클라이언트와 연결종료한다.
-		exitServer();		
+		exitServer();
+		checkingJoinRoom();
 	}
 	
 	

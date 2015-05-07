@@ -29,6 +29,7 @@ package Sender;
 
 public class IntegerToByteArray {
 	final int divide = 100;
+	final int fileSizeIndex = 4;
 	
 	//옳게 출력되는지 테스트 메소드
 	public void Test(int intFileSize,byte[] byteFileSize)

@@ -8,7 +8,7 @@ import java.net.Socket;
 //신호송수신 자체를 SignalData의 메소드로 작성할 예정이다.
 public class SignalData {
 	final int signalSize = 2;				//시그널 길이
-	final int signalLength = 8;				//시그널 갯수
+	final int signalLength = 13;				//시그널 갯수
 	final byte[] request =		{ 0,0 };	//요청
 	final byte[] response =		{ 0,1 };	//응답함
 	final byte[] wrong	=		{ 0,2 };	//올바르지 않음
@@ -18,14 +18,13 @@ public class SignalData {
 	final byte[] voice	=		{ 1,2 }; 	//목소리
 	final byte[] makeRoom	=	{ 1,3 };	//방 만들기
 	final byte[] delRoom	=	{ 1,4 };	//방 없애기
+	final byte[] joinRoom	=	{ 1,5 };	//방 참여
+	final byte[] exitRoom	=	{ 1,6 };	//방 나가기
+
+	final byte[] byteSize	=	{ 2,0 };	//바이트배열크기
+	final byte[] byteSend = 	{ 2,1 }; 	//바이트배열보냄
+	final byte[] byteReceive=	{ 2,2 }; 	//바이트배열받음
 	
-	
-	final byte[] byteSend = 	{ 2,0 }; 	//바이트배열보냄
-	final byte[] byteReceive=	{ 2,1 }; 	//바이트배열받음
-	
-	
-	
-	int waitTime;
 	
 	Socket socket;
 	BufferedInputStream input=null;
@@ -55,9 +54,8 @@ public class SignalData {
 	*
 	*/
 	
-	public SignalData(Socket socket, int waitTime)
+	public SignalData(Socket socket)
 	{
-		this.waitTime = waitTime;		
 		this.socket = socket; 
 	}
 	
@@ -112,8 +110,9 @@ public class SignalData {
 		case 2:
 			switch(wantSignal[2])
 			{
-			case 0: return "byteSend";
-			case 1: return "byteReceive";
+			case 0:	return "byteSize";
+			case 1: return "byteSend";
+			case 2: return "byteReceive";
 			}
 		default:return null;
 		}
@@ -185,18 +184,24 @@ public class SignalData {
 		else 
 			return false;
 	}
-			
-	//원하는 응답이 오는지 체킹
 	
-	public boolean toResponse(byte[] wantSignal)
+	//요청에 대하여 응답
+	public boolean toConfirm(byte[] responseSignal)
 	{
-		//신호송수신 전에 버퍼와 소켓스트림 연결
-		if(!initial())
-		{
-			System.out.println("버퍼 스트림 초기화 실패로 Request를 보낼수 없습니다.");
+		try {
+			output.write(responseSignal);
+			output.flush();
+			return true;
+		} catch (IOException e) {
+			System.out.println("toConfirm실패");
+			e.printStackTrace();
 			return false;
 		}
-		
+	}
+			
+	//원하는 응답이 오는지 체킹
+	public boolean toResponse(byte[] wantSignal)
+	{
 		byte[] signalByte = new byte[signalSize];
 		
 		if(input == null | output == null)
