@@ -13,6 +13,8 @@ public class ClientManagement {
 	boolean cameraTransCeive = true;	//송수신 실패하면 false
 	boolean voiceTransCeive = true;		
 	
+	boolean joinRoomChecking = false;	//방에 참여여부(호스트도 참가로 간주)
+	
 	
 	int clientID;		//클라이언트를 구분하기 위해 
 	String clientIP;	//클라이언트 IP
@@ -20,6 +22,7 @@ public class ClientManagement {
 	String joinRoom;
 	SignalData signal;
 	
+	//9000 ~ 9002포트
 	Socket eventSocket;
 	Socket cameraSocket;
 	Socket voiceSocket;

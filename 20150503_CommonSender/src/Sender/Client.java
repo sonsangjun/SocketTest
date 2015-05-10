@@ -33,6 +33,7 @@ public class Client extends Thread {
 	//정적변수로 유틸리티 패키지에 ArrayList 선언하고, 타입은 사용자가 선언 한 클래스 . 클래스 안에는 스트림 입출력및 참여한 방번호를 넣어면 된다.
 	//그러면 파일 송수신, 위치 정보 송수신등을 쉽게 관리할 수 있다.
 	//그외 정적변수로 방 목록을 담는 ArrayList 필요할듯 방을 만들거나 참여할때 참고해야하므로...
+	//클라이언트가 데이터 스트림을 받기위해서는 9001포트와 9002번 포트에 대한 입력대기 스레드를 만들어 놔야할듯
 	
 	public Client(String ServerIP, int portNum,int waitTime)
 	{
@@ -132,45 +133,6 @@ public class Client extends Thread {
 	
 	
 	//Test메소드들
-	public void test_I()
-	{
-		System.out.println("서버와 연결되었습니다.");
-		while(true)
-		{
-			//원래대로면 방 만들던가 참여하던가 선택해야지( 테스트 이므로 제낀다. )
-			System.out.println("신호 테스트");
-			if(signal.toRequest())
-			{
-				System.out.println("서버와 통신을 성공했습니다.");
-				System.out.println("서버와 연결을 종료합니다.");
-				try {
-					eventSocket.close();
-					cameraSocket.close();
-					voiceSocket.close();
-				} catch (IOException e) {
-					System.out.println("Client스레드 종료중에 예외");
-					e.printStackTrace();
-					return ;
-				}
-				return ;
-			}
-			else
-			{
-				System.out.println("서버와 통신을 실패했습니다.");
-				try {
-					eventSocket.close();
-					cameraSocket.close();
-					voiceSocket.close();
-				} catch (IOException e) {
-					System.out.println("Client스레드 종료중에 예외");
-					e.printStackTrace();
-					return ;
-				}
-				return;				
-			}
-		}	
-	}
-	
 	public void test_II()
 	{
 		System.out.println("서버와 연결되었습니다.");

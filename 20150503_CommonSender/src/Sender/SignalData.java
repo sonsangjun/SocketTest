@@ -193,7 +193,7 @@ public class SignalData {
 			output.flush();
 			return true;
 		} catch (IOException e) {
-			System.out.println("toConfirm실패");
+			System.out.println("toConfirm(요청에대한 응답)실패");
 			e.printStackTrace();
 			return false;
 		}

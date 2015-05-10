@@ -78,8 +78,10 @@ public class ServerThread extends Thread {
 	//방 만들기
 	public boolean makeRoom(String roomName)
 	{
-		if(roomName.equals(unname))
-			return false;				//unname은 쓸수없다.
+		if(roomName.equals(unname))		//unname은 쓸수없다.
+			return false;						
+		if(!clientManagement.joinRoomChecking)	//이미 참여한 경우 방을 만들수 없다.
+			return false;				
 		for(RoomManagement R:joinRoomList)
 		{
 			if(R.roomName.equals(roomName))
@@ -89,6 +91,7 @@ public class ServerThread extends Thread {
 		}
 		System.out.println(roomName+" 이 추가되었습니다.");
 		clientManagement.joinRoom = new String(roomName);
+		clientManagement.joinRoomChecking = true;
 		
 		synchronized (joinRoomList) {
 			joinRoomList.add(new RoomManagement(roomName));	
@@ -123,6 +126,7 @@ public class ServerThread extends Thread {
 			{				
 				R.joinNumber++;
 				clientManagement.joinRoom = new String(roomName);
+				clientManagement.joinRoomChecking = true;
 				return true;
 			}
 		}
@@ -138,7 +142,8 @@ public class ServerThread extends Thread {
 			{				
 				synchronized (R) {
 					R.joinNumber--;
-					clientManagement.joinRoom = new String(unname);					
+					clientManagement.joinRoom = new String(unname);		
+					clientManagement.joinRoomChecking = false;
 				}				
 				return true;
 			}
@@ -206,6 +211,7 @@ public class ServerThread extends Thread {
 		
 		clientManagement = new ClientManagement(assignedClientID, new String(eventSocket.getInetAddress().getHostName()), unname, signal, eventSocket, cameraSocket, voiceSocket, eventInput, eventOutput);
 		
+		System.out.println("현재 서버 접속자수 :"+clientManagementList.size());
 		//여기부터 서버에서 사용될 메소드 호출
 		//막 들어온 클라이언트는 방에 참여하기 전까지 clientManagement는 정적배열리스트에 추가하지 않는다.
 		
@@ -223,33 +229,7 @@ public class ServerThread extends Thread {
 	
 	
 	
-	//테스트 메소드
-	public void test_I()
-	{
-		while(true)
-		{
-			if(signal.toResponse(signal.request))
-			{
-				System.out.println(this.getName()+"스레드 클라이언트 연결 종료");
-				try {
-					eventSocket.close();
-					cameraSocket.close();
-					voiceSocket.close();
-				} catch (IOException e) {
-					System.out.println("클라이언트 연결 종료중 IO예외 ");
-					e.printStackTrace();
-					return ;
-				}
-				break;
-			}
-			else
-			{
-				System.out.println("통신이 정상적으로 이루어지지 않았습니다.");
-				return ;
-			}
-		}
-	}
-	
+	//테스트 메소드	
 	public void test_II()
 	{
 		while(true)
