@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Scanner;
 
 
 /* 20150506 메소드 목록
@@ -108,7 +109,7 @@ public class Client extends Thread {
 		if(!receiveClientID())
 			return ;
 		
-		//여기부터 클라이언트에서 작동될 메소드 호출
+		//여기부터 클라이언트에서 작동될 메소드 호출(todo)
 
 		test_II();
 		
@@ -131,8 +132,8 @@ public class Client extends Thread {
 	
 	
 	
-	
-	//Test메소드들
+	//!!테스트 메소드!!
+	//!!Test 메소드!!
 	public void test_II()
 	{
 		System.out.println("서버와 연결되었습니다.");
@@ -162,5 +163,39 @@ public class Client extends Thread {
 				return ;
 			}
 		}
-	}	
+	}
+	
+	/*	파일전송 및 방 만들기 테스트
+	 * 	클라이언트의 요청을 받아 방을 만들고
+	 * 	데이터 스트림을 서버에 전송한다.
+	 * 	스트림을 전송받은 서버는 방에 참여한 다른 클라이언트에게 파일을 전송한다.
+	 * 	전송을 마치면 연결을 종료한다.
+	 * 
+	 * 	방명은 : testRoom
+	 * 	파일을 받는 입장은 방을 들어간다.
+	 * 	파일을 보낸 입장은 방을 만든다.
+	 * 
+	 */
+	
+	public void test_III()
+	{
+		Scanner scan = new Scanner(System.in);
+		int res=0;
+		
+		System.out.println("파일을 받는 입장이면  1\n파일을 보낸 입장이면 2");
+		res=scan.nextInt();
+		
+		if(1==res)
+		{
+			
+		}
+		else if(2==res)
+		{
+			
+		}
+		
+		scan.close();
+	}
+	
+	
 }

@@ -3,6 +3,7 @@ package Sender;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 
@@ -22,6 +23,31 @@ public class ServerThread extends Thread {
 	ClientManagement clientManagement;	//정적 배열리스트가 관리의 편의를 위해 선언
 	RoomManagement roomManagement;		//방 관리
 	SignalData signal;
+	
+	/*	메소드 목록
+	 * 	public ServerThread(Socket eventSocket,	Socket cameraSocket,Socket voiceSocket, String fileName, int waitTime)
+	 * 		└ 생성자
+	 * 	public boolean transClientID(int assigncedClientID)
+	 * 		└ 클라이언트에게 서버에서 할당된 ID 전송
+	 *  public boolean makeRoom(String roomName)
+	 *  	└ 방만들기
+	 *  public boolean checkingJoinRoom()
+	 *  	└ 빈방체크하기
+	 *  public boolean joinRoom(String roomName)
+	 *  	└ 방 입장하기
+	 *  public boolean exitRoom(String roomName)
+	 *  	└ 방 나가기
+	 * 	public boolean exitServer()
+	 * 		└ 서버 나갈때 마무리
+	 * 	public void run()
+	 * 		└ 서버 동작부분(이부분을 작성하면 서버 스레드 동작에 반영된다.)
+	 * 
+	 * 	테스트 메소드 부분(각 로마자 숫자는 클라이언트 테스트 메소드와 매핑된다.)
+	 * 	public void test_II()
+	 * 		└ 서버와 클라이언트 송수신 테스트( 송수신테스트 횟수는 무한이다.)
+	 * 	public void test_III()
+	 * 		└ 서버와 클라이언트 방 만들기 및 데이터 스트림 전송
+	 */
 	
 	//서버에서 ClientManageList를 일일이 뒤지려면 오래걸리므로 파일송수신 스레드를 돌리기전에 뿌려야하는 명단을 서버에게 추려서 주도록하자.
 	//방 자체도 String이 아닌 String 와 해당 방의 사람 수를 포함한 클래스로 선언하면 관리하기 더 쉬울듯.
@@ -151,6 +177,31 @@ public class ServerThread extends Thread {
 		return false;
 	}
 	
+	//방 목록과 참여한인원을 전송한다. (1개씩 전송한다.)
+	public boolean roomListing()
+	{
+		try {
+			ObjectOutputStream output = new ObjectOutputStream(eventSocket.getOutputStream());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		if(signal.toRequest())
+		{
+			if(signal.toDoRequest(signal.roomList))
+			{
+				for(RoomManagement R:joinRoomList)
+				{
+					
+				}
+			}
+		}
+		return false;
+		
+		
+		
+		
+	}
+	
 	//클라이언트 연결종료
 	//클라이언트에 대한 수많은 서버 스레드가 두 클래스에 접근시 예측이 어려움으로 동기화 작성
 	public boolean exitServer()
@@ -179,7 +230,7 @@ public class ServerThread extends Thread {
 		}
 	}
 	
-	//스레드 코어
+	//스레드 코어(이 부분을 작성해야 서버 스레드가 돌아간다.)
 	public void run()
 	{
 		System.out.println(eventSocket.getInetAddress().getHostName()+"과 연결되었습니다.");
@@ -211,7 +262,6 @@ public class ServerThread extends Thread {
 		
 		clientManagement = new ClientManagement(assignedClientID, new String(eventSocket.getInetAddress().getHostName()), unname, signal, eventSocket, cameraSocket, voiceSocket, eventInput, eventOutput);
 		
-		System.out.println("현재 서버 접속자수 :"+clientManagementList.size());
 		//여기부터 서버에서 사용될 메소드 호출
 		//막 들어온 클라이언트는 방에 참여하기 전까지 clientManagement는 정적배열리스트에 추가하지 않는다.
 		
@@ -228,8 +278,8 @@ public class ServerThread extends Thread {
 	
 	
 	
-	
-	//테스트 메소드	
+	//!!Test 메소드!!
+	//!!테스트 메소드!!	
 	public void test_II()
 	{
 		while(true)
@@ -251,5 +301,18 @@ public class ServerThread extends Thread {
 				break;
 			}
 		}
+	}
+	
+	
+	/*	파일전송 및 방 만들기 테스트
+	 * 	클라이언트의 요청을 받아 방을 만들고
+	 * 	데이터 스트림을 서버에 전송한다.
+	 * 	스트림을 전송받은 서버는 방에 참여한 다른 클라이언트에게 파일을 전송한다.
+	 * 	전송을 마치면 연결을 종료한다.
+	 */
+	
+	public void test_III()	
+	{
+		
 	}
 }

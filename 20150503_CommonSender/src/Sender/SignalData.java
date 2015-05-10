@@ -7,8 +7,9 @@ import java.net.Socket;
 
 //신호송수신 자체를 SignalData의 메소드로 작성할 예정이다.
 public class SignalData {
+	
 	final int signalSize = 2;				//시그널 길이
-	final int signalLength = 13;				//시그널 갯수
+	final int signalLength = 14;			//시그널 갯수
 	final byte[] request =		{ 0,0 };	//요청
 	final byte[] response =		{ 0,1 };	//응답함
 	final byte[] wrong	=		{ 0,2 };	//올바르지 않음
@@ -20,6 +21,7 @@ public class SignalData {
 	final byte[] delRoom	=	{ 1,4 };	//방 없애기
 	final byte[] joinRoom	=	{ 1,5 };	//방 참여
 	final byte[] exitRoom	=	{ 1,6 };	//방 나가기
+	final byte[] roomList	=	{ 1,7 };	//방 목록
 
 	final byte[] byteSize	=	{ 2,0 };	//바이트배열크기
 	final byte[] byteSend = 	{ 2,1 }; 	//바이트배열보냄
