@@ -10,8 +10,31 @@ import java.util.ArrayList;
 
 
 /* 20150506 메소드 목록
+ * public ByteArrayTransCeiverThread(int clientID, boolean transCeive, boolean CameraVoice, byte[] fileByteArray, ArrayList<ClientManagement> clientManagementList, ClientManagement clientManagement)
+ * 	└ 생성자
+ * public void run()
+ * 	└ 코어
+ * 	public void clientTrans()
+ * 	└ 클라이언트가 서버에게 데이터스트림 보냄
+ * 	public void clientReceive()
+ * 	└ 클라이언트가 서버에게 데이터스트림 받음.
+ * 	public void serverTransCeive()
+ * 	└ 서버가 클라이언트에게 받은 데이터스트림을 그외 다른 클라이언트에게 뿌림.
  * 
+ * 	public void usedChecking(boolean used)
+ * 	└ 카메라,보이스 전송 소켓을 사용하는지 여부 체크 (사용하면 true)
+ * 	└ 사용됨을 표시해야 클라이언트간 송수신 경쟁이 일어나지 않는다. (혼돈...) 
+ * 	public void transCeiveFailed()			
+ * 	└ 송수신 실패를 클라이언트 매니지먼트에 기록한다. (실패하면 false기록)
+ * 	public void transCeiveSuccess()			
+ * 	└ 송수신 성공을 클라이언트 매니지먼트에 기록한다. (성공하면 true 기록)
  * 
+ *	public void toClientUsedChecking(ClientManagement clientManagement, boolean used)
+ * 	└ 내용은 usedChecking와 같다. 이건 static ClientManagementList에 있는걸 건들기 위해 선언했다.
+ *	public void toClientTransCeiveFailed(ClientManagement clientManagement)			
+ * 	└ TransCeiveFailed과 같다. 상동
+ *	public void toClientTransCeiveSuccess(ClientManagement clientManagement)
+ *	└ TransCeiveSuccess와 같다. 상동			
  */
 public class ByteArrayTransCeiverThread {
 	boolean transCeive;					//Trans(송신)(업로드)는 true, Ceive(수신)(다운로드)는 false

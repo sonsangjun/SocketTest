@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+//
 /*서버는 클라이언트에게 파일스트림을 받고,
  *받은 파일을 클라이언트가 참여한 방 사람들에게 날려야한다.
  *프리뷰 이미지나, 음성 메시지를 보내는 것 둘다 해당한다. 

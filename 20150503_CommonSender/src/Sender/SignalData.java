@@ -9,7 +9,7 @@ import java.net.Socket;
 public class SignalData {
 	
 	final int signalSize = 2;				//시그널 길이
-	final int signalLength = 14;			//시그널 갯수
+	final int signalLength = 13;			//시그널 갯수
 	final byte[] request =		{ 0,0 };	//요청
 	final byte[] response =		{ 0,1 };	//응답함
 	final byte[] wrong	=		{ 0,2 };	//올바르지 않음
@@ -18,7 +18,6 @@ public class SignalData {
 	final byte[] camera	=		{ 1,1 }; 	//카메라 프리뷰 이미지
 	final byte[] voice	=		{ 1,2 }; 	//목소리
 	final byte[] makeRoom	=	{ 1,3 };	//방 만들기
-	final byte[] delRoom	=	{ 1,4 };	//방 없애기
 	final byte[] joinRoom	=	{ 1,5 };	//방 참여
 	final byte[] exitRoom	=	{ 1,6 };	//방 나가기
 	final byte[] roomList	=	{ 1,7 };	//방 목록
@@ -49,10 +48,12 @@ public class SignalData {
 	*	public SignalData()													생성자
 	*	public boolean initial()											버퍼스트림 초기화
 	*	public boolean signalChecking(byte[] target, byte[] wantChecking)	target과 wantChecking가 같으면 true, 다르면 false 반환
-	*	public String SignalName(byte[] wantSignal)							wantSignal 신호이름을 String으로 반환
+	*	public String SignalByteToString(byte[] wantSignal)					wantSignal 신호이름을 String으로 반환
+	*	public byte[] signalStringToByte(String wantSignal)					wantSignal 신호String을 byteArray로 반환 
 	*	public boolean toRequest()											요청 신호를 보냄
 	*	public boolean toDoRequest(byte[] wantSignal)						원하는 작업(wantSignal) 요청 신호 보냄
 	*	public boolean toResponse(byte[] wantSignal)						원하는 신호(wantSignal)가 들어오면 응답함.
+	*	public boolean toConfirm(byte[] responseSignal)						원하는 신호(responseSignal)을 보내기만 한다. 이건 toResponse에게 보내기 위해서 만들었다.
 	*
 	*/
 	
@@ -89,8 +90,8 @@ public class SignalData {
 		return true;
 	}
 	
-	//신호 이름 반환
-	public String SignalName(byte[] wantSignal)
+	//신호 이름 반환(바이트->문자열)
+	public String SignalByteToString(byte[] wantSignal)
 	{
 		switch(wantSignal[0])
 		{
@@ -99,6 +100,7 @@ public class SignalData {
 			{
 			case 0: return "request";
 			case 1: return "response";
+			case 2: return "wrong";
 			}
 		case 1:
 			switch(wantSignal[1])
@@ -108,6 +110,9 @@ public class SignalData {
 			case 2: return "voice";
 			case 3: return "makeRoom";
 			case 4: return "delRoom";
+			case 5: return "joinRoom";
+			case 6: return "exitRoom";
+			case 7: return "roomList";
 			}
 		case 2:
 			switch(wantSignal[2])
@@ -118,6 +123,29 @@ public class SignalData {
 			}
 		default:return null;
 		}
+	}
+	
+	//신호바이트반환(원하는 신호가 없으면 null)
+	public byte[] signalStringToByte(String wantSignal)
+	{		
+		if(wantSignal.equals("request")) return request;
+		if(wantSignal.equals("response")) return response;
+		if(wantSignal.equals("wrong")) return wrong;
+		
+		if(wantSignal.equals("location")) return location;
+		if(wantSignal.equals("camera")) return camera;
+		if(wantSignal.equals("voice")) return voice;
+		if(wantSignal.equals("makeRoom")) return makeRoom;
+		if(wantSignal.equals("delRoom")) return delRoom;
+		if(wantSignal.equals("joinRoom")) return joinRoom;
+		if(wantSignal.equals("exitRoom")) return exitRoom;
+		if(wantSignal.equals("roomList")) return roomList;
+		
+		if(wantSignal.equals("byteSize")) return byteSize;
+		if(wantSignal.equals("byteSend")) return byteSend;
+		if(wantSignal.equals("byteReceive")) return byteReceive;
+		
+		return null;		
 	}
 	
 	//요청 신호 보냄 (toDoRequest보다 먼저 보내라)
