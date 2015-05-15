@@ -136,7 +136,6 @@ public class SignalData {
 		if(wantSignal.equals("camera")) return camera;
 		if(wantSignal.equals("voice")) return voice;
 		if(wantSignal.equals("makeRoom")) return makeRoom;
-		if(wantSignal.equals("delRoom")) return delRoom;
 		if(wantSignal.equals("joinRoom")) return joinRoom;
 		if(wantSignal.equals("exitRoom")) return exitRoom;
 		if(wantSignal.equals("roomList")) return roomList;

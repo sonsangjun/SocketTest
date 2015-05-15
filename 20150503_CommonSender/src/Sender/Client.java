@@ -91,6 +91,9 @@ public class Client extends Thread {
 		roomName = new String(unname);
 		
 		//여기부터 클라이언트에서 작동될 메소드 호출(todo)
+		//나중에 안드로이드를 통해 통신을 한다면... ClientSharedData에서 안드로이드와 이 스레드간 공유변수를 추가로
+		//선언해야 될지도 모른다. -> 안드로이드에 핸들러를 이용하라고 적혀있다. 
+		//안드로이드 앱을 만들어 봐야겠다. 거기에 맞게 스레드를 제작하자. 여기 클라이언트는 일단 시험용.
 
 		test_II();
 		
@@ -142,6 +145,7 @@ public class Client extends Thread {
 	
 	//클라이언트가 서버에게 요청하는 부분
 	//방과 관련된게 아니면 null입력
+	//이 함수 호출하기 전에 ClientSharedData.inputUsed = true;로 바꾸고 호출끝나면 false로바꿈
 	public boolean clientsRequest(String command,String roomName)
 	{
 		if(signal.toRequest())
@@ -266,26 +270,5 @@ public class Client extends Thread {
 	 * 	파일을 보낸 입장은 방을 만든다.
 	 * 
 	 */
-	
-	public void test_III()
-	{
-		Scanner scan = new Scanner(System.in);
-		int res=0;
-		
-		System.out.println("파일을 받는 입장이면  1\n파일을 보낸 입장이면 2");
-		res=scan.nextInt();
-		
-		if(1==res)
-		{
-			
-		}
-		else if(2==res)
-		{
-			
-		}
-		
-		scan.close();
-	}
-	
 	
 }

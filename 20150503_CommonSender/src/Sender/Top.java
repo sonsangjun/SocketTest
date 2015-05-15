@@ -44,7 +44,7 @@ public class Top {
 		else
 		{
 			System.out.println("클라이언트 시작");
-			Client client = new Client(ServerIP, portNum, waitTime);
+			Client client = new Client(ServerIP, portNum, waitTime, null, null);
 			client.start();
 		}
 	}
@@ -52,9 +52,9 @@ public class Top {
 /*				 Top
  * 				  │
  * 			┌─────┴─────┐
- * 		 Server		Client
- * 			│			
- * 		ServerThread
+ * 		 Server		Client─ClientInputThread
+ * 			│			│				│
+ * 		ServerThread	└──ClientSharedData
  *  		│
  *  	ClientManagement		(ClientManagement클래스는 서버스레드 정적배열리스트를 위해 선언된 클래스)	
  * 	┌────────────────────────── Server,Client에 사용되는 나머지 클래스들 관계
@@ -62,7 +62,8 @@ public class Top {
  *	├─	SharedData
  *	├─	SignalData
  *	├─	IntegerToByteArray
- *	├─	ByteArrayTransCeiverThread
+ *	├─	ByteArrayTransCeiverThread──ByteArrayTransCevierRule
+ *	├─	RoomManagement
  *(나중에 추가)
  * 
  */
