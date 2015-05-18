@@ -141,6 +141,7 @@ public class ServerThread extends Thread {
 			//-----------------------------------------
 			//(to do)
 			
+			standard();
 			
 			
 			
@@ -152,7 +153,6 @@ public class ServerThread extends Thread {
 			
 			
 			
-			test_II();	
 			
 			
 			
@@ -370,8 +370,9 @@ public class ServerThread extends Thread {
 				synchronized (socketBroadCastUsed) {
 					socketBroadCastUsed.broadCastKill=true;					
 				}
-				roomManage.byForceExitRoom();								
-				exitServer();
+				roomManage.byForceExitRoom();
+				roomManage.delEmptyRoom();
+				exitServer();				
 				break;
 			}
 		}		

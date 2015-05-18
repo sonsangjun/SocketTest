@@ -2,8 +2,12 @@ package Sender;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
+import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.util.Scanner;
 
@@ -47,11 +51,13 @@ public class Client extends Thread {
 	BufferedInputStream eventInput;
 	BufferedOutputStream eventOutput;
 	
-	SocketBroadCastUsed broadCastUsed = new SocketBroadCastUsed();
-	SocketCameraUsed cameraUsed = new SocketCameraUsed();
-	SocketVoiceUsed voiceUsed = new SocketVoiceUsed();
+	SocketBroadCastUsed socketBroadCastUsed = new SocketBroadCastUsed();
+	SocketEventUsed socketEventUsed = new SocketEventUsed();
+	SocketCameraUsed socketCameraUsed = new SocketCameraUsed();
+	SocketVoiceUsed socketVoiceUsed = new SocketVoiceUsed();
 	
 	RoomData roomData;			//방 목록을 받아오기 위해 선언
+	RoomManage roomManage;		//방 관리하는 클래스
 	
 	//정적변수로 유틸리티 패키지에 ArrayList 선언하고, 타입은 사용자가 선언 한 클래스 . 클래스 안에는 스트림 입출력및 참여한 방번호를 넣어면 된다.
 	//그러면 파일 송수신, 위치 정보 송수신등을 쉽게 관리할 수 있다.
@@ -94,18 +100,34 @@ public class Client extends Thread {
 			return ;
 		roomName = new String(value.unname);
 		
+		
+		//-----------------------------------------------------------------------------
 		//여기부터 클라이언트에서 작동될 메소드 호출(todo)
 		//나중에 안드로이드를 통해 통신을 한다면... ClientSharedData에서 안드로이드와 이 스레드간 공유변수를 추가로
 		//선언해야 될지도 모른다. -> 안드로이드에 핸들러를 이용하라고 적혀있다. 
 		//안드로이드 앱을 만들어 봐야겠다. 거기에 맞게 스레드를 제작하자. 여기 클라이언트는 일단 시험용.
-
-		test_II();
+		
+		
+		clientTerminate();
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 		
 		
 		
 		
 		
 		//여기까지 클라이언트에서 작성가능한 부분
+		//-----------------------------------------------------------------------------		
 		exitClient();
 	}
 	
@@ -149,8 +171,7 @@ public class Client extends Thread {
 	//방과 관련된게 아니면 null입력
 	//이 함수 호출하기 전에 ClientSharedData.inputUsed = true;로 바꾸고 호출끝나면 false로바꿈
 	
-	
-	
+
 	
 	
 	
@@ -202,4 +223,69 @@ public class Client extends Thread {
 	 * 
 	 */
 	
+	public void clientTerminate()
+	{
+		BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
+		String value = null;
+		RoomDataToArray roomDataToArray;
+		synchronized (roomManage) {
+			roomManage = new RoomManage(null, clientID, null, eventSocket, null, null, null, signal);
+		}
+		
+		while(true)
+		{
+			System.out.println("명령을 입력하세요.");
+			System.out.println(signal.signalByteToString(signal.makeRoom)+" 방만들기\t"+signal.signalByteToString(signal.joinRoom)+"방참여\t "+signal.signalByteToString(signal.exitRoom)+" 방나가기\t"+signal.signalByteToString(signal.exitServer)+" 나가기");
+			try {
+				value = inputReader.readLine();
+			} catch (IOException e) {
+				System.out.println("입력에러");
+				e.printStackTrace();
+				continue;
+			}			
+			if(value.equals(signal.signalByteToString(signal.makeRoom)) || value.equals(signal.signalByteToString(signal.joinRoom)) || value.equals(signal.signalByteToString(signal.exitRoom)))
+			{
+				socketEventUsed.socketEventUsed = true;
+				System.out.println("방 이름을 입력하세요.");
+				try {
+					value = inputReader.readLine();
+				} catch (IOException e) {
+					System.out.println("방 입력하는 중 예외 발생");
+					e.printStackTrace();
+					socketEventUsed.socketEventUsed = false;
+					continue;
+				}
+				if(value.equals(signal.signalByteToString(signal.makeRoom)))
+				{
+					if(roomManage.clientsRequest(signal.makeRoom, value, roomName, null))
+					{
+						socketEventUsed.socketEventUsed = false;
+						continue;					
+					}
+				}
+				else if(value.equals(signal.signalByteToString(signal.joinRoom)))
+				{
+					if(roomManage.clientsRequest(signal.joinRoom, value, roomName, null))
+					{
+						socketEventUsed.socketEventUsed = false;
+						continue;					
+					}
+				}
+				else if(value.equals(signal.signalByteToString(signal.exitRoom)))
+				{
+					if(roomManage.clientsRequest(signal.exitRoom, null, roomName, null))
+					{
+						socketEventUsed.socketEventUsed = false;
+						continue;
+					}
+				}				
+			}
+			else
+			{
+				System.out.println("클라이언트를 종료합니다.");
+				exitClient();
+				break;
+			}			
+		}
+	}
 }

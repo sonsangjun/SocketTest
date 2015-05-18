@@ -113,7 +113,7 @@ public class RoomManage {
 			roomDataList.get(index).clientManage.latitude.add(value.basicLatitude);
 			roomDataList.get(index).clientManage.longitude.add(value.BasicLongitude);
 		}		
-		signal.toCatchResponse(signal.makeRoom);
+		signal.toDoResponse(signal.makeRoom);
 		return true;		
 	}
 	
@@ -204,7 +204,7 @@ public class RoomManage {
 						if(roomDataList.get(0).clientManage.clientID.equals(this.clientID))
 							roomDataList.get(0).clientManage.clientID.remove(this.clientID);	
 					}
-					signal.toCatchResponse(signal.joinRoom);	
+					signal.toDoResponse(signal.joinRoom);	
 					return true;
 				}				
 			}
@@ -248,7 +248,7 @@ public class RoomManage {
 					R.clientManage.voiceSocket.remove(index);
 					R.clientManage.latitude.remove(index);
 					R.clientManage.longitude.remove(index);
-					signal.toCatchResponse(signal.exitRoom);	//방을 나갔다는 확인 신호를 보냄
+					signal.toDoResponse(signal.exitRoom);	//방을 나갔다는 확인 신호를 보냄
 					System.out.println("ClientID : "+clientID+" 가 "+roomName+" 을 나갔습니다.");
 					return true;					
 				}
@@ -279,7 +279,7 @@ public class RoomManage {
 					R.clientManage.voiceSocket.remove(index);
 					R.clientManage.latitude.remove(index);
 					R.clientManage.longitude.remove(index);
-					signal.toCatchResponse(signal.exitRoom);	//방을 나갔다는 확인 신호를 보냄
+					signal.toDoResponse(signal.exitRoom);	//방을 나갔다는 확인 신호를 보냄
 					System.out.println("ClientID : "+clientID+" 연결이 끊어져 강제로 종료했습니다.");
 					return true;					
 				}
@@ -378,7 +378,6 @@ public class RoomManage {
 	//command는 시그널, wantRoomName은 command하고 싶은 방이름, roomName은 너가 가지고 있는 방 이름의 변수(client객체의 roomName 변수)
 	public boolean clientsRequest(byte[] command,String wantRoomName, String roomName, RoomDataToArray result)
 	{
-		this.Used = true;
 		BufferedWriter eventOutput;
 		try {
 			eventOutput = new BufferedWriter(new OutputStreamWriter(eventSocket.getOutputStream()));
@@ -388,6 +387,9 @@ public class RoomManage {
 			this.Used = false;
 			return false;
 		}
+		
+		if(!this.Used)
+			this.Used = true;
 		
 		
 		if(signal.toDoRequest(command))
@@ -409,18 +411,23 @@ public class RoomManage {
 				if(signal.toCatchResponse(signal.makeRoom))
 				{
 					roomName = new String(wantRoomName);
+					System.out.println("방을 만들었습니다.");
+					System.out.println("방명은 "+roomName);
 					this.Used = false;
 					return true;
 				}
 				else if(signal.toCatchResponse(signal.signalStringToByte("joinRoom")))
 				{
 					roomName = new String(wantRoomName);
+					System.out.println("방에 참가했습니다.");
+					System.out.println("방명은 "+roomName);
 					this.Used = false;
 					return true;
 				}
 				else if(signal.toCatchResponse(signal.signalStringToByte("exitRoom")))
 				{
 					roomName = new String(value.unname);
+					System.out.println("방을 나갔습니다.");
 					this.Used = false;
 				}
 				else
