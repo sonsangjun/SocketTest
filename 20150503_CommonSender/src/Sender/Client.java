@@ -229,7 +229,7 @@ public class Client extends Thread {
 		String value = null;
 		RoomDataToArray roomDataToArray;
 		synchronized (roomManage) {
-			roomManage = new RoomManage(null, clientID, null, eventSocket, null, null, null, signal);
+			roomManage = new RoomManage("", clientID, null, eventSocket, null, null, null, signal);
 		}
 		
 		while(true)

@@ -212,7 +212,7 @@ public class ServerThread extends Thread {
 	public void standard()
 	{
 		System.out.println(this.clientID+" 가 접속했습니다.");
-		SocketBroadCastThread broadCastThread = new SocketBroadCastThread(new RoomData(null), socketBroadCastUsed);	//의미없는 스레드 생성 (New상태 반환받기 위해 만들어놓음)
+		SocketBroadCastThread broadCastThread = new SocketBroadCastThread(new RoomData(""), socketBroadCastUsed);	//의미없는 스레드 생성 (New상태 반환받기 위해 만들어놓음)
 		while(true)
 		{
 			byte[] receiveSignal = new byte[signal.signalSize];
