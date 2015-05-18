@@ -228,9 +228,8 @@ public class Client extends Thread {
 		BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
 		String value = null;
 		RoomDataToArray roomDataToArray;
-		synchronized (roomManage) {
-			roomManage = new RoomManage("", clientID, null, eventSocket, null, null, null, signal);
-		}
+		roomManage = new RoomManage(" ", clientID, eventSocket, signal);
+		
 		
 		while(true)
 		{

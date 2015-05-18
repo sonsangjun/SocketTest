@@ -27,7 +27,7 @@ public class RoomManage {
 	Socket cameraSocket;
 	Socket voiceSocket;
 	
-	//클라이언트는 eventSocket, yourName, ClientID, signal만 있으면 된다. (나머지는 모두 null)
+	//클라이언트는 eventSocket, yourName, ClientID, signal만 있으면 된다.
 	public RoomManage(String yourName, int clientID, Socket broadCastSocket, Socket eventSocket, Socket cameraSocket, Socket voiceSocket, List<RoomData> roomDataList, SignalData signal) {
 		this.yourName = new String(yourName);
 		this.clientID = clientID;
@@ -38,6 +38,15 @@ public class RoomManage {
 		
 		this.roomDataList = roomDataList;
 		this.signal = signal;
+	}
+	
+	//클라이언트용 생성자
+	public RoomManage(String yourName, int clientID, Socket eventSocket,SignalData signal)
+	{
+		this.yourName = new String(yourName);
+		this.clientID = clientID;
+		this.eventSocket = eventSocket;
+		this.signal = signal;		
 	}
 
 	//

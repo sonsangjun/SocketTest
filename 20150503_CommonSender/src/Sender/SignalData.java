@@ -157,7 +157,7 @@ public class SignalData {
 			input.read(temp);
 		} catch (IOException e) {
 			e.printStackTrace();
-			return null;
+			return wrong;
 		}
 		return temp;		
 	}
