@@ -91,7 +91,7 @@ public class SignalData {
 	}
 	
 	//신호 이름 반환(바이트->문자열)
-	public String SignalByteToString(byte[] wantSignal)
+	public String signalByteToString(byte[] wantSignal)
 	{
 		switch(wantSignal[0])
 		{
@@ -146,42 +146,8 @@ public class SignalData {
 		
 		return null;		
 	}
-	
-	//요청 신호 보냄 (toDoRequest보다 먼저 보내라)
-	public boolean toRequest()	
-	{		
-		byte[] signalByte = new byte[signalSize];
 		
-		if(input == null | output == null)
-		{
-			System.out.println("Signal 초기화 안했습니다.");
-			return false;
-		}
-		
-		try {
-			output.write(request);			
-			output.flush();
-		} catch (IOException e) {
-			System.out.println("Request 예외");
-			e.printStackTrace();
-			return false;
-		}
-		
-		try {
-			input.read(signalByte);
-		} catch (IOException e) {
-			System.out.println("Request의 response예외");
-			e.printStackTrace();
-			return false;
-		}		
-		
-		if(signalChecking(signalByte, response))
-			return true;
-		else 
-			return false;
-	}
-	
-	//이 함수는 먼저 request를 보낸 이후에 호출할 수 있는 함수 (모양이 거의 같지만 엄연히 호출 순서가 있다.)
+	//원하는 작업 요청을 하는 메소드
 	public boolean toDoRequest(byte[] wantSignal)
 	{
 		byte[] signalByte = new byte[signalSize];
@@ -214,22 +180,8 @@ public class SignalData {
 			return false;
 	}
 	
-	//요청에 대하여 응답
-	public boolean toConfirm(byte[] responseSignal)
-	{
-		try {
-			output.write(responseSignal);
-			output.flush();
-			return true;
-		} catch (IOException e) {
-			System.out.println("toConfirm(요청에대한 응답)실패");
-			e.printStackTrace();
-			return false;
-		}
-	}
-			
-	//원하는 응답이 오는지 체킹
-	public boolean toResponse(byte[] wantSignal)
+	//toDoRequest에 대응하는 메소드(이 부분 수정 가해야할듯)
+	public boolean toAccept(byte[] wantSignal)
 	{
 		byte[] signalByte = new byte[signalSize];
 		
@@ -271,6 +223,39 @@ public class SignalData {
 			return false;
 		}
 	}	
+
+	//요청에 대하여 응답
+	public boolean toDoResponse(byte[] responseSignal)
+	{
+		try {
+			output.write(responseSignal);
+			output.flush();
+			return true;
+		} catch (IOException e) {
+			System.out.println("toConfirm(요청에대한 응답)실패");
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	//바이트 배열로 반환하는게 좋을까, 스트링으로 반환하는게 좋을까? 역시 스트링이 낫겠다. 비교도 신호이름 변환 메소드 이용해서 비교하구.
+	//신호를 받아 스트링으로 반환해주는 메소드
+	public String toReadSignal()
+	{
+		byte[] temp = new byte[this.signalSize];
+		String tempString = new String("");
+		try {
+			input.read(temp);
+			tempString = signalByteToString(temp);
+			if(tempString == null)
+				return null;
+			return tempString;
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 }
 /* 혹시모르니 
 if(fileSize%unitSize == 0)

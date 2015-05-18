@@ -26,13 +26,17 @@ import java.net.Socket;
  * 
  */
 public class Server {
-	int waitTime;
-	int portNum;
-	String fileName = null;		//서버 테스트 용으로 만듬
+	ValueCollections value = new ValueCollections();
+	int waitTime = value.waitTime;
+	int portNum = value.portNum;
+	String fileName = value.fileName;		//서버 테스트 용으로 만듬
 	
-	ServerSocket eventServerSocket;		//portNum : 9000
-	ServerSocket cameraServerSocket;	//portNum : 9001
-	ServerSocket voiceServerSocket;		//portNum : 9002
+	ServerSocket broadCastServerSocket;		//portNum : 8999
+	ServerSocket eventServerSocket;			//portNum : 9000
+	ServerSocket cameraServerSocket;		//portNum : 9001
+	ServerSocket voiceServerSocket;			//portNum : 9002
+	
+	Socket broadCastSocket;
 	Socket eventSocket;
 	Socket cameraSocket;
 	Socket voiceSocket;
@@ -41,18 +45,10 @@ public class Server {
 	ByteArrayTransCevierRule shared;
 	byte[] fileStream;
 	
-	Server(int waitTime, int PortNum)
-	{
-		this.waitTime = waitTime;
-		this.portNum = PortNum;
-	}
+	SocketBroadCastUsed broadCastUsed = new SocketBroadCastUsed();
+	SocketCameraUsed cameraUsed = new SocketCameraUsed();
+	SocketVoiceUsed voiceUsed = new SocketVoiceUsed();
 	
-	Server(String fileName,int waitTime, int PortNum)
-	{
-		this.fileName = fileName;
-		this.waitTime = waitTime;
-		this.portNum = PortNum;
-	}
 	
 	public void mainServer()
 	{
@@ -64,6 +60,7 @@ public class Server {
 	public void standardServer()
 	{
 		try {
+			broadCastServerSocket = new ServerSocket(portNum-1);
 			eventServerSocket = new ServerSocket(portNum);
 			cameraServerSocket = new ServerSocket(portNum+1);
 			voiceServerSocket = new ServerSocket(portNum+2);			
@@ -76,11 +73,12 @@ public class Server {
 		while(true)
 		{
 			try {
+				broadCastSocket = broadCastServerSocket.accept();
 				eventSocket = eventServerSocket.accept();
 				cameraSocket = cameraServerSocket.accept();
 				voiceSocket = voiceServerSocket.accept();
 				
-				Thread serverThread = new ServerThread(eventSocket, cameraSocket, voiceSocket, waitTime);
+				Thread serverThread = new ServerThread(broadCastSocket, eventSocket, cameraSocket, voiceSocket);
 				
 				serverThread.start();				
 			} catch (IOException e) {
@@ -94,6 +92,7 @@ public class Server {
 	public void testServer(String fileName)
 	{		
 		try {
+			broadCastServerSocket = new ServerSocket(portNum-1);
 			eventServerSocket = new ServerSocket(portNum);
 			cameraServerSocket = new ServerSocket(portNum+1);
 			voiceServerSocket = new ServerSocket(portNum+2);	
@@ -106,6 +105,9 @@ public class Server {
 		{
 			System.out.println("서버 연결 대기중");
 			try{
+				broadCastSocket = broadCastServerSocket.accept();
+				System.out.println("broadCastServerSocket연결성공");
+				
 				eventSocket = eventServerSocket.accept();
 				System.out.println("eventSocket연결성공");
 				
@@ -115,7 +117,7 @@ public class Server {
 				voiceSocket = voiceServerSocket.accept();
 				System.out.println("voiceSocket연결성공");
 				
-				Thread serverThread = new ServerThread(eventSocket, cameraSocket, voiceSocket, waitTime);
+				Thread serverThread = new ServerThread(broadCastSocket, eventSocket, cameraSocket, voiceSocket);
 				serverThread.start();
 			}catch(IOException e) {
 				System.out.println("테스트 서버 IO예외 발생 "+e.getMessage());

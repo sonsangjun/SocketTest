@@ -24,46 +24,41 @@ package Sender;
  */
 
 public class Top {
-	static final boolean _Server =false;			//코드가 서버로 작동하는 경우 true
-	static final String fileName = "Test.jpeg";	//카메라 프리뷰 이미지 전송이 파일 전송과 비슷하므로 
-	
-	
-	
 	public static void main(String[] args) {
-		final String ServerIP = "221.156.9.145";	//외부에서 테스트할때 IP
-		//final String ServerIP = "192.168.0.3";
-		final int waitTime = 2000;
-		final int portNum = 9000;
+		ValueCollections value = new ValueCollections();
 		
-		if(_Server)
+		if(value._Server)
 		{
 			System.out.println("서버 시작");
-			Server server = new Server(waitTime, portNum);
+			Server server = new Server();
 			server.mainServer();
 		}
 		else
 		{
 			System.out.println("클라이언트 시작");
-			Client client = new Client(ServerIP, portNum, waitTime, null, null);
+			Client client = new Client(null, null);
 			client.start();
 		}
 	}
 }
-/*				 Top
+/*				 Top───────ValueCollections
  * 				  │
  * 			┌─────┴─────┐
- * 		 Server		Client─ClientInputThread
- * 			│			│				│
- * 		ServerThread	└──ClientSharedData
- *  		│
- *  	ClientManagement		(ClientManagement클래스는 서버스레드 정적배열리스트를 위해 선언된 클래스)	
- * 	┌────────────────────────── Server,Client에 사용되는 나머지 클래스들 관계
+ * 		 Server		Client
+ * 			│		
+ * 		ServerThread			
+ * 	┌────────────────────────────────────────────── Server,Client에 사용되는 나머지 클래스들 관계
  *  │				
  *	├─	SharedData
  *	├─	SignalData
  *	├─	IntegerToByteArray
- *	├─	ByteArrayTransCeiverThread──ByteArrayTransCevierRule
- *	├─	RoomManagement
+ *	├─	ByteArrayTransCeiverThread──────────────────ByteArrayTransCevierRule
+ *	├─	
+ *  │		   							
+ *	├─	RoomManage───── RoomData ───────────────┬── ClientManage
+ *	├─	SocketBroadCastUsed	//─┐				└── RoomDataToArrayString
+ *	├─	SocketCameraUsed	// ├─이게 필요한 클래스에 
+ *	├─	SocketVoiceUsed		//─┘ 이 세 클래스는 종속적이다.
  *(나중에 추가)
  * 
  */
