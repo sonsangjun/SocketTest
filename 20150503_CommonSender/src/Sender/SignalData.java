@@ -117,11 +117,15 @@ public class SignalData {
 			case 7: return "roomList";
 			}
 		case 2:
-			switch(wantSignal[2])
+			switch(wantSignal[1])
 			{
 			case 0:	return "byteSize";
 			case 1: return "byteSend";
 			case 2: return "byteReceive";
+			}
+		case 9:
+			switch (wantSignal[1]) {
+			case 0:	return "exitServer";				
 			}
 		default:return null;
 		}
@@ -145,6 +149,8 @@ public class SignalData {
 		if(wantSignal.equals("byteSize")) return byteSize;
 		if(wantSignal.equals("byteSend")) return byteSend;
 		if(wantSignal.equals("byteReceive")) return byteReceive;
+		
+		if(wantSignal.equals("exitServer"))	return exitServer;
 		
 		return null;		
 	}

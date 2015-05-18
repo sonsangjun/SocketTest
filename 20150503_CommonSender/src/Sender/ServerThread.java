@@ -338,8 +338,10 @@ public class ServerThread extends Thread {
 			//방에 참가하지 않았으면 continue;
 			if(roomName.equals(unname))
 			{
-				signal.toDoResponse(signal.wrong);
-				continue;
+				if(!signal.toDoResponse(signal.wrong))	//broken pipe인경우 무한루프에 빠지기에 이 구문을 추가한다.
+					break;
+				else
+					continue;
 			}
 				
 			
@@ -365,17 +367,16 @@ public class ServerThread extends Thread {
 			}
 			else	//클라이언트와 연결이 끊어진 경우
 			{
-				System.out.println(this.clientID+"와 연결이 끊어졌습니다.");
-				System.out.println("ClientID "+this.clientID+" 종료합니다.");
-				synchronized (socketBroadCastUsed) {
-					socketBroadCastUsed.broadCastKill=true;					
-				}
-				roomManage.byForceExitRoom();
-				roomManage.delEmptyRoom();
-				exitServer();				
 				break;
 			}
-		}		
+		}
+		System.out.println(this.clientID+"와 연결이 끊어졌습니다.");
+		synchronized (socketBroadCastUsed) {
+			socketBroadCastUsed.broadCastKill=true;					
+		}
+		roomManage.byForceExitRoom();
+		roomManage.delEmptyRoom();
+		exitServer();					
 	}
 	
 	
