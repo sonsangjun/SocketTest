@@ -48,6 +48,8 @@ public class ServerThread extends Thread {
 	
 	int clientID;
 	String unname = value.unname;
+	String roomName = new String(unname);
+	String yourName = new String(unname);
 		
 	int waitTime = value.waitTime;
 	String fileName = value.fileName;
@@ -61,10 +63,14 @@ public class ServerThread extends Thread {
 	BufferedOutputStream eventOutput;
 
 	SignalData signal;
-	
-	SocketBroadCastUsed broadCastUsed = new SocketBroadCastUsed();
-	SocketCameraUsed cameraUsed = new SocketCameraUsed();
-	SocketVoiceUsed voiceUsed = new SocketVoiceUsed();
+	SocketBroadCastThread broadCastThread = null;
+	ByteArrayTransCeiverThread transCeiverThread;
+	RoomManage roomManage;
+		
+	SocketBroadCastUsed socketBroadCastUsed = new SocketBroadCastUsed();
+	SocketEventUsed socketEventUsed = new SocketEventUsed();
+	SocketCameraUsed socketCameraUsed = new SocketCameraUsed();
+	SocketVoiceUsed socketVoiceUsed = new SocketVoiceUsed();
 	
 	static List<RoomData> roomDataList = Collections.synchronizedList(new ArrayList<RoomData>());
 	static int assignedClientID = 0;
@@ -83,6 +89,14 @@ public class ServerThread extends Thread {
 		public void run()
 		{
 			System.out.println(eventSocket.getInetAddress().getHostName()+"과 연결되었습니다.");
+			if(roomDataList.size() < 1)
+			{
+				synchronized (roomDataList) {
+					roomDataList.add(new RoomData(unname));
+					roomDataList.get(0).clientManage.clientID = Collections.synchronizedList(new ArrayList<Integer>());
+				}				
+			}
+				
 			
 			try {
 				eventInput = new BufferedInputStream(eventSocket.getInputStream());
@@ -110,10 +124,18 @@ public class ServerThread extends Thread {
 				this.clientID = ++assignedClientID;
 			}
 			
-			 
 			if(!transClientID(this.clientID))
 				return ;
 			
+			synchronized (roomDataList) {
+				roomDataList.get(0).clientManage.clientID.add(this.clientID);
+				System.out.println("대기실에 현재 "+roomDataList.get(0).clientManage.clientID.size()+" 있습니다.");
+				int totalLogin = 0;
+				for(RoomData R:roomDataList)
+					totalLogin += R.clientManage.clientID.size();				
+				
+				System.out.println("총 접속자수는 "+totalLogin);
+			}
 			//여기부터 서버에서 사용될 메소드 호출
 			//막 들어온 클라이언트는 방에 참여하기 전까지 clientManagement는 정적배열리스트에 추가하지 않는다.
 			//-----------------------------------------
@@ -184,6 +206,175 @@ public class ServerThread extends Thread {
 			e.printStackTrace();
 			return false;
 		}
+	}
+	
+	//정식서버메소드
+	public void standard()
+	{
+		System.out.println(this.clientID+" 가 접속했습니다.");
+		SocketBroadCastThread broadCastThread = new SocketBroadCastThread(new RoomData(null), socketBroadCastUsed);	//의미없는 스레드 생성 (New상태 반환받기 위해 만들어놓음)
+		while(true)
+		{
+			byte[] receiveSignal = new byte[signal.signalSize];
+			receiveSignal = signal.receiveSignalToByteArray();		//신호 받기를 대기한다.
+			
+			//돌때마다 방에 인원수가 바뀔수 있으므로 반복문이 반복시작되면 재 선언한다.
+			synchronized (roomDataList) {
+				roomManage = new RoomManage(yourName, this.clientID, broadCastSocket, eventSocket, cameraSocket, voiceSocket, roomDataList, signal);
+			}
+			
+			
+			//방에 참가 안하면 데이터나 위치 전송불가
+			if(signal.signalChecking(receiveSignal, signal.roomList))
+			{
+				if(roomManage.roomListSender())
+				{
+					System.out.println(this.clientID+" 에게 방 목록을 전송했습니다.");
+					continue;
+				}
+				else
+				{
+					System.out.println(this.clientID+" 에게 방 목록 전송을 실패했습니다.");
+					continue;
+				}
+			}
+			else if(signal.signalChecking(receiveSignal, signal.makeRoom))
+			{
+				if(roomManage.makeRoom())
+				{
+					System.out.println(this.clientID+" 가 방을 만들었습니다.");
+					
+					//만든 방의 정보를 현재 스레드 변수에 기록함.
+					synchronized (roomDataList) {
+						for(RoomData R:roomDataList)
+						{
+							if(R.clientManage.clientID.indexOf(this.clientID) > -1)
+							{
+								synchronized (socketBroadCastUsed) {
+									socketBroadCastUsed.broadCastKill=true;
+								}
+								System.out.println("방명은 "+R.roomName+" 입니다.");
+								this.roomName = new String(R.roomName);
+								while(true)
+								{
+									if( (broadCastThread.getState() == State.TERMINATED) || (broadCastThread.getState() == State.NEW) )
+									{
+										broadCastThread = new SocketBroadCastThread(R, socketBroadCastUsed);
+										broadCastThread.start();
+										synchronized (socketBroadCastUsed) {
+											socketBroadCastUsed.message = new String(this.clientID+" 방을 만들었습니다.");
+											socketBroadCastUsed.broadCastKill = false;
+										}
+										break;
+									}
+								}								
+								continue;
+							}
+						}						
+					}//여기까지 synchronized(roomDataList) 블록
+					
+				}
+				else
+				{
+					System.out.println(this.clientID+" 방 만들기를 실패했습니다.");
+					continue;
+				}
+			}
+			else if(signal.signalChecking(receiveSignal, signal.joinRoom))
+			{
+				if(roomManage.joinRoom())
+				{
+					System.out.println(this.clientID+" 방에 참여했습니다.");
+					
+					//참여한 방의 정보를 현재 스레드 변수에 기록함.
+					synchronized (roomDataList) {
+						for(RoomData R:roomDataList)
+						{
+							if(R.clientManage.clientID.indexOf(this.clientID) > -1)
+							{
+								synchronized (socketBroadCastUsed) {
+									socketBroadCastUsed.broadCastKill=true;
+								}
+								System.out.println("방명은 "+R.roomName+" 입니다.");
+								this.roomName = new String(R.roomName);
+								while(true)
+								{
+									if( (broadCastThread.getState() == State.TERMINATED) || (broadCastThread.getState() == State.NEW) )
+									{
+										broadCastThread = new SocketBroadCastThread(R, socketBroadCastUsed);
+										broadCastThread.start();
+										synchronized (socketBroadCastUsed) {
+											socketBroadCastUsed.message = new String(this.clientID+" 방에 참여했습니다.");
+											socketBroadCastUsed.broadCastKill = false;
+										}
+										break;
+									}
+								}
+								continue;								
+							}
+						}						
+					}//여기까지 synchronized(roomDataList) 블록
+					
+				}
+				else
+				{
+					System.out.println(this.clientID+" 방에 들어가지 못했습니다.");
+					continue;
+				}
+			}
+			else if(signal.signalChecking(receiveSignal, signal.exitRoom))
+			{
+				if(roomManage.exitRoom())
+				{
+					System.out.println(this.clientID+" 방을 나갔습니다.");					
+					continue;
+				}
+				else
+				{
+					System.out.println(this.clientID+" 방을 못 나갔습니다.(?)");
+				}
+			}	
+			
+			//방에 참가하지 않았으면 continue;
+			if(roomName.equals(unname))
+			{
+				signal.toDoResponse(signal.wrong);
+				continue;
+			}
+				
+			
+			if(signal.signalChecking(receiveSignal, signal.location))
+			{
+				
+			}
+			else if(signal.signalChecking(receiveSignal, signal.byteReceive))
+			{
+				receiveSignal = signal.receiveSignalToByteArray();
+				if(signal.signalChecking(receiveSignal, signal.location))
+				{
+					
+				}
+				else if(signal.signalChecking(receiveSignal, signal.camera))
+				{
+					
+				}
+				else if(signal.signalChecking(receiveSignal, signal.voice))
+				{
+					
+				}				
+			}
+			else	//클라이언트와 연결이 끊어진 경우
+			{
+				System.out.println(this.clientID+"와 연결이 끊어졌습니다.");
+				System.out.println("ClientID "+this.clientID+" 종료합니다.");
+				synchronized (socketBroadCastUsed) {
+					socketBroadCastUsed.broadCastKill=true;					
+				}
+				roomManage.byForceExitRoom();								
+				exitServer();
+				break;
+			}
+		}		
 	}
 	
 	

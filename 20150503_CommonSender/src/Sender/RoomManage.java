@@ -1,13 +1,14 @@
 package Sender;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 //방 및 사용자를 관리한다.
@@ -18,7 +19,7 @@ public class RoomManage {
 	boolean Used = false;		//클라이언트 단의 버튼 클릭에 의한 중복 호출을 막기위해
 	String yourName;			
 	int clientID;				
-	List<RoomData> roomData;
+	List<RoomData> roomDataList;
 	SignalData signal;
 	
 	Socket broadCastSocket;
@@ -27,7 +28,7 @@ public class RoomManage {
 	Socket voiceSocket;
 	
 	//클라이언트는 eventSocket, yourName, ClientID, signal만 있으면 된다. (나머지는 모두 null)
-	public RoomManage(String yourName, int clientID, Socket broadCastSocket, Socket eventSocket, Socket cameraSocket, Socket voiceSocket, List<RoomData> roomData, SignalData signal) {
+	public RoomManage(String yourName, int clientID, Socket broadCastSocket, Socket eventSocket, Socket cameraSocket, Socket voiceSocket, List<RoomData> roomDataList, SignalData signal) {
 		this.yourName = new String(yourName);
 		this.clientID = clientID;
 		this.broadCastSocket = broadCastSocket;
@@ -35,54 +36,99 @@ public class RoomManage {
 		this.cameraSocket = cameraSocket;
 		this.voiceSocket = voiceSocket;
 		
-		this.roomData = roomData;
+		this.roomDataList = roomDataList;
 		this.signal = signal;
 	}
 
 	//
 	//서버측, 서버는 여러 명령에 대해 응답을 기다리므로 메소드 안에 toResponse를 내장하지 않는다.
 	//방 만들기
-	public boolean makeRoom(String roomName)
+	public boolean makeRoom()
 	{
-		synchronized (roomData) {
-			if(roomName.equals(roomData.get(0).unname))		//unname은 쓸수없다.
-				return false;						
-			for(RoomData R:roomData)
+		String roomName = null;
+		if(signal.toAccept(signal.makeRoom))
+		{
+			try {
+				BufferedReader inputReader = new BufferedReader(new InputStreamReader(eventSocket.getInputStream()));
+				roomName = inputReader.readLine();
+			} catch (IOException e) {
+				e.printStackTrace();
+				signal.toDoResponse(signal.wrong);
+				return false;
+			}
+		}
+		else
+		{
+			signal.toDoResponse(signal.wrong);
+			return false;
+		}
+			
+		
+		synchronized (roomDataList) {
+			if(roomName.equals(roomDataList.get(0).unname))		//unname은 쓸수없다.
 			{
-				if(R.clientManage.clientID.indexOf(this.clientID) > -1)	//방에 이미 참여했으면 false
+				signal.toDoResponse(signal.wrong);
+				return false;						
+			}
+			for(RoomData R:roomDataList)
+			{
+				if(R.roomName.equals(value.unname))	//대기실은 패스(unname은 대기실)
+					continue;
+				
+				else if(R.clientManage.clientID.indexOf(this.clientID) > -1)	//방에 이미 참여했으면 false
+				{
+					signal.toDoResponse(signal.wrong);
 					return false;
+				}
 				else if(R.roomName.equals(roomName))	//방명이 같으면 false
+				{
+					signal.toDoResponse(signal.wrong);
 					return false;
+				}
 			}
 			
+			
 			System.out.println(roomName+" 이 추가되었습니다.");
-			roomData.add(new RoomData(roomName));
-			int index = roomData.size()-1;
-			roomData.get(index).clientManage.yourName.add(yourName);
-			roomData.get(index).clientManage.clientID.add(this.clientID);
-			roomData.get(index).clientManage.eventSocket.add(eventSocket);
-			roomData.get(index).clientManage.cameraSocket.add(cameraSocket);
-			roomData.get(index).clientManage.voiceSocket.add(voiceSocket);
+			roomDataList.add(new RoomData(roomName));
+			int index = roomDataList.size()-1;
+			
+			if(roomDataList.get(0).clientManage.clientID.equals(this.clientID))
+				roomDataList.get(0).clientManage.clientID.remove(this.clientID);
+			
 			
 			//BroadCastSocket은 아웃풋만 필요하고, BroadCastThread 특성상 이렇게 처리하는게 편하다.
 			try {
-				roomData.get(index).clientManage.broadCast.add(new BufferedWriter(new OutputStreamWriter(broadCastSocket.getOutputStream())));
+				roomDataList.get(index).clientManage.broadCast.add(new BufferedWriter(new OutputStreamWriter(broadCastSocket.getOutputStream())));
 			} catch (IOException e) {
-				e.printStackTrace();
+				e.printStackTrace();				
+				roomDataList.remove(roomDataList.size()-1);
+				signal.toDoResponse(signal.wrong);		//방 만드는중 예외 발생함을 알림.
+				return false;
 			}
+			roomDataList.get(index).clientManage.yourName.add(yourName);
+			roomDataList.get(index).clientManage.clientID.add(this.clientID);
+			roomDataList.get(index).clientManage.eventSocket.add(eventSocket);
+			roomDataList.get(index).clientManage.cameraSocket.add(cameraSocket);
+			roomDataList.get(index).clientManage.voiceSocket.add(voiceSocket);
+			roomDataList.get(index).clientManage.latitude.add(value.basicLatitude);
+			roomDataList.get(index).clientManage.longitude.add(value.BasicLongitude);
 		}		
+		signal.toCatchResponse(signal.makeRoom);
 		return true;		
 	}
 	
 	//빈방 삭제하기
 	public boolean delEmptyRoom()
 	{
-		synchronized (roomData){
-			for(RoomData R:roomData)
+		synchronized (roomDataList){
+			for(RoomData R:roomDataList)
 			{
+				if(R.roomName.equals(value.unname))	//unname은 대기실이다.
+					continue;
+				
 				if(R.clientManage.clientID.size() < 1)
 				{					 	
-					roomData.remove(R);
+					roomDataList.remove(R);
 					return true;					
 				}
 			}			
@@ -91,43 +137,108 @@ public class RoomManage {
 	}
 	
 	//방 출입
-	public boolean joinRoom(String roomName)
+	public boolean joinRoom()
 	{	
-		synchronized (roomData) {
-			for(RoomData R:roomData)
+		String roomName = null;
+		if(signal.toAccept(signal.joinRoom))
+		{
+			try {
+				BufferedReader inputReader = new BufferedReader(new InputStreamReader(eventSocket.getInputStream()));
+				roomName = inputReader.readLine();
+			} catch (IOException e) {
+				e.printStackTrace();
+				signal.toDoResponse(signal.wrong);
+				return false;
+			}
+		}
+		else
+		{
+			signal.toDoResponse(signal.wrong);
+			return false;
+		}
+			
+		
+		synchronized (roomDataList) {
+			
+			if(roomName.equals(roomDataList.get(0).unname))		//unname에 참여할 수 없다.
+			{
+				signal.toDoResponse(signal.wrong);
+				return false;						
+			}
+			for(RoomData R:roomDataList)
+			{
+				if(R.roomName.equals(value.unname))
+					continue;
+				else if(R.clientManage.clientID.indexOf(this.clientID) > -1)	//방에 이미 참여했으면 false
+				{
+					signal.toDoResponse(signal.wrong);
+					return false;
+				}
+			}
+				
+			for(RoomData R:roomDataList)
 			{
 				if(R.roomName.equals(roomName))	//방이 존재하는 경우
 				{
-					System.out.println("ClientID : "+clientID+" 가 "+roomName+" 에 참여했습니다.");
-					R.clientManage.yourName.add(yourName);
-					R.clientManage.clientID.add(this.clientID);
-					R.clientManage.eventSocket.add(eventSocket);
-					R.clientManage.cameraSocket.add(cameraSocket);
-					R.clientManage.voiceSocket.add(voiceSocket);
-					
+					int tempSize = R.clientManage.broadCast.size();
 					//BroadCastSocket은 아웃풋만 필요하고, BroadCastThread 특성상 이렇게 처리하는게 편하다.
 					try {
 						R.clientManage.broadCast.add(new BufferedWriter(new OutputStreamWriter(broadCastSocket.getOutputStream())));
 					} catch (IOException e) {
 						e.printStackTrace();
+						if( tempSize != R.clientManage.broadCast.size())	//올바르지 않은 브로드캐스트소켓이 들어갔을경우
+							R.clientManage.broadCast.remove(R.clientManage.broadCast.size()-1);
+						signal.toDoResponse(signal.wrong);		//방 출입에 예외가 발생함을 알림.
+						return false;
 					}
+					R.clientManage.yourName.add(yourName);
+					R.clientManage.clientID.add(this.clientID);
+					R.clientManage.eventSocket.add(eventSocket);
+					R.clientManage.cameraSocket.add(cameraSocket);
+					R.clientManage.voiceSocket.add(voiceSocket);
+					R.clientManage.latitude.add(value.basicLatitude);
+					R.clientManage.longitude.add(value.BasicLongitude);
+					
+					System.out.println("ClientID : "+clientID+" 가 "+roomName+" 에 참여했습니다.");	
+					synchronized (roomDataList) {
+						if(roomDataList.get(0).clientManage.clientID.equals(this.clientID))
+							roomDataList.get(0).clientManage.clientID.remove(this.clientID);	
+					}
+					signal.toCatchResponse(signal.joinRoom);	
 					return true;
 				}				
 			}
-		}
+		}		
 		System.out.println("ClientID : "+this.clientID+" 가 "+roomName+" 방을 참여하려 시도했으나 실패, 없는 방인거 같습니다.");
+		signal.toDoResponse(signal.wrong);
 		return false;
 	}
 	
 	//만약 ServerThread.exitServer 메소드를 호출하려면 exitRoom를 먼저 호출해야 아래 ArrayList가 엉키지 않는다. 
-	public boolean exitRoom(String roomName)
+	public boolean exitRoom()
 	{
-		synchronized (roomData) {
-			for(RoomData R:roomData)
+		String roomName = null;
+		if(signal.toAccept(signal.exitRoom))
+		{
+			try {
+				BufferedReader inputReader = new BufferedReader(new InputStreamReader(eventSocket.getInputStream()));
+				roomName = inputReader.readLine();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		else
+		{
+			signal.toDoResponse(signal.wrong);
+			return false;
+		}
+			
+		
+		synchronized (roomDataList) {
+			for(RoomData R:roomDataList)
 			{
 				if(R.roomName.equals(roomName))
 				{
-					System.out.println("ClientID : "+clientID+" 가 "+roomName+" 을 나갔습니다.");
 					int index = R.clientManage.clientID.indexOf(this.clientID);
 					R.clientManage.yourName.remove(index);
 					R.clientManage.clientID.remove(index);
@@ -135,11 +246,47 @@ public class RoomManage {
 					R.clientManage.eventSocket.remove(index);
 					R.clientManage.cameraSocket.remove(index);
 					R.clientManage.voiceSocket.remove(index);
+					R.clientManage.latitude.remove(index);
+					R.clientManage.longitude.remove(index);
+					signal.toCatchResponse(signal.exitRoom);	//방을 나갔다는 확인 신호를 보냄
+					System.out.println("ClientID : "+clientID+" 가 "+roomName+" 을 나갔습니다.");
 					return true;					
 				}
 			}
 		}
 		System.out.println("ClientID : "+this.clientID+" 가 참여했다는 "+roomName+" 방은 없습니다.");
+		signal.toDoResponse(signal.wrong);
+		return false;
+	}
+	
+	//클라이언트가 예기치 못하게 연결이 끊어진 경우 호출
+	public boolean byForceExitRoom()
+	{
+		synchronized (roomDataList) {
+			for(RoomData R:roomDataList)
+			{
+				if(R.roomName.equals(value.unname))
+					continue;
+				
+				else if(R.clientManage.clientID.equals(this.clientID))
+				{
+					int index = R.clientManage.clientID.indexOf(this.clientID);
+					R.clientManage.yourName.remove(index);
+					R.clientManage.clientID.remove(index);
+					R.clientManage.broadCast.remove(index);
+					R.clientManage.eventSocket.remove(index);
+					R.clientManage.cameraSocket.remove(index);
+					R.clientManage.voiceSocket.remove(index);
+					R.clientManage.latitude.remove(index);
+					R.clientManage.longitude.remove(index);
+					signal.toCatchResponse(signal.exitRoom);	//방을 나갔다는 확인 신호를 보냄
+					System.out.println("ClientID : "+clientID+" 연결이 끊어져 강제로 종료했습니다.");
+					return true;					
+				}
+			}
+		}
+		
+		System.out.println("ClientID : "+this.clientID+" 방에 참가하지 않았습니다. 그래도 강제 종료합니다.");
 		return false;
 	}
 	
@@ -148,19 +295,19 @@ public class RoomManage {
 	public boolean roomListSender()
 	{
 		ObjectOutputStream objectOutput = null;
-		RoomDataToArrayString result;
+		RoomDataToArray result;
 		ArrayList<String> wantList = new ArrayList<>();
 		ArrayList<Integer> wantJoinNumber = new ArrayList<>();
 		
 		//방 목록을 roomList에 집어넣는다.
-		for(RoomData R: roomData)
+		for(RoomData R: roomDataList)
 		{
 			wantList.add(R.roomName);
 			wantJoinNumber.add(R.clientManage.clientID.size());
 		}
 		
 		//뽑아낸 방목록과 방에 참가한 인원을 result 객체에 집어넣는다.
-		result = new RoomDataToArrayString(wantList, wantJoinNumber);
+		result = new RoomDataToArray(wantList, wantJoinNumber);
 		
 		//객체 전송을 위해 object아웃풋을 연다.
 		try {
@@ -182,17 +329,17 @@ public class RoomManage {
 				e.printStackTrace();
 				return false;
 			}
-			if(signal.toDoResponse(signal.roomList))	//원격측에서 전달을 받았다 오바하면
+			if(signal.toCatchResponse(signal.roomList))	//원격측에서 받았는지 확인(확인은 안함)
 			{
 				System.out.println(this.clientID+" 에게 방 목록을 성공적으로 전송했습니다.");
 				return true;
 			}			
-			
 		}
 		return false;		
 	}
 	
-	public boolean roomListReceiver(RoomDataToArrayString result)
+	//클라이언트(방 목록을 받으므로)
+	public boolean roomListReceiver(RoomDataToArray result)
 	{
 		ObjectInputStream objectInput = null;
 		
@@ -208,26 +355,28 @@ public class RoomManage {
 		if(signal.toDoRequest(signal.roomList))	//룸 리스트를 요청한다.를 서버가 확인했으면 true
 		{
 			try {
-				result = (RoomDataToArrayString) objectInput.readObject();
+				result = (RoomDataToArray) objectInput.readObject();
 			} catch (ClassNotFoundException | IOException e) {
 				System.out.println("result 객체를 받는중 예외");
 				e.printStackTrace();
 				return false;
 			}
-			System.out.println("ClientID : "+this.clientID+"가 방목록 받는데 성공했습니다.");
-			return true;
+			if(signal.toDoResponse(signal.roomList))	//방 목록을 받았다고 신호보냄
+			{
+				System.out.println("ClientID : "+this.clientID+" 방목록을 받았습니다.");
+				return true;	
+			}
 		}
-		
-		System.out.println("ClientID : "+this.clientID+"가 방목록 받는데 실패했습니다.");
+		System.out.println("ClientID : "+this.clientID+" 방목록 받는데 실패했습니다.");
 		return false;
 		
 	}
 
-	
+	//클라이언트에서 방관련 메소드 호출전에 꼭 SocketEventUsed = true 로 설정하여 블록시키자.
 	//클라이언트가 방 관련하여 요청하는 부분
 	//서버단은 직접 신호 받기를 대기하므로 이런 메소드는 만들지 않는다.
 	//command는 시그널, wantRoomName은 command하고 싶은 방이름, roomName은 너가 가지고 있는 방 이름의 변수(client객체의 roomName 변수)
-	public boolean clientsRequest(byte[] command,String wantRoomName, String roomName, RoomDataToArrayString result)
+	public boolean clientsRequest(byte[] command,String wantRoomName, String roomName, RoomDataToArray result)
 	{
 		this.Used = true;
 		BufferedWriter eventOutput;
@@ -246,29 +395,30 @@ public class RoomManage {
 			if(signal.signalChecking(command, signal.makeRoom) || signal.signalChecking(command, signal.joinRoom) || signal.signalChecking(command, signal.exitRoom))
 			{
 				try {
+					Thread.sleep(value.waitTime);	//서버측 스레드의 버퍼 생성시간이 늦어질수도 있으므로.
 					eventOutput.write(wantRoomName);
 					eventOutput.newLine();
 					eventOutput.flush();
-				} catch (IOException e) {
+				} catch (IOException | InterruptedException e) {
 					System.out.println(command+" 도중 예외 발생");
 					e.printStackTrace();
 					this.Used = false;
 					return false;
 				}
 				
-				if(signal.toAccept(signal.makeRoom))
+				if(signal.toCatchResponse(signal.makeRoom))
 				{
 					roomName = new String(wantRoomName);
 					this.Used = false;
 					return true;
 				}
-				else if(signal.toAccept(signal.signalStringToByte("joinRoom")))
+				else if(signal.toCatchResponse(signal.signalStringToByte("joinRoom")))
 				{
 					roomName = new String(wantRoomName);
 					this.Used = false;
 					return true;
 				}
-				else if(signal.toAccept(signal.signalStringToByte("exitRoom")))
+				else if(signal.toCatchResponse(signal.signalStringToByte("exitRoom")))
 				{
 					roomName = new String(value.unname);
 					this.Used = false;

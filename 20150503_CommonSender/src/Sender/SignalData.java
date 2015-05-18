@@ -9,7 +9,7 @@ import java.net.Socket;
 public class SignalData {
 	
 	final int signalSize = 2;				//시그널 길이
-	final int signalLength = 13;			//시그널 갯수
+	final int signalCount = 14;				//시그널 갯수
 	final byte[] request =		{ 0,0 };	//요청
 	final byte[] response =		{ 0,1 };	//응답함
 	final byte[] wrong	=		{ 0,2 };	//올바르지 않음
@@ -25,6 +25,8 @@ public class SignalData {
 	final byte[] byteSize	=	{ 2,0 };	//바이트배열크기
 	final byte[] byteSend = 	{ 2,1 }; 	//바이트배열보냄
 	final byte[] byteReceive=	{ 2,2 }; 	//바이트배열받음
+	
+	final byte[] exitServer	=	{ 9,0 };	//서버와 연결종료
 	
 	
 	Socket socket;
@@ -146,7 +148,21 @@ public class SignalData {
 		
 		return null;		
 	}
-		
+	
+	//받은 시그널을 byte[]로 리턴
+	public byte[] receiveSignalToByteArray()
+	{
+		byte[] temp = new byte[signalSize];
+		try {
+			input.read(temp);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+		return temp;		
+	}
+	
+	
 	//원하는 작업 요청을 하는 메소드
 	public boolean toDoRequest(byte[] wantSignal)
 	{
@@ -238,23 +254,22 @@ public class SignalData {
 		}
 	}
 	
-	//바이트 배열로 반환하는게 좋을까, 스트링으로 반환하는게 좋을까? 역시 스트링이 낫겠다. 비교도 신호이름 변환 메소드 이용해서 비교하구.
-	//신호를 받아 스트링으로 반환해주는 메소드
-	public String toReadSignal()
+	//응답신호를 확인만 함
+	public boolean toCatchResponse(byte[] OKsignal)
 	{
-		byte[] temp = new byte[this.signalSize];
-		String tempString = new String("");
+		byte[] temp = new byte[signalSize];
 		try {
 			input.read(temp);
-			tempString = signalByteToString(temp);
-			if(tempString == null)
-				return null;
-			return tempString;
-			
+			if(signalChecking(temp, OKsignal))
+				return true;
+			else
+				return false;
 		} catch (IOException e) {
+			System.out.println("toDoResponse신호 받는데 예외");
 			e.printStackTrace();
-			return null;
+			return false;
 		}
+		
 	}
 }
 /* 혹시모르니 

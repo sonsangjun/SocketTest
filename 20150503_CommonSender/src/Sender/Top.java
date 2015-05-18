@@ -41,25 +41,31 @@ public class Top {
 		}
 	}
 }
-/*				 Top───────ValueCollections
- * 				  │
- * 			┌─────┴─────┐
- * 		 Server		Client
- * 			│		
- * 		ServerThread			
+/*						 	 Top───────ValueCollections
+ *							  │
+ * 			┌─────────────────┴─────────────────┐
+ * 		 Server								  Client
+ * 			│						   ┌────────┤
+ * 		ServerThread───────────────────┼SocketBroadCastThread
+ *			│						   └ByteArrayTransCeiverThread───────ByteArrayTransCevierRule
+ *	(List<RoomData> roomDataList) 		
  * 	┌────────────────────────────────────────────── Server,Client에 사용되는 나머지 클래스들 관계
  *  │				
  *	├─	SharedData
  *	├─	SignalData
  *	├─	IntegerToByteArray
- *	├─	ByteArrayTransCeiverThread──────────────────ByteArrayTransCevierRule
  *	├─	
- *  │		   							
+ *	├─	
+ *  │
+ *  ├─	LocationManage────┐		   							
  *	├─	RoomManage───── RoomData ───────────────┬── ClientManage
- *	├─	SocketBroadCastUsed	//─┐				└── RoomDataToArrayString
- *	├─	SocketCameraUsed	// ├─이게 필요한 클래스에 
- *	├─	SocketVoiceUsed		//─┘ 이 세 클래스는 종속적이다.
+ *	│											└── RoomDataToArray
+ *	├─	SocketBroadCastUsed	//─┐				
+ *	├─	SocketCameraUsed	// ├─	이게 필요한 클래스에 
+ *	├─	SocketVoiceUsed		// │	이 세 클래스는 종속적이다.
+ *	├─	SocketEventUsed		//─┘	소켓을 사용한다면, 꼭 이클래스 값을 true시켜라. 안그러면 꼬인다.
  *(나중에 추가)
  * 
+ * 클라이언트 ID는 static int로 접속시 해당 변수에 ++ 된 값을 할당한다.
  */
  

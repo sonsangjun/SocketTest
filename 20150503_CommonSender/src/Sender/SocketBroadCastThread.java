@@ -33,7 +33,6 @@ public class SocketBroadCastThread extends Thread{
 				synchronized (socketBroadCastUsed) {
 					if(socketBroadCastUsed.broadCastKill)
 					{
-						socketBroadCastUsed.broadCastDead = true;
 						socketBroadCastUsed.broadCastKill = false;
 						break;
 					}
@@ -52,18 +51,32 @@ public class SocketBroadCastThread extends Thread{
 				
 				//문자열이 계시는 경우 전 소켓에 날려준다.
 				synchronized (roomData) {
+					String tempMessage;
+					synchronized (socketBroadCastUsed) {
+						socketBroadCastUsed.broadCastUsed=true;
+						tempMessage = new String(socketBroadCastUsed.message);
+					}					
 					for(BufferedWriter B: roomData.clientManage.broadCast)
 					{
 						try {
-							B.write(socketBroadCastUsed.message);
+							B.write(tempMessage);
 							B.newLine();
 							B.flush();			
 						} catch (IOException e) {
 							e.printStackTrace();
+							synchronized (socketBroadCastUsed) {
+								socketBroadCastUsed.broadCastUsed=false;
+							}							
 							continue;
 						}			
 					}
-				}				
+				}
+				
+				//메시지를 보냈으므로 없앤다.
+				synchronized (socketBroadCastUsed) {
+					socketBroadCastUsed.message = null;
+					socketBroadCastUsed.broadCastUsed=false;
+				}
 			}
 		}
 		
@@ -77,15 +90,16 @@ public class SocketBroadCastThread extends Thread{
 					synchronized (socketBroadCastUsed) {
 						if(socketBroadCastUsed.broadCastKill)
 						{
-							socketBroadCastUsed.broadCastDead = true;
 							socketBroadCastUsed.broadCastKill = false;
 							break;
 						}						
 					}
+					socketBroadCastUsed.broadCastUsed=true;
 					temp = inputReader.readLine();
 					if(temp == null)
 					{
 						Thread.sleep(value.waitTime);
+						socketBroadCastUsed.broadCastUsed=false;
 						continue;						
 					}
 					else
@@ -94,13 +108,14 @@ public class SocketBroadCastThread extends Thread{
 							socketBroadCastUsed.message = new String(temp);
 							System.out.println("temp");
 							temp = null;
+							socketBroadCastUsed.broadCastUsed=false;
 						}						
 					}						
 				}								
 			} catch (IOException | InterruptedException e) {
 				System.out.println("inputReader만드는데 실패");
 				e.printStackTrace();
-				socketBroadCastUsed.broadCastDead=true;
+				socketBroadCastUsed.broadCastUsed=false;
 				return ;
 			}			
 		}		

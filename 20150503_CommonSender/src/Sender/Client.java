@@ -133,6 +133,7 @@ public class Client extends Thread {
 	public boolean exitClient()
 	{
 		try {
+			broadCastSocket.close();
 			eventSocket.close();
 			cameraSocket.close();
 			voiceSocket.close();
