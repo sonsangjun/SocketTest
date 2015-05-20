@@ -100,6 +100,9 @@ public class Client extends Thread {
 		if(!receiveClientID())
 			return ;
 		
+		//서버에서 날라오는 메시지 받기 시작
+		socketBroadCastThread = new SocketBroadCastThread(broadCastSocket, socketBroadCastUsed);
+		
 		
 		
 		//-----------------------------------------------------------------------------
@@ -274,8 +277,7 @@ public class Client extends Thread {
 						{
 							socketEventUsed.socketEventUsed = false;
 							this.roomName = new String(inputRoomName);
-							System.out.println("만든 방이름은 "+inputRoomName);
-							socketBroadCastThread = new SocketBroadCastThread(broadCastSocket, socketBroadCastUsed);
+							System.out.println("만든 방이름은 "+inputRoomName);							
 							continue;					
 						}
 					}
@@ -286,8 +288,7 @@ public class Client extends Thread {
 						{
 							socketEventUsed.socketEventUsed = false;
 							this.roomName = new String(inputRoomName);
-							System.out.println("참가한 방이름은 "+inputRoomName);
-							socketBroadCastThread = new SocketBroadCastThread(broadCastSocket, socketBroadCastUsed);
+							System.out.println("참가한 방이름은 "+inputRoomName);							
 							continue;					
 						}
 					}
@@ -302,29 +303,8 @@ public class Client extends Thread {
 					if(roomManage.clientsRequest(signal.exitRoom, this.roomName,  null))
 					{
 						socketEventUsed.socketEventUsed = false;
-						this.roomName = new String(this.value.unname);
-						
-						//방을 나가면 스레드를 죽인다.
-						if(socketBroadCastThread == null);
-						else
-						{
-							synchronized(socketBroadCastUsed){
-								socketBroadCastUsed.broadCastKill = true;
-							}
+						this.roomName = new String(this.value.unname);						
 						}
-						while(true)
-						{
-							if(socketBroadCastThread.getState() == State.TERMINATED)
-							{
-								socketBroadCastThread = null;
-								break;								
-							}								
-						}
-						//스레드 죽인후, socketBroadCastUsed 내용을 초기화 한다.
-						synchronized (socketBroadCastUsed) {
-							socketBroadCastUsed.init();
-						}
-					}
 					continue;
 				}
 				//방 나가기 끝
@@ -343,6 +323,25 @@ public class Client extends Thread {
 				System.out.println("예기치 못한 오류 발생");
 				System.out.println("클라이언트를 종료합니다.");
 				exitClient();
+				
+				//서버에서 날라오는 메시지 받기 끝내기
+				//연결이 종료되면 브로드캐스트를 죽인다.
+				if(socketBroadCastThread == null);
+				else
+				{
+					synchronized(socketBroadCastUsed){
+						socketBroadCastUsed.broadCastKill = true;
+					}
+				}
+				while(true)
+				{
+					if(socketBroadCastThread.getState() == State.TERMINATED)
+					{
+						socketBroadCastThread = null;
+						break;								
+					}								
+				}
+				//브로드캐스트 죽이기 끝
 				return ;				
 			}
 			//명령 받기끝			
