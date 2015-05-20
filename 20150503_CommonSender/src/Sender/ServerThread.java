@@ -128,9 +128,8 @@ public class ServerThread extends Thread {
 			if(!transClientID(this.clientID))
 				return ;
 			
+			
 			synchronized (roomDataList) {
-				
-				
 				roomDataList.get(0).clientManage.clientID.add(this.clientID);
 				System.out.println("대기실에 현재 "+roomDataList.get(0).clientManage.clientID.size()+" 있습니다.");
 				int totalLogin = 0;
@@ -139,7 +138,6 @@ public class ServerThread extends Thread {
 				System.out.println("방에 참여한 인원은 ");				
 				for(RoomData R:roomDataList)
 				{
-					if(R.roomName.equals(value.unname))
 					System.out.println(R.roomName+" : "+R.clientManage.clientID.size()+" 명");
 					totalLogin += R.clientManage.clientID.size();
 				}
@@ -269,10 +267,7 @@ public class ServerThread extends Thread {
 							if(R.roomName.equals(value.unname))	//대기실빼고
 								continue;
 							if(R.clientManage.clientID.indexOf(this.clientID) > -1)
-							{
-								synchronized (socketBroadCastUsed) {
-									socketBroadCastUsed.broadCastKill=true;
-								}
+							{								
 								System.out.println("방명은 "+R.roomName+" 입니다.");
 								this.roomName = new String(R.roomName);		
 								break;
@@ -302,9 +297,6 @@ public class ServerThread extends Thread {
 								continue;
 							if(R.clientManage.clientID.indexOf(this.clientID) > -1)
 							{
-								synchronized (socketBroadCastUsed) {
-									socketBroadCastUsed.broadCastKill=true;
-								}
 								System.out.println("방명은 "+R.roomName+" 입니다.");
 								this.roomName = new String(R.roomName);
 								break;								
