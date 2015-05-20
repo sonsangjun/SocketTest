@@ -143,8 +143,7 @@ public class RoomManage {
 				if((socketBroadCastThread == null) || (socketBroadCastThread.getState() == State.TERMINATED) )
 				{
 					socketBroadCastThread = new SocketBroadCastThread(roomDataList.get(index), socketBroadCastUsed);
-					socketBroadCastThread.start();
-					System.out.println(socketBroadCastThread.getName());	//테스트
+					socketBroadCastThread.start();					
 					synchronized (socketBroadCastUsed) {
 						socketBroadCastUsed.init();
 					}
@@ -270,8 +269,7 @@ public class RoomManage {
 							socketBroadCastThread.start();
 							synchronized (socketBroadCastUsed) {
 								socketBroadCastUsed.init();
-								socketBroadCastUsed.message = new String("Client ID : "+this.clientID+" 방에 참여했습니다.");
-								System.out.println(socketBroadCastThread.getName());	//테스트
+								socketBroadCastUsed.message = new String("Client ID : "+this.clientID+" 방에 참여했습니다.");								
 							}
 							break;
 						}
@@ -359,7 +357,7 @@ public class RoomManage {
 					//BroadCastThread 제거(exitRoom)					
 					signal.toDoResponse(signal.exitRoom);	//방을 나갔다는 확인 신호를 보냄
 					roomDataList.get(0).clientManage.clientID.add(this.clientID);	//방을 나간 클라이언트는 대기실에 입성.					
-					System.out.println("Client ID : "+clientID+" 가 "+roomName+" 을 나갔습니다.");
+					System.out.println("Client ID : "+clientID+" 방 : "+roomName+" 나갔습니다.");
 					return true;					
 				}
 			}

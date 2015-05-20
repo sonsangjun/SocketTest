@@ -57,7 +57,6 @@ public class SocketBroadCastThread extends Thread{
 						socketBroadCastUsed.broadCastUsed=true;
 						tempMessage = new String(socketBroadCastUsed.message);
 					}
-					System.out.println("클라이언트에게 메시지 날립니다.");	//테스트
 					for(BufferedWriter B: roomData.clientManage.broadCast)
 					{					
 						try {
@@ -97,9 +96,7 @@ public class SocketBroadCastThread extends Thread{
 					}
 					socketBroadCastUsed.broadCastUsed=true;
 					
-					System.out.println("서버로부터 메시지를 받기 대기합니다.");	//테스트
 					temp = inputReader.readLine();
-					System.out.println("서버로부터 메시지를 받았습니다.");	//테스트
 					if(temp.equals(socketBroadCastUsed.nullString))
 					{
 						Thread.sleep(value.waitTime);

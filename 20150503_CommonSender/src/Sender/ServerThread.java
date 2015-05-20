@@ -123,12 +123,14 @@ public class ServerThread extends Thread {
 			synchronized (ServerThread.class) {		//정적변수는 클래스에 하나뿐이므로 클래스에 대해 동기화 한다. (this를 쓰면 ServerThread 각각 인스턴스객체들 사이에 동기화가 안된다.)
 				this.clientID = ++assignedClientID;
 			}
+			System.out.println(value.upLine);
 			System.out.println("할당해준 Client ID 는 "+this.clientID+" 입니다.");
+			System.out.println(value.downLine);
 			
 			if(!transClientID(this.clientID))
 				return ;
 			
-			
+			System.out.println(value.upLine);
 			synchronized (roomDataList) {
 				roomDataList.get(0).clientManage.clientID.add(this.clientID);
 				System.out.println("대기실에 현재 "+roomDataList.get(0).clientManage.clientID.size()+" 있습니다.");
@@ -145,6 +147,7 @@ public class ServerThread extends Thread {
 				
 				System.out.println("총 접속자수는 "+totalLogin);
 			}
+			System.out.println(value.downLine);
 			//여기부터 서버에서 사용될 메소드 호출
 			//막 들어온 클라이언트는 방에 참여하기 전까지 clientManagement는 정적배열리스트에 추가하지 않는다.
 			//-----------------------------------------
