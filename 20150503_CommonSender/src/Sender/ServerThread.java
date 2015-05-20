@@ -426,13 +426,14 @@ public class ServerThread extends Thread {
 		//서버 종료
 		System.out.println("Client ID : "+this.clientID+" 대한 연결이 끊어졌습니다.");
 		synchronized (socketBroadCastUsed) {
+			socketBroadCastUsed.message = new String("Client ID : "+this.clientID+" 연결을 종료합니다.");
 			System.out.println("broadCast 스레드 죽입니다.");
 			socketBroadCastUsed.broadCastKill=true;					
 		}
 		roomManage.byForceExitRoom();
 		roomManage.delEmptyRoom();
 		exitServer();
-		System.out.println("ClientID : "+this.clientID+" 대한 연결을 마칩니다.");
+		System.out.println("Client ID : "+this.clientID+" 대한 연결을 마칩니다.");
 		//서버 종료 끝
 	}
 	
