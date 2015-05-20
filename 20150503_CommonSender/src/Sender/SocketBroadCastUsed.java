@@ -7,5 +7,12 @@ public class SocketBroadCastUsed {			//true일때의 의미
 	
 	public String message = null;			//초기값은 null
 	
+	public void init()
+	{
+		broadCastUsed = false;
+		broadCastKill = false;
+		message = null;
+	}
+	
 
 }

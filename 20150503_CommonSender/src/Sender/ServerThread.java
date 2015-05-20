@@ -244,16 +244,6 @@ public class ServerThread extends Thread {
 			}
 			//roomManage 선언 끝
 			
-			
-			
-			//테스트
-			for(int i=0; i<roomDataList.size(); i++)
-				System.out.println("방 목록 : ["+i+"] : "+roomDataList.get(i).roomName);
-			
-			
-			
-			//테스트
-			
 			//방 목록전송
 			//방에 참가 안하면 데이터나 위치 전송불가
 			if(signal.signalChecking(receiveSignal, signal.roomList))
@@ -353,6 +343,7 @@ public class ServerThread extends Thread {
 							}
 						}						
 					}//여기까지 synchronized(roomDataList) 블록
+					continue;
 					
 				}
 				else

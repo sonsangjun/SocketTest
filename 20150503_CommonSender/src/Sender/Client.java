@@ -51,6 +51,7 @@ public class Client extends Thread {
 	BufferedInputStream eventInput;
 	BufferedOutputStream eventOutput;
 	
+	SocketBroadCastThread socketBroadCastThread = null;
 	SocketBroadCastUsed socketBroadCastUsed = new SocketBroadCastUsed();
 	SocketEventUsed socketEventUsed = new SocketEventUsed();
 	SocketCameraUsed socketCameraUsed = new SocketCameraUsed();
@@ -274,6 +275,7 @@ public class Client extends Thread {
 							socketEventUsed.socketEventUsed = false;
 							this.roomName = new String(inputRoomName);
 							System.out.println("만든 방이름은 "+inputRoomName);
+							socketBroadCastThread = new SocketBroadCastThread(broadCastSocket, socketBroadCastUsed);
 							continue;					
 						}
 					}
@@ -285,6 +287,7 @@ public class Client extends Thread {
 							socketEventUsed.socketEventUsed = false;
 							this.roomName = new String(inputRoomName);
 							System.out.println("참가한 방이름은 "+inputRoomName);
+							socketBroadCastThread = new SocketBroadCastThread(broadCastSocket, socketBroadCastUsed);
 							continue;					
 						}
 					}
@@ -299,9 +302,30 @@ public class Client extends Thread {
 					if(roomManage.clientsRequest(signal.exitRoom, this.roomName,  null))
 					{
 						socketEventUsed.socketEventUsed = false;
-						this.roomName = new String(this.value.unname);						
-						continue;
-					}								
+						this.roomName = new String(this.value.unname);
+						
+						//방을 나가면 스레드를 죽인다.
+						if(socketBroadCastThread == null);
+						else
+						{
+							synchronized(socketBroadCastUsed){
+								socketBroadCastUsed.broadCastKill = true;
+							}
+						}
+						while(true)
+						{
+							if(socketBroadCastThread.getState() == State.TERMINATED)
+							{
+								socketBroadCastThread = null;
+								break;								
+							}								
+						}
+						//스레드 죽인후, socketBroadCastUsed 내용을 초기화 한다.
+						synchronized (socketBroadCastUsed) {
+							socketBroadCastUsed.init();
+						}
+					}
+					continue;
 				}
 				//방 나가기 끝
 				
