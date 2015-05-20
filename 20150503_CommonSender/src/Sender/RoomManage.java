@@ -135,13 +135,16 @@ public class RoomManage {
 			roomDataList.get(index).clientManage.longitude.add(value.BasicLongitude);
 			
 			//BroadCastThread 생성(makeRoom)
+			synchronized (socketBroadCastUsed) {
+				socketBroadCastUsed.broadCastKill = true;
+			}
 			while(true)
 			{
-				System.out.println("0---0");
-				if( (socketBroadCastThread.getState() == State.TERMINATED) || (socketBroadCastThread.getState() == State.NEW) )
+				if((socketBroadCastThread == null) || (socketBroadCastThread.getState() == State.TERMINATED) )
 				{
 					socketBroadCastThread = new SocketBroadCastThread(roomDataList.get(index), socketBroadCastUsed);
 					socketBroadCastThread.start();
+					System.out.println(socketBroadCastThread.getName());	//테스트
 					synchronized (socketBroadCastUsed) {
 						socketBroadCastUsed.init();
 					}
@@ -256,15 +259,19 @@ public class RoomManage {
 					}
 					
 					//BroadCastThread 생성(joinRoom)
+					synchronized (socketBroadCastUsed) {
+						socketBroadCastUsed.broadCastKill = true;
+					}
 					while(true)
 					{
-						if( (socketBroadCastThread.getState() == State.TERMINATED) || (socketBroadCastThread.getState() == State.NEW) )
+						if( (socketBroadCastThread == null) || (socketBroadCastThread.getState() == State.TERMINATED) )
 						{
 							socketBroadCastThread = new SocketBroadCastThread(R, socketBroadCastUsed);
 							socketBroadCastThread.start();
 							synchronized (socketBroadCastUsed) {
 								socketBroadCastUsed.init();
-								socketBroadCastUsed.message = new String("Client ID : "+this.clientID+" 방에 참여했습니다.");								
+								socketBroadCastUsed.message = new String("Client ID : "+this.clientID+" 방에 참여했습니다.");
+								System.out.println(socketBroadCastThread.getName());	//테스트
 							}
 							break;
 						}
@@ -294,6 +301,7 @@ public class RoomManage {
 				roomName = inputReader.readLine();
 			} catch (IOException e) {
 				e.printStackTrace();
+				return false;
 			}
 		}
 		else
@@ -319,26 +327,38 @@ public class RoomManage {
 					R.clientManage.voiceSocket.remove(index);
 					R.clientManage.latitude.remove(index);
 					R.clientManage.longitude.remove(index);
-					signal.toDoResponse(signal.exitRoom);	//방을 나갔다는 확인 신호를 보냄
-					roomDataList.get(0).clientManage.clientID.add(this.clientID);	//방을 나간 클라이언트는 대기실에 입성.
-					
+			
 					//BroadCastThread 제거(exitRoom)
 					synchronized (socketBroadCastUsed) {
-						socketBroadCastUsed.broadCastKill = true;
-						while(true)
-						{
-							if(socketBroadCastThread.getState() == State.TERMINATED || socketBroadCastThread == null)
-							{
-								socketBroadCastThread = null;
-								synchronized (socketBroadCastUsed) {
-									socketBroadCastUsed.init();
-								}								
-								break;
-							}															
-						}						
+						socketBroadCastUsed.message = new String("Client ID : "+this.clientID+" 방을 나갔습니다.");	
 					}
-					//BroadCastThread 제거(exitRoom)
 					
+					try {
+						Thread.sleep(value.waitTime);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+						return false;
+					}
+					
+					synchronized (socketBroadCastUsed) {
+						socketBroadCastUsed.broadCastKill = true;
+					}
+					while(true)
+					{
+						if( socketBroadCastThread == null || socketBroadCastThread.getState() == State.TERMINATED )
+						{
+							socketBroadCastThread = null;
+							synchronized (socketBroadCastUsed) {
+								socketBroadCastUsed.init();
+							}								
+							break;
+						}															
+					}						
+				
+					//BroadCastThread 제거(exitRoom)					
+					signal.toDoResponse(signal.exitRoom);	//방을 나갔다는 확인 신호를 보냄
+					roomDataList.get(0).clientManage.clientID.add(this.clientID);	//방을 나간 클라이언트는 대기실에 입성.					
 					System.out.println("Client ID : "+clientID+" 가 "+roomName+" 을 나갔습니다.");
 					return true;					
 				}
@@ -378,21 +398,33 @@ public class RoomManage {
 				R.clientManage.longitude.remove(index);
 				signal.toDoResponse(signal.exitRoom);	//방을 나갔다는 확인 신호를 보냄
 				
+				
 				//BroadCastThread 제거(byForceExitRoom)
 				synchronized (socketBroadCastUsed) {
-					socketBroadCastUsed.broadCastKill = true;
-					while(true)
-					{
-						if(socketBroadCastThread.getState() == State.TERMINATED || socketBroadCastThread == null)
-						{
-							socketBroadCastThread = null;
-							synchronized (socketBroadCastUsed) {
-								socketBroadCastUsed.init();
-							}								
-							break;
-						}															
-					}						
+					socketBroadCastUsed.message = new String("Client ID : "+this.clientID+" 연결이 끊겼습니다.");	
+				}				
+				try {
+					Thread.sleep(value.waitTime);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					return false;
 				}
+				
+				synchronized (socketBroadCastUsed) {
+					socketBroadCastUsed.broadCastKill = true;
+				}
+				while(true)
+				{
+					if( socketBroadCastThread == null || socketBroadCastThread.getState() == State.TERMINATED )
+					{
+						socketBroadCastThread = null;
+						synchronized (socketBroadCastUsed) {
+							socketBroadCastUsed.init();
+						}								
+						break;
+					}															
+				}				
 				//BroadCastThread 제거(byForceExitRoom)
 				
 				System.out.println("Client ID : "+clientID+" 연결이 끊어져 종료했습니다.");

@@ -224,8 +224,7 @@ public class ServerThread extends Thread {
 	public void standard()
 	{
 		System.out.println("Client ID : "+this.clientID+" 접속했습니다.");
-		socketBroadCastThread = new SocketBroadCastThread(new RoomData(""), socketBroadCastUsed);	//의미없는 스레드 생성 (New상태 반환받기 위해 만들어놓음)
-		
+			
 		//서버 시작
 		while(true)
 		{
@@ -238,12 +237,6 @@ public class ServerThread extends Thread {
 			//신호 응답 끝
 			
 			System.out.println("Client ID : "+this.clientID+" 에게 받은 신호 "+signal.signalByteToString(receiveSignal));
-						
-			//돌때마다 방에 인원수가 바뀔수 있으므로 반복문이 반복시작되면 재 선언한다.
-			synchronized (roomDataList) {
-				roomManage = new RoomManage(yourName, this.clientID, broadCastSocket, eventSocket, cameraSocket, voiceSocket, roomDataList, signal, socketBroadCastUsed, socketBroadCastThread);
-			}
-			//roomManage 선언 끝
 			
 			//방 목록전송
 			//방에 참가 안하면 데이터나 위치 전송불가
@@ -337,6 +330,13 @@ public class ServerThread extends Thread {
 					System.out.println("Client ID : "+this.clientID+" 방을 나갔습니다.");	
 					if(roomManage.delEmptyRoom())
 						System.out.println("Client ID : "+"빈방을 정리했습니다.");
+					
+					//exitRoom 이후에 join이나 make할것 이므로 번거롭지 않게 미리 만들어둔다.
+					synchronized (roomDataList) {
+						roomManage = new RoomManage(yourName, this.clientID, broadCastSocket, eventSocket, cameraSocket, voiceSocket, roomDataList, signal, socketBroadCastUsed, socketBroadCastThread);
+					}
+					//roomManage 선언 끝
+					
 					continue;
 				}
 				else

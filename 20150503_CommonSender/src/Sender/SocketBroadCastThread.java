@@ -29,8 +29,7 @@ public class SocketBroadCastThread extends Thread{
 		if(socket == null)				//서버인 경우
 		{
 			while(true)
-			{
-				
+			{													
 				if(socketBroadCastUsed.broadCastKill)
 				{
 					synchronized (socketBroadCastUsed) {
@@ -38,7 +37,7 @@ public class SocketBroadCastThread extends Thread{
 					}					
 					break;
 				}
-					
+				
 				else if(socketBroadCastUsed.message.equals(socketBroadCastUsed.nullString))
 				{
 					try {
@@ -48,7 +47,7 @@ public class SocketBroadCastThread extends Thread{
 						e.printStackTrace();
 						continue;
 					}
-				}					
+				}
 				
 				
 				//문자열이 계시는 경우 전 소켓에 날려준다.
@@ -117,8 +116,7 @@ public class SocketBroadCastThread extends Thread{
 						}						
 					}						
 				}								
-			} catch (IOException | InterruptedException e) {
-				System.out.println("inputReader만드는데 실패");
+			} catch (IOException | InterruptedException e) {				
 				socketBroadCastUsed.broadCastUsed=false;
 				return ;
 			}			
