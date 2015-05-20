@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
+import java.lang.Thread.State;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,14 +22,17 @@ public class RoomManage {
 	int clientID;				
 	List<RoomData> roomDataList;
 	SignalData signal;
-	
+
 	Socket broadCastSocket;
 	Socket eventSocket;
 	Socket cameraSocket;
 	Socket voiceSocket;
 	
-	//클라이언트는 eventSocket, yourName, ClientID, signal만 있으면 된다.
-	public RoomManage(String yourName, int clientID, Socket broadCastSocket, Socket eventSocket, Socket cameraSocket, Socket voiceSocket, List<RoomData> roomDataList, SignalData signal) {
+	SocketBroadCastUsed socketBroadCastUsed;
+	SocketBroadCastThread socketBroadCastThread;
+	
+	//서버용 생성자
+	public RoomManage(String yourName, int clientID, Socket broadCastSocket, Socket eventSocket, Socket cameraSocket, Socket voiceSocket, List<RoomData> roomDataList, SignalData signal, SocketBroadCastUsed socketBroadCastUsed, SocketBroadCastThread socketBroadCastThread) {
 		this.yourName = new String(yourName);
 		this.clientID = clientID;
 		this.broadCastSocket = broadCastSocket;
@@ -38,6 +42,9 @@ public class RoomManage {
 		
 		this.roomDataList = roomDataList;
 		this.signal = signal;
+		
+		this.socketBroadCastUsed = socketBroadCastUsed;
+		this.socketBroadCastThread = socketBroadCastThread;
 	}
 	
 	//클라이언트용 생성자
@@ -126,10 +133,27 @@ public class RoomManage {
 			roomDataList.get(index).clientManage.voiceSocket.add(voiceSocket);
 			roomDataList.get(index).clientManage.latitude.add(value.basicLatitude);
 			roomDataList.get(index).clientManage.longitude.add(value.BasicLongitude);
-		}		
+			
+			//BroadCastThread 생성(makeRoom)
+			while(true)
+			{
+				if( (socketBroadCastThread.getState() == State.TERMINATED) || (socketBroadCastThread.getState() == State.NEW) )
+				{
+					socketBroadCastThread = new SocketBroadCastThread(roomDataList.get(index), socketBroadCastUsed);
+					socketBroadCastThread.start();
+					synchronized (socketBroadCastUsed) {
+						socketBroadCastUsed.init();
+					}
+					break;
+				}
+			}
+			//BroadCastThread 생성끝(makeRoom)
+		}
+
 		signal.toDoResponse(signal.makeRoom);
 		return true;		
 	}
+	//방 만들기 끝
 	
 	//빈방 삭제하기
 	public boolean delEmptyRoom()
@@ -149,8 +173,9 @@ public class RoomManage {
 		}			
 		return false;
 	}
+	//빈방 삭제하기 끝
 	
-	//방 출입
+	//방 들어가기
 	public boolean joinRoom()
 	{	
 		String roomName = null;
@@ -222,10 +247,29 @@ public class RoomManage {
 					R.clientManage.longitude.add(value.BasicLongitude);
 					
 					System.out.println("Client ID : "+clientID+" 가 "+roomName+" 에 참여했습니다.");	
+					
+					//대기실에 대기하는 ClientID 삭제
 					synchronized (roomDataList) {
 						if(roomDataList.get(0).clientManage.clientID.equals(this.clientID))
 							roomDataList.get(0).clientManage.clientID.remove(this.clientID);	
 					}
+					
+					//BroadCastThread 생성(joinRoom)
+					while(true)
+					{
+						if( (socketBroadCastThread.getState() == State.TERMINATED) || (socketBroadCastThread.getState() == State.NEW) )
+						{
+							socketBroadCastThread = new SocketBroadCastThread(R, socketBroadCastUsed);
+							socketBroadCastThread.start();
+							synchronized (socketBroadCastUsed) {
+								socketBroadCastUsed.init();
+								socketBroadCastUsed.message = new String("Client ID : "+this.clientID+" 방에 참여했습니다.");								
+							}
+							break;
+						}
+					}
+					//BroadCastThread 생성끝(joinRoom)
+					
 					signal.toDoResponse(signal.joinRoom);	
 					return true;
 				}				
@@ -235,7 +279,9 @@ public class RoomManage {
 		signal.toDoResponse(signal.wrong);
 		return false;
 	}
+	//방 들어가기 끝
 	
+	//방 나가기
 	//만약 ServerThread.exitServer 메소드를 호출하려면 exitRoom를 먼저 호출해야 아래 ArrayList가 엉키지 않는다. 
 	public boolean exitRoom()
 	{
@@ -274,6 +320,24 @@ public class RoomManage {
 					R.clientManage.longitude.remove(index);
 					signal.toDoResponse(signal.exitRoom);	//방을 나갔다는 확인 신호를 보냄
 					roomDataList.get(0).clientManage.clientID.add(this.clientID);	//방을 나간 클라이언트는 대기실에 입성.
+					
+					//BroadCastThread 제거(exitRoom)
+					synchronized (socketBroadCastUsed) {
+						socketBroadCastUsed.broadCastKill = true;
+						while(true)
+						{
+							if(socketBroadCastThread.getState() == State.TERMINATED || socketBroadCastThread == null)
+							{
+								socketBroadCastThread = null;
+								synchronized (socketBroadCastUsed) {
+									socketBroadCastUsed.init();
+								}								
+								break;
+							}															
+						}						
+					}
+					//BroadCastThread 제거(exitRoom)
+					
 					System.out.println("Client ID : "+clientID+" 가 "+roomName+" 을 나갔습니다.");
 					return true;					
 				}
@@ -282,7 +346,9 @@ public class RoomManage {
 		signal.toDoResponse(signal.wrong);
 		return false;
 	}
+	//방 나가기 끝
 	
+	//예기치 못한 연결 해제
 	//클라이언트가 예기치 못하게 연결이 끊어진 경우 호출
 	public boolean byForceExitRoom()
 	{
@@ -310,13 +376,31 @@ public class RoomManage {
 				R.clientManage.latitude.remove(index);
 				R.clientManage.longitude.remove(index);
 				signal.toDoResponse(signal.exitRoom);	//방을 나갔다는 확인 신호를 보냄
+				
+				//BroadCastThread 제거(byForceExitRoom)
+				synchronized (socketBroadCastUsed) {
+					socketBroadCastUsed.broadCastKill = true;
+					while(true)
+					{
+						if(socketBroadCastThread.getState() == State.TERMINATED || socketBroadCastThread == null)
+						{
+							socketBroadCastThread = null;
+							synchronized (socketBroadCastUsed) {
+								socketBroadCastUsed.init();
+							}								
+							break;
+						}															
+					}						
+				}
+				//BroadCastThread 제거(byForceExitRoom)
+				
 				System.out.println("Client ID : "+clientID+" 연결이 끊어져 종료했습니다.");
 				return true;					
-			
 			}
 		}
 		return false;
 	}
+	//예기지 못한 연결 해제 끝
 	
 	//방 목록 보내는 부분
 	//클라이언트 단에도 이것과 대응되도록 메소드 선언한다.
@@ -365,6 +449,7 @@ public class RoomManage {
 		}
 		return false;		
 	}
+	//방 목록 보내는 부분 끝
 	
 	//클라이언트(방 목록을 받으므로)
 	public boolean roomListReceiver(RoomDataToArray result)
@@ -399,7 +484,9 @@ public class RoomManage {
 		return false;
 		
 	}
+	//클라이언트 끝(방 목록을 받으므로)
 
+	//클라이언트 요청
 	//클라이언트에서 방관련 메소드 호출전에 꼭 SocketEventUsed = true 로 설정하여 블록시키자.
 	//클라이언트가 방 관련하여 요청하는 부분
 	//서버단은 직접 신호 받기를 대기하므로 이런 메소드는 만들지 않는다.
@@ -485,4 +572,5 @@ public class RoomManage {
 		this.Used = false;
 		return false;
 	}		
+	//클라이언트 요청 끝
 }

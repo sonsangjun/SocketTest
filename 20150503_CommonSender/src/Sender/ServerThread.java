@@ -63,8 +63,8 @@ public class ServerThread extends Thread {
 	BufferedOutputStream eventOutput;
 
 	SignalData signal;
-	SocketBroadCastThread broadCastThread = null;
-	ByteArrayTransCeiverThread transCeiverThread;
+	SocketBroadCastThread socketBroadCastThread = null;
+	ByteArrayTransCeiverThread byteArrayTransCeiverThread;
 	RoomManage roomManage = null;
 		
 	SocketBroadCastUsed socketBroadCastUsed = new SocketBroadCastUsed();
@@ -133,7 +133,7 @@ public class ServerThread extends Thread {
 				roomDataList.get(0).clientManage.clientID.add(this.clientID);
 				System.out.println("대기실에 현재 "+roomDataList.get(0).clientManage.clientID.size()+" 있습니다.");
 				int totalLogin = 0;
-				roomManage = new RoomManage(yourName, this.clientID, broadCastSocket, eventSocket, cameraSocket, voiceSocket, roomDataList, signal);
+				roomManage = new RoomManage(yourName, this.clientID, broadCastSocket, eventSocket, cameraSocket, voiceSocket, roomDataList, signal, socketBroadCastUsed, socketBroadCastThread);
 				
 				System.out.println("방에 참여한 인원은 ");				
 				for(RoomData R:roomDataList)
@@ -223,7 +223,7 @@ public class ServerThread extends Thread {
 	public void standard()
 	{
 		System.out.println("Client ID : "+this.clientID+" 접속했습니다.");
-		SocketBroadCastThread broadCastThread = new SocketBroadCastThread(new RoomData(""), socketBroadCastUsed);	//의미없는 스레드 생성 (New상태 반환받기 위해 만들어놓음)
+		socketBroadCastThread = new SocketBroadCastThread(new RoomData(""), socketBroadCastUsed);	//의미없는 스레드 생성 (New상태 반환받기 위해 만들어놓음)
 		
 		//서버 시작
 		while(true)
@@ -240,7 +240,7 @@ public class ServerThread extends Thread {
 						
 			//돌때마다 방에 인원수가 바뀔수 있으므로 반복문이 반복시작되면 재 선언한다.
 			synchronized (roomDataList) {
-				roomManage = new RoomManage(yourName, this.clientID, broadCastSocket, eventSocket, cameraSocket, voiceSocket, roomDataList, signal);
+				roomManage = new RoomManage(yourName, this.clientID, broadCastSocket, eventSocket, cameraSocket, voiceSocket, roomDataList, signal, socketBroadCastUsed, socketBroadCastThread);
 			}
 			//roomManage 선언 끝
 			
@@ -280,21 +280,8 @@ public class ServerThread extends Thread {
 									socketBroadCastUsed.broadCastKill=true;
 								}
 								System.out.println("방명은 "+R.roomName+" 입니다.");
-								this.roomName = new String(R.roomName);
-								while(true)
-								{
-									if( (broadCastThread.getState() == State.TERMINATED) || (broadCastThread.getState() == State.NEW) )
-									{
-										broadCastThread = new SocketBroadCastThread(R, socketBroadCastUsed);
-										broadCastThread.start();
-										synchronized (socketBroadCastUsed) {
-											socketBroadCastUsed.message = new String("Client ID : "+this.clientID+" 방을 만들었습니다.");
-											socketBroadCastUsed.broadCastKill = false;
-										}
-										break;
-									}
-								}								
-								
+								this.roomName = new String(R.roomName);		
+								break;
 							}
 						}						
 					}//여기까지 synchronized(roomDataList) 블록
@@ -326,20 +313,7 @@ public class ServerThread extends Thread {
 								}
 								System.out.println("방명은 "+R.roomName+" 입니다.");
 								this.roomName = new String(R.roomName);
-								while(true)
-								{
-									if( (broadCastThread.getState() == State.TERMINATED) || (broadCastThread.getState() == State.NEW) )
-									{
-										broadCastThread = new SocketBroadCastThread(R, socketBroadCastUsed);
-										broadCastThread.start();
-										synchronized (socketBroadCastUsed) {
-											socketBroadCastUsed.message = new String("Client ID : "+this.clientID+" 방에 참여했습니다.");
-											socketBroadCastUsed.broadCastKill = false;
-										}
-										break;
-									}
-								}
-								continue;								
+								break;								
 							}
 						}						
 					}//여기까지 synchronized(roomDataList) 블록
@@ -416,11 +390,6 @@ public class ServerThread extends Thread {
 		
 		//서버 종료
 		System.out.println("Client ID : "+this.clientID+" 대한 연결이 끊어졌습니다.");
-		synchronized (socketBroadCastUsed) {
-			socketBroadCastUsed.message = new String("Client ID : "+this.clientID+" 연결을 종료합니다.");
-			System.out.println("broadCast 스레드 죽입니다.");
-			socketBroadCastUsed.broadCastKill=true;					
-		}
 		roomManage.byForceExitRoom();
 		roomManage.delEmptyRoom();
 		exitServer();

@@ -111,7 +111,7 @@ public class SocketBroadCastThread extends Thread{
 					{
 						synchronized (socketBroadCastUsed) {
 							socketBroadCastUsed.message = new String(temp);
-							System.out.println("temp");
+							System.out.println(temp);
 							temp = null;
 							socketBroadCastUsed.broadCastUsed=false;
 						}						
@@ -119,7 +119,6 @@ public class SocketBroadCastThread extends Thread{
 				}								
 			} catch (IOException | InterruptedException e) {
 				System.out.println("inputReader만드는데 실패");
-				e.printStackTrace();
 				socketBroadCastUsed.broadCastUsed=false;
 				return ;
 			}			
