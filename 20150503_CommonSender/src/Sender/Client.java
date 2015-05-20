@@ -36,7 +36,7 @@ public class Client extends Thread {
 	int clientID;
 	byte[] cameraByteArray;		//카메라 프리뷰 바이트 배열
 	byte[] voiceByteArray;		//음성 바이트 배열
-	String roomName;
+	String roomName = new String(value.unname);
 	
 	
 	SignalData signal;
@@ -98,7 +98,7 @@ public class Client extends Thread {
 		
 		if(!receiveClientID())
 			return ;
-		roomName = new String(value.unname);
+		
 		
 		
 		//-----------------------------------------------------------------------------
@@ -241,50 +241,88 @@ public class Client extends Thread {
 				System.out.println("입력에러");
 				e.printStackTrace();
 				continue;
-			}			
-			if(value.equals(signal.signalByteToString(signal.makeRoom)) || value.equals(signal.signalByteToString(signal.joinRoom)) || value.equals(signal.signalByteToString(signal.exitRoom)))
+			}		
+			//명령어 잘못 입력 걸러냄
+			if(signal.signalStringToByte(value)==null)
+				continue;
+			
+			//명령 받기
+			if(signal.toDoRequest(signal.signalStringToByte(value)))
 			{
-				socketEventUsed.socketEventUsed = true;
-				System.out.println("방 이름을 입력하세요.");
-				try {
-					value = inputReader.readLine();
-				} catch (IOException e) {
-					System.out.println("방 입력하는 중 예외 발생");
-					e.printStackTrace();
-					socketEventUsed.socketEventUsed = false;
-					continue;
-				}
-				if(value.equals(signal.signalByteToString(signal.makeRoom)))
+				System.out.println("서버가 명령을 확인했습니다.");
+				
+				//방 만들기 및 참가
+				//방 만들거나 참가후에 this객체의 roomName을 바꿔줘야 한다.
+				if(value.equals(signal.signalByteToString(signal.makeRoom)) || value.equals(signal.signalByteToString(signal.joinRoom)))
 				{
-					if(roomManage.clientsRequest(signal.makeRoom, value, roomName, null))
-					{
-						socketEventUsed.socketEventUsed = false;
-						continue;					
-					}
-				}
-				else if(value.equals(signal.signalByteToString(signal.joinRoom)))
-				{
-					if(roomManage.clientsRequest(signal.joinRoom, value, roomName, null))
-					{
-						socketEventUsed.socketEventUsed = false;
-						continue;					
-					}
-				}
-				else if(value.equals(signal.signalByteToString(signal.exitRoom)))
-				{
-					if(roomManage.clientsRequest(signal.exitRoom, null, roomName, null))
-					{
+					String inputRoomName = new String(" ");
+					socketEventUsed.socketEventUsed = true;
+					System.out.println("방 이름을 입력하세요.");
+					try {
+						inputRoomName = inputReader.readLine();
+						System.out.println("입력한 방이름은 "+inputRoomName);
+					} catch (IOException e) {
+						System.out.println("방 입력하는 중 예외 발생");
+						e.printStackTrace();
 						socketEventUsed.socketEventUsed = false;
 						continue;
 					}
-				}				
+					if(value.equals(signal.signalByteToString(signal.makeRoom)))
+					{
+						if(roomManage.clientsRequest(signal.makeRoom, inputRoomName, null))
+						{
+							socketEventUsed.socketEventUsed = false;
+							this.roomName = new String(inputRoomName);
+							System.out.println("만든 방이름은 "+inputRoomName);
+							continue;					
+						}
+					}
+					else if(value.equals(signal.signalByteToString(signal.joinRoom)))
+					{
+						socketEventUsed.socketEventUsed = true;
+						if(roomManage.clientsRequest(signal.joinRoom, inputRoomName, null))
+						{
+							socketEventUsed.socketEventUsed = false;
+							this.roomName = new String(inputRoomName);
+							System.out.println("참가한 방이름은 "+inputRoomName);
+							continue;					
+						}
+					}
+								
+				}
+				//방 만들기 및 참가 끝
+				
+				//방 나가기
+				//방 나간후 this객체의 roomName을 바꿔줘야 한다.
+				else if (value.equals(signal.signalByteToString(signal.exitRoom)))
+				{
+					if(roomManage.clientsRequest(signal.exitRoom, this.roomName,  null))
+					{
+						socketEventUsed.socketEventUsed = false;
+						this.roomName = new String(this.value.unname);						
+						continue;
+					}								
+				}
+				//방 나가기 끝
+				
+				//종료
+				else if(value.equals(signal.signalByteToString(signal.exitServer)))
+				{
+					System.out.println("클라이언트를 종료합니다.");
+					exitClient();
+					return ;
+				}
+				//종료 끝
 			}
 			else
 			{
+				System.out.println("예기치 못한 오류 발생");
 				System.out.println("클라이언트를 종료합니다.");
 				exitClient();
-				break;
-			}			
+				return ;				
+			}
+			//명령 받기끝			
+			socketEventUsed.socketEventUsed = false;
 		}
 	}
 }

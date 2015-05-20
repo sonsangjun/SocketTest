@@ -101,9 +101,14 @@ public class RoomManage {
 			roomDataList.add(new RoomData(roomName));
 			int index = roomDataList.size()-1;
 			
-			if(roomDataList.get(0).clientManage.clientID.equals(this.clientID))
-				roomDataList.get(0).clientManage.clientID.remove(this.clientID);
-			
+			//대기실에 clientID가 있으면 삭제
+			//항상 느끼는 거지만, 오류는 내가 만든다. equal을 잘못써서 오류찾는데 2시간을 헤매다니.
+			int indexClient = roomDataList.get(0).clientManage.clientID.indexOf(this.clientID);
+			if(roomDataList.get(0).clientManage.clientID.get(indexClient).equals(this.clientID))
+			{
+				System.out.println("대기실의 아이디는 삭제합니다.");
+				roomDataList.get(0).clientManage.clientID.remove(indexClient);
+			}		
 			
 			//BroadCastSocket은 아웃풋만 필요하고, BroadCastThread 특성상 이렇게 처리하는게 편하다.
 			try {
@@ -189,6 +194,14 @@ public class RoomManage {
 			{
 				if(R.roomName.equals(roomName))	//방이 존재하는 경우
 				{
+					//대기실에 clientID가 있으면 삭제
+					int indexClient = roomDataList.get(0).clientManage.clientID.indexOf(this.clientID);
+					if(roomDataList.get(0).clientManage.clientID.get(indexClient).equals(this.clientID))
+					{
+						System.out.println("대기실의 아이디는 삭제합니다.");
+						roomDataList.get(0).clientManage.clientID.remove(indexClient);
+					}		
+					
 					int tempSize = R.clientManage.broadCast.size();
 					//BroadCastSocket은 아웃풋만 필요하고, BroadCastThread 특성상 이렇게 처리하는게 편하다.
 					try {
@@ -208,7 +221,7 @@ public class RoomManage {
 					R.clientManage.latitude.add(value.basicLatitude);
 					R.clientManage.longitude.add(value.BasicLongitude);
 					
-					System.out.println("ClientID : "+clientID+" 가 "+roomName+" 에 참여했습니다.");	
+					System.out.println("Client ID : "+clientID+" 가 "+roomName+" 에 참여했습니다.");	
 					synchronized (roomDataList) {
 						if(roomDataList.get(0).clientManage.clientID.equals(this.clientID))
 							roomDataList.get(0).clientManage.clientID.remove(this.clientID);	
@@ -218,7 +231,7 @@ public class RoomManage {
 				}				
 			}
 		}		
-		System.out.println("ClientID : "+this.clientID+" 가 "+roomName+" 방을 참여하려 시도했으나 실패, 없는 방인거 같습니다.");
+		System.out.println("Client ID : "+this.clientID+" 가 "+roomName+" 방을 참여하려 시도했으나 실패, 없는 방인거 같습니다.");
 		signal.toDoResponse(signal.wrong);
 		return false;
 	}
@@ -242,10 +255,12 @@ public class RoomManage {
 			return false;
 		}
 			
-		
+		System.out.println("Client ID : "+this.clientID+" "+roomName+" 에 대한 exitRoom 요청");
 		synchronized (roomDataList) {
 			for(RoomData R:roomDataList)
 			{
+				if(R.roomName.equals(value.unname))	//대기실에 있으면 나갈이유가 없다.
+					continue;
 				if(R.roomName.equals(roomName))
 				{
 					int index = R.clientManage.clientID.indexOf(this.clientID);
@@ -258,12 +273,12 @@ public class RoomManage {
 					R.clientManage.latitude.remove(index);
 					R.clientManage.longitude.remove(index);
 					signal.toDoResponse(signal.exitRoom);	//방을 나갔다는 확인 신호를 보냄
-					System.out.println("ClientID : "+clientID+" 가 "+roomName+" 을 나갔습니다.");
+					roomDataList.get(0).clientManage.clientID.add(this.clientID);	//방을 나간 클라이언트는 대기실에 입성.
+					System.out.println("Client ID : "+clientID+" 가 "+roomName+" 을 나갔습니다.");
 					return true;					
 				}
 			}
-		}
-		System.out.println("ClientID : "+this.clientID+" 가 참여했다는 "+roomName+" 방은 없습니다.");
+		}		
 		signal.toDoResponse(signal.wrong);
 		return false;
 	}
@@ -273,29 +288,33 @@ public class RoomManage {
 	{
 		synchronized (roomDataList) {
 			for(RoomData R:roomDataList)
-			{
-				if(R.roomName.equals(value.unname))
+			{				
+				int indexClient = R.clientManage.clientID.indexOf(this.clientID);
+				if(indexClient < 0)	//해당 방에 대상 클라이언트가 없다.
 					continue;
-				
-				else if(R.clientManage.clientID.equals(this.clientID))
+			
+				if(R.roomName.equals(value.unname))
 				{
-					int index = R.clientManage.clientID.indexOf(this.clientID);
-					R.clientManage.yourName.remove(index);
-					R.clientManage.clientID.remove(index);
-					R.clientManage.broadCast.remove(index);
-					R.clientManage.eventSocket.remove(index);
-					R.clientManage.cameraSocket.remove(index);
-					R.clientManage.voiceSocket.remove(index);
-					R.clientManage.latitude.remove(index);
-					R.clientManage.longitude.remove(index);
-					signal.toDoResponse(signal.exitRoom);	//방을 나갔다는 확인 신호를 보냄
-					System.out.println("ClientID : "+clientID+" 연결이 끊어져 강제로 종료했습니다.");
-					return true;					
+					R.clientManage.clientID.remove(indexClient);
+					System.out.println("Client ID : "+clientID+" 연결이 끊어져 종료했습니다.(대기실)");
+					return true;
+											
 				}
+				int index = R.clientManage.clientID.indexOf(this.clientID);
+				R.clientManage.yourName.remove(index);
+				R.clientManage.clientID.remove(index);
+				R.clientManage.broadCast.remove(index);
+				R.clientManage.eventSocket.remove(index);
+				R.clientManage.cameraSocket.remove(index);
+				R.clientManage.voiceSocket.remove(index);
+				R.clientManage.latitude.remove(index);
+				R.clientManage.longitude.remove(index);
+				signal.toDoResponse(signal.exitRoom);	//방을 나갔다는 확인 신호를 보냄
+				System.out.println("Client ID : "+clientID+" 연결이 끊어져 종료했습니다.");
+				return true;					
+			
 			}
 		}
-		
-		System.out.println("ClientID : "+this.clientID+" 방에 참가하지 않았습니다. 그래도 강제 종료합니다.");
 		return false;
 	}
 	
@@ -340,7 +359,7 @@ public class RoomManage {
 			}
 			if(signal.toCatchResponse(signal.roomList))	//원격측에서 받았는지 확인(확인은 안함)
 			{
-				System.out.println(this.clientID+" 에게 방 목록을 성공적으로 전송했습니다.");
+				System.out.println("Client ID : " +this.clientID+" 에게 방 목록을 성공적으로 전송했습니다.");
 				return true;
 			}			
 		}
@@ -372,11 +391,11 @@ public class RoomManage {
 			}
 			if(signal.toDoResponse(signal.roomList))	//방 목록을 받았다고 신호보냄
 			{
-				System.out.println("ClientID : "+this.clientID+" 방목록을 받았습니다.");
+				System.out.println("Client ID : "+this.clientID+" 방목록을 받았습니다.");
 				return true;	
 			}
 		}
-		System.out.println("ClientID : "+this.clientID+" 방목록 받는데 실패했습니다.");
+		System.out.println("Client ID : "+this.clientID+" 방목록 받는데 실패했습니다.");
 		return false;
 		
 	}
@@ -385,7 +404,7 @@ public class RoomManage {
 	//클라이언트가 방 관련하여 요청하는 부분
 	//서버단은 직접 신호 받기를 대기하므로 이런 메소드는 만들지 않는다.
 	//command는 시그널, wantRoomName은 command하고 싶은 방이름, roomName은 너가 가지고 있는 방 이름의 변수(client객체의 roomName 변수)
-	public boolean clientsRequest(byte[] command,String wantRoomName, String roomName, RoomDataToArray result)
+	public boolean clientsRequest(byte[] command,String wantRoomName, RoomDataToArray result)
 	{
 		BufferedWriter eventOutput;
 		try {
@@ -403,8 +422,10 @@ public class RoomManage {
 		
 		if(signal.toDoRequest(command))
 		{
+			//방 관리
 			if(signal.signalChecking(command, signal.makeRoom) || signal.signalChecking(command, signal.joinRoom) || signal.signalChecking(command, signal.exitRoom))
 			{
+				//방 이름 서버에게 보냄
 				try {
 					Thread.sleep(value.waitTime);	//서버측 스레드의 버퍼 생성시간이 늦어질수도 있으므로.
 					eventOutput.write(wantRoomName);
@@ -416,54 +437,49 @@ public class RoomManage {
 					this.Used = false;
 					return false;
 				}
+				byte[] receiveSignal = signal.receiveSignalToByteArray();
 				
-				if(signal.toCatchResponse(signal.makeRoom))
+				//명령에 따른 수행
+				if(signal.signalChecking(receiveSignal, signal.makeRoom))
 				{
-					roomName = new String(wantRoomName);
 					System.out.println("방을 만들었습니다.");
-					System.out.println("방명은 "+roomName);
 					this.Used = false;
 					return true;
 				}
-				else if(signal.toCatchResponse(signal.signalStringToByte("joinRoom")))
-				{
-					roomName = new String(wantRoomName);
+				else if(signal.signalChecking(receiveSignal, signal.joinRoom))
+				{					
 					System.out.println("방에 참가했습니다.");
-					System.out.println("방명은 "+roomName);
 					this.Used = false;
 					return true;
 				}
-				else if(signal.toCatchResponse(signal.signalStringToByte("exitRoom")))
+				else if(signal.signalChecking(receiveSignal, signal.exitRoom))
 				{
-					roomName = new String(value.unname);
 					System.out.println("방을 나갔습니다.");
 					this.Used = false;
+					return true;
 				}
 				else
 				{
-					if(command.equals("makeRoom"))
-						System.out.println("이미 방이 있는거 같습니다.");
-					else if(command.equals("joinRoom"))
-						System.out.println("방에 참여할수 없습니다.");
-					else if(command.equals("exitRoom"))
-						System.out.println("방을 나갈 수 없습니다.");
+					System.out.println("서버에서 "+signal.signalByteToString(command)+"명령을 수행할 수 없습니다.");
 					this.Used = false;
 					return false;
-				}					
+				}
+				//명령에 따른 수행 끝
 			}
+			//방 관리 끝
+			
+			//방 목록 받기
 			else if(command.equals("roomList"))
 			{
-				if(roomListReceiver(result))	//this.roomListReceiver(방목록)이다.
-				{
-					System.out.println("방목록을 받아오지 못했습니다.");
+				if(!roomListReceiver(result))	//this.roomListReceiver(방목록)이다.
+				{								//못 받은 경우
 					this.Used = false;
-					return true;
-				}
-				
-				System.out.println("방 목록을 받아왔습니다.");
-				this.Used = false;
+					return false;
+				}				
+				this.Used = false;				//받은 경우
 				return true;
 			}			
+			//방 목록 받기 끝
 		}
 		System.out.println("서버에게 요청할 수 없습니다.");
 		this.Used = false;

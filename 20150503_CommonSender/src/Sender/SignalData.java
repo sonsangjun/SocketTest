@@ -169,10 +169,14 @@ public class SignalData {
 	}
 	
 	
-	//원하는 작업 요청을 하는 메소드
+	//원하는 작업 요청을 하는 메소드 ( 상대방이 signal.response 라 응답해야 요청측에서 상대방이 신호를 받았다고 인지한다.)
 	public boolean toDoRequest(byte[] wantSignal)
 	{
 		byte[] signalByte = new byte[signalSize];
+		
+		//원하는 신호가 null인 경우 false 리턴 (signal.signalStringToByte(value) 처리 위해)
+		if(wantSignal == null)
+			return false;
 		
 		if(input == null | output == null)
 		{
@@ -246,7 +250,7 @@ public class SignalData {
 		}
 	}	
 
-	//요청에 대하여 응답
+	//요청에 대하여 응답(toCatchResponse 대응)
 	public boolean toDoResponse(byte[] responseSignal)
 	{
 		try {
@@ -260,7 +264,7 @@ public class SignalData {
 		}
 	}
 	
-	//응답신호를 확인만 함
+	//응답신호를 확인만 함(toDoResponse 대응)
 	public boolean toCatchResponse(byte[] OKsignal)
 	{
 		byte[] temp = new byte[signalSize];

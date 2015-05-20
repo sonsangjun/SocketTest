@@ -23,6 +23,24 @@ package Sender;
  * 각 클라이언트에 대한 인스턴스를 만들어 서버스레드의 정적 배열리스트에 추가해 관리하도록 계획.
  */
 
+/*서버와 클라이언트 작동방식( 방 관리 기준 )
+ * 		client	<──────────────────────────────> server
+ * 
+ * 1.	client가 signal.toDoRequest(명령어) 보냄
+ * 
+ * 2.	Server가 signal.receiveSignalToByteArray()로 신호 받고
+ * 		signal.toDoResponse로 확인 신호 보냄(만약 이 메소드가 false 반환하면 연결이 끊긴 것임)
+ * 
+ * 3.	client가  roomManage.clientsRequest(명령어)를 호출한다.
+ * 
+ * 4.	Server는 roomManage.(방 관리 명령어. ex)roomManage.makeRoom()같은거) 를 호출하여
+ * 		client와 server가 통신한다.( 이때, client가 방이름을 입력할 경우도 있다.)
+ * 
+ * 5.	서로 통신이 끝나면 결과값을 콘솔에 출력하고 client와 Server는 다시 대기상태가 된다.
+ * 	
+ * 다른것도 이것과 다르지 않다.
+ */
+
 public class Top {
 	public static void main(String[] args) {
 		ValueCollections value = new ValueCollections();
