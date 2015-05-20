@@ -123,6 +123,7 @@ public class ServerThread extends Thread {
 			synchronized (ServerThread.class) {		//정적변수는 클래스에 하나뿐이므로 클래스에 대해 동기화 한다. (this를 쓰면 ServerThread 각각 인스턴스객체들 사이에 동기화가 안된다.)
 				this.clientID = ++assignedClientID;
 			}
+			System.out.println("할당해준 Client ID 는 "+this.clientID+" 입니다.");
 			
 			if(!transClientID(this.clientID))
 				return ;

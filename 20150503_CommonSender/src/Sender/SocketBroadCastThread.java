@@ -39,7 +39,7 @@ public class SocketBroadCastThread extends Thread{
 					break;
 				}
 					
-				else if(socketBroadCastUsed.message == null)
+				else if(socketBroadCastUsed.message.equals(socketBroadCastUsed.nullString))
 				{
 					try {
 						Thread.sleep(value.waitTime);
@@ -74,7 +74,7 @@ public class SocketBroadCastThread extends Thread{
 				
 				//메시지를 보냈으므로 없앤다.
 				synchronized (socketBroadCastUsed) {
-					socketBroadCastUsed.message = null;
+					socketBroadCastUsed.message = new String(socketBroadCastUsed.nullString);
 					socketBroadCastUsed.broadCastUsed=false;
 				}
 			}
@@ -83,7 +83,7 @@ public class SocketBroadCastThread extends Thread{
 		else if(roomData == null)		//클라이언트인 경우
 		{
 			
-			String temp = null;
+			String temp = new String(socketBroadCastUsed.nullString);
 			try {
 				BufferedReader inputReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 				while(true)
@@ -101,7 +101,7 @@ public class SocketBroadCastThread extends Thread{
 					System.out.println("서버로부터 메시지를 받기 대기합니다.");	//테스트
 					temp = inputReader.readLine();
 					System.out.println("서버로부터 메시지를 받았습니다.");	//테스트
-					if(temp == null)
+					if(temp.equals(socketBroadCastUsed.nullString))
 					{
 						Thread.sleep(value.waitTime);
 						socketBroadCastUsed.broadCastUsed=false;
@@ -112,7 +112,7 @@ public class SocketBroadCastThread extends Thread{
 						synchronized (socketBroadCastUsed) {
 							socketBroadCastUsed.message = new String(temp);
 							System.out.println(temp);
-							temp = null;
+							temp = new String(socketBroadCastUsed.nullString);
 							socketBroadCastUsed.broadCastUsed=false;
 						}						
 					}						

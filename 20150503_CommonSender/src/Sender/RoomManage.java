@@ -137,6 +137,7 @@ public class RoomManage {
 			//BroadCastThread 생성(makeRoom)
 			while(true)
 			{
+				System.out.println("0---0");
 				if( (socketBroadCastThread.getState() == State.TERMINATED) || (socketBroadCastThread.getState() == State.NEW) )
 				{
 					socketBroadCastThread = new SocketBroadCastThread(roomDataList.get(index), socketBroadCastUsed);
