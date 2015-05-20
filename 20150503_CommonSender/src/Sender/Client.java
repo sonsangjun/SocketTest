@@ -86,6 +86,7 @@ public class Client extends Thread {
 			return ;
 		}
 		try {
+			//기본적인 신호를 주고 받는 소켓의 버퍼스트림을 연다. 이걸 열어야 신호를 주고 받는다.
 			eventInput = new BufferedInputStream(eventSocket.getInputStream());
 			eventOutput = new BufferedOutputStream(eventSocket.getOutputStream());
 		} catch (IOException e1) {
@@ -94,15 +95,24 @@ public class Client extends Thread {
 			return;
 		}
 		
+		//아까 연 버퍼스트림을 신호 담당 클래스에 준다.
 		signal = new SignalData(eventSocket);	//소켓연결후 시그널과 연결
 		signal.initial();
 		
+		
+		//서버로부터 할당받은 아이디를 받는다. 못받으면 클라이언트 연결 종료
 		if(!receiveClientID())
-			return ;
+		{
+			System.out.println("예기치 못한 오류 발생");
+			System.out.println("클라이언트를 종료합니다.");
+			exitClient();
+			return ;			
+		}
+			
 		
 		//서버에서 날라오는 메시지 받기 시작
 		socketBroadCastThread = new SocketBroadCastThread(broadCastSocket, socketBroadCastUsed);
-		
+		socketBroadCastThread.start();
 		
 		
 		//-----------------------------------------------------------------------------
@@ -229,10 +239,10 @@ public class Client extends Thread {
 	
 	public void clientTerminate()
 	{
-		BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
-		String value = null;
-		RoomDataToArray roomDataToArray;
-		roomManage = new RoomManage(" ", clientID, eventSocket, signal);
+		BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in)); //명령어를 입력하는 부분
+		String value = null;	//명령어
+		RoomDataToArray roomDataToArray;	//방 목록을 저장하는 변수
+		roomManage = new RoomManage(" ", clientID, eventSocket, signal);	//방 관리 클래스
 		
 		
 		while(true)
