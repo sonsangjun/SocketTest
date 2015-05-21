@@ -8,27 +8,28 @@ import java.net.Socket;
 //신호송수신 자체를 SignalData의 메소드로 작성할 예정이다.
 public class SignalData {
 	
-	final int signalSize = 2;				//시그널 길이
-	final int signalCount = 15;				//시그널 갯수
-	final int maxReCount = 3;				//최대 신호 재시도 횟수
-	final byte[] request =		{ 0,0 };	//요청
-	final byte[] response =		{ 0,1 };	//응답함
-	final byte[] wrong	=		{ 0,2 };	//올바르지 않음
+	final int signalSize 		= 2;				//시그널 길이
+	final int signalCount		= 15;				//시그널 갯수
+	final int maxReCount 		= 3;				//최대 신호 재시도 횟수
+	final byte[] request 		=	{ 0,0 };	//요청
+	final byte[] response		=	{ 0,1 };	//응답함
+	final byte[] wrong			=	{ 0,2 };	//올바르지 않음
 	
-	final byte[] location = 	{ 1,0 }; 	//위치
-	final byte[] camera	=		{ 1,1 }; 	//카메라 프리뷰 이미지
-	final byte[] voice	=		{ 1,2 }; 	//목소리
-	final byte[] makeRoom	=	{ 1,3 };	//방 만들기
-	final byte[] joinRoom	=	{ 1,5 };	//방 참여
-	final byte[] exitRoom	=	{ 1,6 };	//방 나가기
-	final byte[] roomList	=	{ 1,7 };	//방 목록
-	final byte[] talk		=	{ 1,8 };	//채팅
+	final byte[] location 		= 	{ 1,0 }; 	//위치
+	final byte[] camera			=	{ 1,1 }; 	//카메라 프리뷰 이미지
+	final byte[] voice			=	{ 1,2 }; 	//목소리
+	final byte[] makeRoom		=	{ 1,3 };	//방 만들기
+	final byte[] joinRoom		=	{ 1,5 };	//방 참여
+	final byte[] exitRoom		=	{ 1,6 };	//방 나가기
+	final byte[] roomList		=	{ 1,7 };	//방 목록
+	final byte[] talk			=	{ 1,8 };	//채팅
+	final byte[] writeYourName	=	{ 1,9 };	//이름 입력
 
-	final byte[] byteSize	=	{ 2,0 };	//바이트배열크기
-	final byte[] byteSend = 	{ 2,1 }; 	//바이트배열보냄
-	final byte[] byteReceive=	{ 2,2 }; 	//바이트배열받음
+	final byte[] byteSize		=	{ 2,0 };	//바이트배열크기
+	final byte[] byteSend		= 	{ 2,1 }; 	//바이트배열보냄
+	final byte[] byteReceive	=	{ 2,2 }; 	//바이트배열받음
 	
-	final byte[] exitServer	=	{ 9,0 };	//서버와 연결종료
+	final byte[] exitServer		=	{ 9,0 };	//서버와 연결종료
 	
 	
 	int reCount = 0;						//신호 재시도 횟수
@@ -138,6 +139,7 @@ public class SignalData {
 			case 6: return "exitRoom";
 			case 7: return "roomList";
 			case 8: return "talk";
+			case 9: return "writeYourName";
 			}
 		case 2:
 			switch(wantSignal[1])
@@ -169,6 +171,7 @@ public class SignalData {
 		if(wantSignal.equals("exitRoom")) return exitRoom;
 		if(wantSignal.equals("roomList")) return roomList;
 		if(wantSignal.equals("talk")) return talk;
+		if(wantSignal.equals("writeYourName")) return writeYourName;
 		
 		if(wantSignal.equals("byteSize")) return byteSize;
 		if(wantSignal.equals("byteSend")) return byteSend;

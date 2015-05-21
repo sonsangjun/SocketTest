@@ -58,6 +58,37 @@ public class RoomManage {
 
 	//
 	//서버측, 서버는 여러 명령에 대해 응답을 기다리므로 메소드 안에 toResponse를 내장하지 않는다.
+	//이름 입력 ( 서버에도 이름을 남겨야 하기 때문에 String으로 반환한다.)
+	public String writeYourName()
+	{
+		String tempName = null;
+		try {
+			BufferedReader inputReader = new BufferedReader(new InputStreamReader(eventSocket.getInputStream()));
+			tempName = inputReader.readLine();
+		} catch (IOException e) {
+			e.printStackTrace();
+			signal.toDoResponse(signal.wrong);
+			return null;
+		}	
+		if(tempName == null)
+		{
+			signal.toDoResponse(signal.wrong);
+			return null;
+		}
+		synchronized (roomDataList) {
+			if(roomDataList.get(0).clientManage.clientID.indexOf(this.clientID) > -1)	//대기실에 이름이 있을경우 서버에게 바로 이름전송
+			{
+				signal.toDoResponse(signal.writeYourName);
+				this.yourName = new String(tempName);
+				return tempName;			
+			}			
+		}
+		signal.toDoResponse(signal.wrong);	//대기실이 아니면 이름을 바꿀 수 없다.
+		return null;			
+	}
+	//이름 입력 끝
+	
+	
 	//방 만들기
 	public boolean makeRoom()
 	{
@@ -421,6 +452,8 @@ public class RoomManage {
 		//방 목록을 roomList에 집어넣는다.
 		for(RoomData R: roomDataList)
 		{
+			if(R.roomName.equals(value.unname))	//대기실은 방목록에 추가하지 않는다.
+				continue;
 			wantList.add(R.roomName);
 			wantJoinNumber.add(R.clientManage.clientID.size());
 		}
@@ -473,7 +506,7 @@ public class RoomManage {
 		if(talkString != null)
 		{
 			synchronized (socketBroadCastUsed) {
-				socketBroadCastUsed.message = new String("Client ID : "+this.clientID+" : "+talkString);
+				socketBroadCastUsed.message = new String("Client ID : "+this.clientID+" : <"+this.yourName+">"+talkString);
 			}
 			signal.toDoResponse(signal.talk);
 			return talkString;
@@ -488,9 +521,6 @@ public class RoomManage {
 	}
 	
 	//채팅 끝
-	
-	
-	
 	//서버측 끝
 	//--------------------
 	
@@ -501,9 +531,11 @@ public class RoomManage {
 	//--------------------
 	//클라이언트 측
 	//클라이언트(방 목록을 받으므로)
+	//객체를 받으므로 객체가 사라지기 전에  객체리턴
 	public boolean roomListReceiver(RoomDataToArray result)
 	{
 		ObjectInputStream objectInput = null;
+		RoomDataToArray temp = null;
 		
 		try {
 			objectInput = new ObjectInputStream(eventSocket.getInputStream());
@@ -515,23 +547,30 @@ public class RoomManage {
 		
 
 		try {
-			result = (RoomDataToArray) objectInput.readObject();
+			temp = (RoomDataToArray) objectInput.readObject();
 		} catch (ClassNotFoundException | IOException e) {
 			System.out.println("result 객체를 받는중 예외");
 			e.printStackTrace();
 			return false;
-		}
+		}	
 		
-		if(signal.toDoResponse(signal.roomList))	//방 목록을 받았다고 신호보냄
+		if(signal.toDoResponse(signal.roomList))	//방 목록을 받았다고
 		{
-			System.out.println("Client ID : "+this.clientID+" 방목록을 받았습니다.");
-			return true;	
+			if(temp == null)
+			{
+				System.out.println("방 목록이 없습니다.");
+				return false;
+			}
+			result.wantList = temp.wantList;				//그냥 객체를 대입하면 해당 클래스 메소드 호출 끝나면 사라져 버려서...
+			result.wantJoinNumber = temp.wantJoinNumber;	//직접 클래스의 필드에 대입한다.
+			return true;
 		}
 		else
 		{
-			System.out.println("Client ID : "+this.clientID+" 방목록 받는데 실패했습니다.");
-			return false;						
-		}		
+			System.out.println("방 목록을 받아오지 못했습니다.");
+			return false;
+		}
+				
 	}
 	//클라이언트 끝(방 목록을 받으므로)
 
@@ -604,7 +643,7 @@ public class RoomManage {
 		//채팅
 		else if(signal.signalChecking(command, signal.talk))
 		{
-			//방 이름 서버에게 보냄
+			//채팅을 서버에게 보냄
 			try {
 				Thread.sleep(value.waitTime);	//서버측 스레드의 버퍼 생성시간이 늦어질수도 있으므로.
 				eventOutput.write(wantRoomName);
@@ -634,15 +673,47 @@ public class RoomManage {
 		}
 		//채팅 끝
 		
+		
+		//이름 바꾸기
+		else if(signal.signalChecking(command, signal.writeYourName))
+		{
+			try {
+				Thread.sleep(value.waitTime);	//서버측 스레드의 버퍼 생성시간이 늦어질수도 있으므로.
+				eventOutput.write(wantRoomName);
+				eventOutput.newLine();
+				eventOutput.flush();
+			} catch (IOException | InterruptedException e) {
+				System.out.println(command+" 도중 예외 발생");
+				e.printStackTrace();
+				this.Used = false;
+				return false;
+			}
+			
+			byte[] receiveSignal = signal.receiveSignalToByteArray();	//서버에게 잘 받았다는 연락을 받아야 함
+			
+			if(signal.signalChecking(receiveSignal, signal.writeYourName))
+			{
+				System.out.println("당신의 이름은 이제 "+wantRoomName+" 입니다.");
+				this.Used = false;
+				return true;
+			}
+			else
+			{
+				this.Used = false;
+				return false;
+			}	
+		}	
+		//이름 바꾸기 끝
+		
 		//방 목록 받기
 		else if(signal.signalChecking(command, signal.roomList))
 		{
-			if(!roomListReceiver(result))	//this.roomListReceiver(방목록)이다.
-			{								//못 받은 경우
+			if(!roomListReceiver(result))
+			{
 				this.Used = false;
 				return false;
-			}				
-			this.Used = false;				//받은 경우
+			}
+			this.Used = false;
 			return true;
 		}			
 		//방 목록 받기 끝

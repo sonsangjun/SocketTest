@@ -255,6 +255,7 @@ public class ServerThread extends Thread {
 			}
 			//방 목록전송 끝
 			
+			
 			//방 만들기
 			else if(signal.signalChecking(receiveSignal, signal.makeRoom))
 			{
@@ -290,6 +291,7 @@ public class ServerThread extends Thread {
 			}
 			//방 만들기 끝
 			
+			
 			//방 참여하기
 			else if(signal.signalChecking(receiveSignal, signal.joinRoom))
 			{
@@ -324,6 +326,7 @@ public class ServerThread extends Thread {
 			}
 			//방 참여하기 끝
 			
+			
 			//방 나가기
 			else if(signal.signalChecking(receiveSignal, signal.exitRoom))
 			{
@@ -355,7 +358,28 @@ public class ServerThread extends Thread {
 			}	
 			//방 나가기 끝
 			
-			//방에 참가하지 않았으면 continue;
+			
+			//이름 바꾸기
+			else if(signal.signalChecking(receiveSignal, signal.writeYourName))
+			{
+				String tempName = null;
+				//신호를 받았다는 응답을 보낸다. 아래 메소드가 false를 반환하면 클라와 연결이 끊긴것이다.
+				if(!signal.toDoResponse(signal.response))	break;
+				//신호 응답 끝
+				
+				tempName = roomManage.writeYourName();
+				if(tempName != null)
+				{
+					this.yourName = new String(tempName);
+					System.out.println("Client ID : "+this.clientID+" 의 이름은 이제 "+this.yourName+" 입니다.");
+					continue;
+				}
+				System.out.println("Client ID : "+this.clientID+" 이름 바꾸는데 문제 생김.");
+				continue;
+			}
+			
+			
+			//대기실에 있는경우 continue;
 			if(roomName.equals(unname))
 			{
 				//신호를 받았다는 응답을 보낸다. 아래 메소드가 false를 반환하면 클라와 연결이 끊긴것이다.
@@ -364,6 +388,8 @@ public class ServerThread extends Thread {
 				//신호 응답 끝
 				continue;
 			}					
+			//대기실에 있는경우 continue; 끝
+			
 			
 			//채팅
 			if(signal.signalChecking(receiveSignal, signal.talk))
@@ -416,6 +442,18 @@ public class ServerThread extends Thread {
 			//바이트 스트림 요청 끝
 			
 			
+			//연결종료 요청
+			else if(signal.signalChecking(receiveSignal, signal.exitServer))
+			{
+				//신호를 받았다는 응답을 보낸다. 아래 메소드가 false를 반환하면 클라와 연결이 끊긴것이다.
+				if(!signal.toDoResponse(signal.response))
+					break;
+				//신호 응답 끝
+				break;
+			}				
+			//연결종료 요청 끝
+			
+			
 			//클라이언트와 연결이 끊어진 경우
 			else	
 			{
@@ -423,6 +461,7 @@ public class ServerThread extends Thread {
 			}
 		}
 		//서버 끝
+		
 		
 		//서버 종료
 		System.out.println("Client ID : "+this.clientID+" 대한 연결이 끊어졌습니다.");

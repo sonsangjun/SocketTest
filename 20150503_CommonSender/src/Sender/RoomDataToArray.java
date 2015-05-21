@@ -2,7 +2,8 @@ package Sender;
 
 import java.util.List;
 
-
+//방 목록을 보낼때와 , 방안의 클라이언트의 위치정보 보낼때
+//두 경우에만 쓰인다.
 //객체 직렬화 전송을 위해 만들었다.
 public class RoomDataToArray implements java.io.Serializable{
 	List<String> wantList = null;

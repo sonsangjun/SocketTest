@@ -29,25 +29,27 @@ import javax.sound.midi.VoiceStatus;
 
 
 //안드로이드 코딩하는데 참고할 것.
+//예제 클라이언트 내용
 /*	기본 동작
- * (방 관리 및 채팅 기준)
- * 
- * 클라이언트				<---->			서버
- * toDoRequest						toDoResponse(신호 받고 signal.response신호 보냄)
- * 												(방에 참가하지 않았을 경우 signal.wrong)
- * 
- * eventOuput.write					inputReader(클라가 보내준 방목록, 채팅을 받음)
- * (방이름이나 채팅 목록)
- * 
- * receiveSignaltoByte(명령어 받음)		toDoResponse(명령어 보냄)
- * (상대방의 신호를 받기 기다리는 메소드 입니다.)	(상대방에게 신호를 보내는 메소드 입니다.)
- * 
- * 
- * 해당기능을 가진 함수는 이 클래스 내에
- * clientTerminate(); 
- * 에 있습니다. find로 찾아서 확인해주세요.
+* (방 관리 및 채팅 기준)
+* 
+* 클라이언트				<---->			서버(서버측 코딩은 신경쓸 필요가 없습니다.)
+* toDoRequest						toDoResponse(신호 받고 signal.response신호 보냄)
+* 								(방에 참가하지 않았을 경우 signal.wrong)
+* 
+*┌────────────────────이 부분은 roomManage.clientRequest에서 이루어 지기 때문에 사용자는 신경 쓸 필요가 없습니다.─────────────────
+*│ eventOuput.write					inputReader(클라가 보내준 방목록, 채팅을 받음)
+*│(방이름이나 채팅 목록)
+*│ 
+*│ receiveSignaltoByte(명령어 받음)		toDoResponse(명령어 보냄)
+*│ (상대방의 신호를 받기 기다리는 메소드 입니다.)	(상대방에게 신호를 보내는 메소드 입니다.)
+*└─────────────────────────────────────────────────────────────────────────────────────────────────────────
+* 
+* 해당기능을 가진 함수는 이 클래스 내에
+* clientTerminate(); 
+* 에 있습니다. find로 찾아서 확인해주세요.
 
- */
+*/
 
 public class Client extends Thread {
 	ValueCollections value = new ValueCollections();
@@ -59,6 +61,7 @@ public class Client extends Thread {
 	byte[] cameraByteArray;		//카메라 프리뷰 바이트 배열
 	byte[] voiceByteArray;		//음성 바이트 배열
 	String roomName = new String(value.unname);
+	String yourName = new String(" ");
 	
 	
 	SignalData signal;
@@ -250,8 +253,8 @@ public class Client extends Thread {
 	public void clientTerminate()
 	{
 		BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in)); //명령어를 입력하는 부분
-		String value = null;	//명령어
-		RoomDataToArray roomDataToArray;	//방 목록을 저장하는 변수
+		String valueString = null;	//명령어
+		RoomDataToArray roomDataToArray = null;	//방 목록을 저장하는 변수
 		roomManage = new RoomManage(" ", clientID, eventSocket, signal);	//방 관리 클래스
 		
 		
@@ -259,8 +262,10 @@ public class Client extends Thread {
 		{
 			System.out.println("명령을 입력하세요.");
 			System.out.println(signal.signalByteToString(signal.makeRoom)+" 방만들기\t"+signal.signalByteToString(signal.joinRoom)+"방참여\t "+signal.signalByteToString(signal.exitRoom)+" 방나가기\t"+signal.signalByteToString(signal.exitServer)+" 나가기");
+			System.out.println(signal.signalByteToString(signal.roomList)+" 방 목록 요청\t"+signal.signalByteToString(signal.writeYourName)+" Client이름바꾸기");
+			System.out.printf(this.yourName+">");
 			try {
-				value = inputReader.readLine();	//안드로이드라면 직접 value를 입력해 스레드에게 갖다주는 식으로 변형하면 될듯.
+				valueString = inputReader.readLine();	//안드로이드라면 직접 value를 입력해 스레드에게 갖다주는 식으로 변형하면 될듯.
 			} catch (IOException e) {
 				System.out.println("입력에러");
 				e.printStackTrace();
@@ -272,13 +277,14 @@ public class Client extends Thread {
 			
 			//명령어 잘못 입력은 채팅으로
 			//여기만 toDoRequest(talk)로 따로 씀.
-			if(signal.signalStringToByte(value) == null)
+			//명령어 입력창에서 talk쓰면 연결이 종료됨. talk가 signal.talk로 인식되기 때문. 안드로이드 개발때 아래 if문처럼 처리바람.
+			if(signal.signalStringToByte(valueString) == null || valueString.equals(signal.signalByteToString(signal.talk)))
 			{
 				signal.signalReCount(true);	//장난칠경우 3회까지 봐줌
 				socketEventUsed.socketEventUsed = true;
 				if(signal.toDoRequest(signal.talk))
 				{
-					if(roomManage.clientsRequest(signal.talk, value, null))
+					if(roomManage.clientsRequest(signal.talk, valueString, null))
 					{
 						socketEventUsed.socketEventUsed = false;
 						continue;					
@@ -298,7 +304,7 @@ public class Client extends Thread {
 			
 			
 			//명령 보내기
-			if(signal.toDoRequest(signal.signalStringToByte(value)))
+			if(signal.toDoRequest(signal.signalStringToByte(valueString)))
 			{
 				System.out.println("서버가 명령을 확인했습니다.");
 			}
@@ -332,7 +338,7 @@ public class Client extends Thread {
 			
 			//방 만들기 및 참가
 			//방 만들거나 참가후에 this객체의 roomName을 바꿔줘야 한다.
-			if(value.equals(signal.signalByteToString(signal.makeRoom)) || value.equals(signal.signalByteToString(signal.joinRoom)))
+			if(valueString.equals(signal.signalByteToString(signal.makeRoom)) || valueString.equals(signal.signalByteToString(signal.joinRoom)))
 			{
 				String inputRoomName = new String(" ");
 				socketEventUsed.socketEventUsed = true;
@@ -346,7 +352,7 @@ public class Client extends Thread {
 					socketEventUsed.socketEventUsed = false;
 					continue;
 				}
-				if(value.equals(signal.signalByteToString(signal.makeRoom)))
+				if(valueString.equals(signal.signalByteToString(signal.makeRoom)))
 				{
 					if(roomManage.clientsRequest(signal.makeRoom, inputRoomName, null))
 					{
@@ -356,7 +362,7 @@ public class Client extends Thread {
 						continue;					
 					}
 				}
-				else if(value.equals(signal.signalByteToString(signal.joinRoom)))
+				else if(valueString.equals(signal.signalByteToString(signal.joinRoom)))
 				{
 					socketEventUsed.socketEventUsed = true;
 					if(roomManage.clientsRequest(signal.joinRoom, inputRoomName, null))
@@ -374,20 +380,70 @@ public class Client extends Thread {
 			
 			//방 나가기
 			//방 나간후 this객체의 roomName을 바꿔줘야 한다.
-			else if (value.equals(signal.signalByteToString(signal.exitRoom)))
+			else if (valueString.equals(signal.signalByteToString(signal.exitRoom)))
 			{
+				socketEventUsed.socketEventUsed = true;
 				if(roomManage.clientsRequest(signal.exitRoom, this.roomName,  null))
 				{
 					socketEventUsed.socketEventUsed = false;
 					this.roomName = new String(this.value.unname);						
 					}
+				socketEventUsed.socketEventUsed = false;
 				continue;
 			}
 			//방 나가기 끝
 			
 			
+			//방 목록 요청
+			else if(valueString.equals(signal.signalByteToString(signal.roomList)))
+			{
+				socketEventUsed.socketEventUsed = true;
+				roomDataToArray = new RoomDataToArray(null, null);
+				if(roomManage.clientsRequest(signal.roomList, null, roomDataToArray))
+				{						
+					System.out.println("방 목록을 받아왔습니다.\n"+value.upLine);
+					System.out.println("방이름\t참가인원");
+					for(int i=0; i<roomDataToArray.wantList.size(); i++)
+						System.out.println(roomDataToArray.wantList.get(i)+"\t"+roomDataToArray.wantJoinNumber.get(i));
+					System.out.println(value.downLine);
+				}	
+				socketEventUsed.socketEventUsed = false;
+				continue;
+			}
+			//방 목록 요청 끝
+			
+			
+			//이름 바꾸기
+			else if(valueString.equals(signal.signalByteToString(signal.writeYourName)))
+			{
+				socketEventUsed.socketEventUsed = true;
+				
+				String inputRoomName = new String(" ");
+				socketEventUsed.socketEventUsed = true;
+				System.out.println("이름을 입력하세요.");
+				try {
+					inputRoomName = inputReader.readLine();
+					System.out.println("입력한 이름은 "+inputRoomName);
+				} catch (IOException e) {
+					System.out.println("입력하는 중 예외 발생");
+					e.printStackTrace();
+					socketEventUsed.socketEventUsed = false;
+					continue;
+				}
+				
+				if(roomManage.clientsRequest(signal.writeYourName, inputRoomName, null))
+				{
+					this.yourName = new String(inputRoomName);
+					socketEventUsed.socketEventUsed = false;
+				}
+				socketEventUsed.socketEventUsed = false;
+				continue;
+			}
+			//이름 바꾸기 끝
+			
+			
 			//종료
-			else if(value.equals(signal.signalByteToString(signal.exitServer)))
+			else if(valueString.equals(signal.signalByteToString(signal.exitServer)))
 			{
 				System.out.println("클라이언트를 종료합니다.");
 				exitClient();
