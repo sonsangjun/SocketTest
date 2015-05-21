@@ -231,18 +231,17 @@ public class ServerThread extends Thread {
 		{
 			byte[] receiveSignal = new byte[signal.signalSize];
 			receiveSignal = signal.receiveSignalToByteArray();		//신호 받기를 대기한다.
-			
-			//신호를 받았다는 응답을 보낸다. 아래 메소드가 false를 반환하면 클라와 연결이 끊긴것이다.
-			if(!signal.toDoResponse(signal.response))
-				break;
-			//신호 응답 끝
-			
+						
 			System.out.println("Client ID : "+this.clientID+" 에게 받은 신호 "+signal.signalByteToString(receiveSignal));
 			
 			//방 목록전송
 			//방에 참가 안하면 데이터나 위치 전송불가
 			if(signal.signalChecking(receiveSignal, signal.roomList))
 			{
+				//신호를 받았다는 응답을 보낸다. 아래 메소드가 false를 반환하면 클라와 연결이 끊긴것이다.
+				if(!signal.toDoResponse(signal.response))	break;
+				//신호 응답 끝
+				
 				if(roomManage.roomListSender())
 				{
 					System.out.println("Client ID : "+this.clientID+" 에게 방 목록을 전송했습니다.");
@@ -259,6 +258,10 @@ public class ServerThread extends Thread {
 			//방 만들기
 			else if(signal.signalChecking(receiveSignal, signal.makeRoom))
 			{
+				//신호를 받았다는 응답을 보낸다. 아래 메소드가 false를 반환하면 클라와 연결이 끊긴것이다.
+				if(!signal.toDoResponse(signal.response))	break;
+				//신호 응답 끝
+				
 				if(roomManage.makeRoom())
 				{
 					System.out.println("Client ID : "+this.clientID+" 방을 만들었습니다.");
@@ -290,6 +293,10 @@ public class ServerThread extends Thread {
 			//방 참여하기
 			else if(signal.signalChecking(receiveSignal, signal.joinRoom))
 			{
+				//신호를 받았다는 응답을 보낸다. 아래 메소드가 false를 반환하면 클라와 연결이 끊긴것이다.
+				if(!signal.toDoResponse(signal.response))	break;
+				//신호 응답 끝
+				
 				if(roomManage.joinRoom())
 				{					
 					//참여한 방의 정보를 현재 스레드 변수에 기록함.
@@ -320,11 +327,15 @@ public class ServerThread extends Thread {
 			//방 나가기
 			else if(signal.signalChecking(receiveSignal, signal.exitRoom))
 			{
+				//신호를 받았다는 응답을 보낸다. 아래 메소드가 false를 반환하면 클라와 연결이 끊긴것이다.
+				if(!signal.toDoResponse(signal.response))	break;
+				//신호 응답 끝
+				
 				if(roomManage.exitRoom())
 				{
 					System.out.println("Client ID : "+this.clientID+" 방을 나갔습니다.");	
 					if(roomManage.delEmptyRoom())
-						System.out.println("Client ID : "+"빈방을 정리했습니다.");
+						System.out.println("Client ID : "+this.clientID+" 빈방을 정리했습니다.");
 					
 					//exitRoom 이후에 join이나 make할것 이므로 번거롭지 않게 미리 만들어둔다.
 					synchronized (roomDataList) {
@@ -346,7 +357,35 @@ public class ServerThread extends Thread {
 			
 			//방에 참가하지 않았으면 continue;
 			if(roomName.equals(unname))
+			{
+				//신호를 받았다는 응답을 보낸다. 아래 메소드가 false를 반환하면 클라와 연결이 끊긴것이다.
+				//방에 참가하지 않았는데 올바른 명령을 실행하지 않으므로 wrong을 보낸다.
+				if(!signal.toDoResponse(signal.wrong))	break;
+				//신호 응답 끝
+				continue;
+			}					
+			
+			//채팅
+			if(signal.signalChecking(receiveSignal, signal.talk))
+			{
+				//신호를 받았다는 응답을 보낸다. 아래 메소드가 false를 반환하면 클라와 연결이 끊긴것이다.
+				if(!signal.toDoResponse(signal.response))
+					break;
+				//신호 응답 끝
+				
+				String temp = roomManage.talk();	//서버도 보기 위해 반환값을 String으로 한다.
+				if(temp != null)
+				{
+					System.out.println("Client ID : "+this.clientID+" : "+temp+"(채팅)");
 					continue;
+				}
+				else
+				{
+					System.out.println("Client ID : "+this.clientID+" 채팅 실패");
+					continue;
+				}			
+			}			
+			//채팅 끝
 			
 			
 			//위치 보내기
@@ -355,6 +394,7 @@ public class ServerThread extends Thread {
 				
 			}
 			//위치 보내기 끝
+			
 			
 			//바이트 스트림 요청
 			else if(signal.signalChecking(receiveSignal, signal.byteReceive))

@@ -62,23 +62,15 @@ public class RoomManage {
 	public boolean makeRoom()
 	{
 		String roomName = null;
-		if(signal.toAccept(signal.makeRoom))
-		{
-			try {
-				BufferedReader inputReader = new BufferedReader(new InputStreamReader(eventSocket.getInputStream()));
-				roomName = inputReader.readLine();
-			} catch (IOException e) {
-				e.printStackTrace();
-				signal.toDoResponse(signal.wrong);
-				return false;
-			}
-		}
-		else
-		{
+
+		try {
+			BufferedReader inputReader = new BufferedReader(new InputStreamReader(eventSocket.getInputStream()));
+			roomName = inputReader.readLine();
+		} catch (IOException e) {
+			e.printStackTrace();
 			signal.toDoResponse(signal.wrong);
 			return false;
-		}
-			
+		}	
 		
 		synchronized (roomDataList) {
 			if(roomName.equals(roomDataList.get(0).unname))		//unname은 쓸수없다.
@@ -182,23 +174,15 @@ public class RoomManage {
 	public boolean joinRoom()
 	{	
 		String roomName = null;
-		if(signal.toAccept(signal.joinRoom))
-		{
-			try {
-				BufferedReader inputReader = new BufferedReader(new InputStreamReader(eventSocket.getInputStream()));
-				roomName = inputReader.readLine();
-			} catch (IOException e) {
-				e.printStackTrace();
-				signal.toDoResponse(signal.wrong);
-				return false;
-			}
-		}
-		else
-		{
+		try {
+			BufferedReader inputReader = new BufferedReader(new InputStreamReader(eventSocket.getInputStream()));
+			roomName = inputReader.readLine();
+		} catch (IOException e) {
+			e.printStackTrace();
 			signal.toDoResponse(signal.wrong);
 			return false;
 		}
-			
+
 		
 		synchronized (roomDataList) {
 			
@@ -292,19 +276,11 @@ public class RoomManage {
 	public boolean exitRoom()
 	{
 		String roomName = null;
-		if(signal.toAccept(signal.exitRoom))
-		{
-			try {
-				BufferedReader inputReader = new BufferedReader(new InputStreamReader(eventSocket.getInputStream()));
-				roomName = inputReader.readLine();
-			} catch (IOException e) {
-				e.printStackTrace();
-				return false;
-			}
-		}
-		else
-		{
-			signal.toDoResponse(signal.wrong);
+		try {
+			BufferedReader inputReader = new BufferedReader(new InputStreamReader(eventSocket.getInputStream()));
+			roomName = inputReader.readLine();
+		} catch (IOException e) {
+			e.printStackTrace();
 			return false;
 		}
 			
@@ -461,27 +437,69 @@ public class RoomManage {
 			return false;
 		}
 		
-		//룸리스트에 대한 응답을 받으면
-		if(signal.toAccept(signal.roomList))
-		{
-			try {
-				objectOutput.writeObject(result);
-				objectOutput.flush();
-			} catch (IOException e) {
-				System.out.println("roomList 객체 전송중 예외");
-				e.printStackTrace();
-				return false;
-			}
-			if(signal.toCatchResponse(signal.roomList))	//원격측에서 받았는지 확인(확인은 안함)
-			{
-				System.out.println("Client ID : " +this.clientID+" 에게 방 목록을 성공적으로 전송했습니다.");
-				return true;
-			}			
+		//클라이언트에게 방 목록을 보낸다.
+		try {
+			objectOutput.writeObject(result);
+			objectOutput.flush();
+		} catch (IOException e) {
+			System.out.println("roomList 객체 전송중 예외");
+			e.printStackTrace();
+			return false;
 		}
+		if(signal.toCatchResponse(signal.roomList))	//원격측에서 받았는지 확인(확인은 안함)
+		{
+			System.out.println("Client ID : " +this.clientID+" 에게 방 목록을 성공적으로 전송했습니다.");
+			return true;
+		}			
+
 		return false;		
 	}
-	//방 목록 보내는 부분 끝
+	//클라이언트에게 방 목록 보내는 부분 끝
 	
+	//채팅
+	public String talk()
+	{
+		String talkString = null;
+
+		try {
+			BufferedReader inputReader = new BufferedReader(new InputStreamReader(eventSocket.getInputStream()));
+			talkString = inputReader.readLine();
+		} catch (IOException e) {
+			e.printStackTrace();
+			signal.toDoResponse(signal.wrong);
+			return null;
+		}
+		
+		if(talkString != null)
+		{
+			synchronized (socketBroadCastUsed) {
+				socketBroadCastUsed.message = new String("Client ID : "+this.clientID+" : "+talkString);
+			}
+			signal.toDoResponse(signal.talk);
+			return talkString;
+		}
+		else
+		{
+			signal.toDoResponse(signal.wrong);
+			return null;
+		}
+			
+				
+	}
+	
+	//채팅 끝
+	
+	
+	
+	//서버측 끝
+	//--------------------
+	
+	
+	
+	
+	
+	//--------------------
+	//클라이언트 측
 	//클라이언트(방 목록을 받으므로)
 	public boolean roomListReceiver(RoomDataToArray result)
 	{
@@ -495,25 +513,25 @@ public class RoomManage {
 			return false;
 		}
 		
-		
-		if(signal.toDoRequest(signal.roomList))	//룸 리스트를 요청한다.를 서버가 확인했으면 true
-		{
-			try {
-				result = (RoomDataToArray) objectInput.readObject();
-			} catch (ClassNotFoundException | IOException e) {
-				System.out.println("result 객체를 받는중 예외");
-				e.printStackTrace();
-				return false;
-			}
-			if(signal.toDoResponse(signal.roomList))	//방 목록을 받았다고 신호보냄
-			{
-				System.out.println("Client ID : "+this.clientID+" 방목록을 받았습니다.");
-				return true;	
-			}
+
+		try {
+			result = (RoomDataToArray) objectInput.readObject();
+		} catch (ClassNotFoundException | IOException e) {
+			System.out.println("result 객체를 받는중 예외");
+			e.printStackTrace();
+			return false;
 		}
-		System.out.println("Client ID : "+this.clientID+" 방목록 받는데 실패했습니다.");
-		return false;
 		
+		if(signal.toDoResponse(signal.roomList))	//방 목록을 받았다고 신호보냄
+		{
+			System.out.println("Client ID : "+this.clientID+" 방목록을 받았습니다.");
+			return true;	
+		}
+		else
+		{
+			System.out.println("Client ID : "+this.clientID+" 방목록 받는데 실패했습니다.");
+			return false;						
+		}		
 	}
 	//클라이언트 끝(방 목록을 받으므로)
 
@@ -537,68 +555,98 @@ public class RoomManage {
 		if(!this.Used)
 			this.Used = true;
 		
-		
-		if(signal.toDoRequest(command))
+		//방 관리
+		if(signal.signalChecking(command, signal.makeRoom) || signal.signalChecking(command, signal.joinRoom) || signal.signalChecking(command, signal.exitRoom))
 		{
-			//방 관리
-			if(signal.signalChecking(command, signal.makeRoom) || signal.signalChecking(command, signal.joinRoom) || signal.signalChecking(command, signal.exitRoom))
-			{
-				//방 이름 서버에게 보냄
-				try {
-					Thread.sleep(value.waitTime);	//서버측 스레드의 버퍼 생성시간이 늦어질수도 있으므로.
-					eventOutput.write(wantRoomName);
-					eventOutput.newLine();
-					eventOutput.flush();
-				} catch (IOException | InterruptedException e) {
-					System.out.println(command+" 도중 예외 발생");
-					e.printStackTrace();
-					this.Used = false;
-					return false;
-				}
-				byte[] receiveSignal = signal.receiveSignalToByteArray();
-				
-				//명령에 따른 수행
-				if(signal.signalChecking(receiveSignal, signal.makeRoom))
-				{
-					System.out.println("방을 만들었습니다.");
-					this.Used = false;
-					return true;
-				}
-				else if(signal.signalChecking(receiveSignal, signal.joinRoom))
-				{					
-					System.out.println("방에 참가했습니다.");
-					this.Used = false;
-					return true;
-				}
-				else if(signal.signalChecking(receiveSignal, signal.exitRoom))
-				{
-					System.out.println("방을 나갔습니다.");
-					this.Used = false;
-					return true;
-				}
-				else
-				{
-					System.out.println("서버에서 "+signal.signalByteToString(command)+"명령을 수행할 수 없습니다.");
-					this.Used = false;
-					return false;
-				}
-				//명령에 따른 수행 끝
+			//방 이름 서버에게 보냄
+			try {
+				Thread.sleep(value.waitTime);	//서버측 스레드의 버퍼 생성시간이 늦어질수도 있으므로.
+				eventOutput.write(wantRoomName);
+				eventOutput.newLine();
+				eventOutput.flush();
+			} catch (IOException | InterruptedException e) {
+				System.out.println(command+" 도중 예외 발생");
+				e.printStackTrace();
+				this.Used = false;
+				return false;
 			}
-			//방 관리 끝
+			byte[] receiveSignal = signal.receiveSignalToByteArray();	//서버에게 잘 받았다는 연락을 받아야 함
 			
-			//방 목록 받기
-			else if(command.equals("roomList"))
+			//명령에 따른 수행
+			if(signal.signalChecking(receiveSignal, signal.makeRoom))
 			{
-				if(!roomListReceiver(result))	//this.roomListReceiver(방목록)이다.
-				{								//못 받은 경우
-					this.Used = false;
-					return false;
-				}				
-				this.Used = false;				//받은 경우
+				System.out.println("방을 만들었습니다.");
+				this.Used = false;
 				return true;
-			}			
-			//방 목록 받기 끝
+			}
+			else if(signal.signalChecking(receiveSignal, signal.joinRoom))
+			{					
+				System.out.println("방에 참가했습니다.");
+				this.Used = false;
+				return true;
+			}
+			else if(signal.signalChecking(receiveSignal, signal.exitRoom))
+			{
+				System.out.println("방을 나갔습니다.");
+				this.Used = false;
+				return true;
+			}
+			else
+			{
+				System.out.println("서버에서 "+signal.signalByteToString(command)+"명령을 수행할 수 없습니다.");
+				this.Used = false;
+				return false;
+			}
+			//명령에 따른 수행 끝
 		}
+		//방 관리 끝
+				
+		//채팅
+		else if(signal.signalChecking(command, signal.talk))
+		{
+			//방 이름 서버에게 보냄
+			try {
+				Thread.sleep(value.waitTime);	//서버측 스레드의 버퍼 생성시간이 늦어질수도 있으므로.
+				eventOutput.write(wantRoomName);
+				eventOutput.newLine();
+				eventOutput.flush();
+			} catch (IOException | InterruptedException e) {
+				System.out.println(command+" 도중 예외 발생");
+				e.printStackTrace();
+				this.Used = false;
+				return false;
+			}
+			byte[] receiveSignal = signal.receiveSignalToByteArray();	//서버에게 잘 받았다는 연락을 받아야 함
+			
+			if(signal.signalChecking(receiveSignal, signal.talk))
+			{
+				this.Used = false;
+				return true;				
+			}
+			else
+			{
+				System.out.println("서버에서 "+signal.signalByteToString(command)+"명령을 수행할 수 없습니다.");
+				this.Used = false;
+				return false;
+			}
+			
+
+		}
+		//채팅 끝
+		
+		//방 목록 받기
+		else if(signal.signalChecking(command, signal.roomList))
+		{
+			if(!roomListReceiver(result))	//this.roomListReceiver(방목록)이다.
+			{								//못 받은 경우
+				this.Used = false;
+				return false;
+			}				
+			this.Used = false;				//받은 경우
+			return true;
+		}			
+		//방 목록 받기 끝
+		
 		System.out.println("서버에게 요청할 수 없습니다.");
 		this.Used = false;
 		return false;

@@ -225,16 +225,20 @@ public class Client extends Thread {
 		}
 	}
 	
-	/*	파일전송 및 방 만들기 테스트
-	 * 	클라이언트의 요청을 받아 방을 만들고
-	 * 	데이터 스트림을 서버에 전송한다.
-	 * 	스트림을 전송받은 서버는 방에 참여한 다른 클라이언트에게 파일을 전송한다.
-	 * 	전송을 마치면 연결을 종료한다.
+	/*	기본 동작
+	 * (방 관리 및 채팅 기준)
 	 * 
-	 * 	방명은 : testRoom
-	 * 	파일을 받는 입장은 방을 들어간다.
-	 * 	파일을 보낸 입장은 방을 만든다.
+	 * 클라이언트				<---->			서버
+	 * toDoRequest						toDoResponse(신호 받고 signal.response신호 보냄)
+	 * 												(방에 참가하지 않았을 경우 signal.wrong)
 	 * 
+	 * eventOuput.write					inputReader(그걸 받음)
+	 * (방이름이나 채팅 목록)
+	 * 
+	 * receiveSignaltoByte(명령어 받음)		toDoResponse(명령어 보냄)
+	 * 
+	 * 
+
 	 */
 	
 	public void clientTerminate()
@@ -250,83 +254,47 @@ public class Client extends Thread {
 			System.out.println("명령을 입력하세요.");
 			System.out.println(signal.signalByteToString(signal.makeRoom)+" 방만들기\t"+signal.signalByteToString(signal.joinRoom)+"방참여\t "+signal.signalByteToString(signal.exitRoom)+" 방나가기\t"+signal.signalByteToString(signal.exitServer)+" 나가기");
 			try {
-				value = inputReader.readLine();
+				value = inputReader.readLine();	//안드로이드라면 직접 value를 입력해 스레드에게 갖다주는 식으로 변형하면 될듯.
 			} catch (IOException e) {
 				System.out.println("입력에러");
 				e.printStackTrace();
 				continue;
 			}		
-			//명령어 잘못 입력 걸러냄
-			if(signal.signalStringToByte(value)==null)
+			//이벤트 소켓 사용중이면 continue;
+			if(socketEventUsed.socketEventUsed)
 				continue;
 			
-			//명령 받기
+			//명령어 잘못 입력은 채팅으로
+			//여기만 toDoRequest(talk)로 따로 씀.
+			if(signal.signalStringToByte(value) == null)
+			{
+				signal.signalReCount(true);	//장난칠경우 3회까지 봐줌
+				socketEventUsed.socketEventUsed = true;
+				if(signal.toDoRequest(signal.talk))
+				{
+					if(roomManage.clientsRequest(signal.talk, value, null))
+					{
+						socketEventUsed.socketEventUsed = false;
+						continue;					
+					}				
+				}
+				socketEventUsed.socketEventUsed = false;
+				
+				if(signal.signalReCount(false))	//3회 이상 장난 칠경우 종료 시켜버림.
+					System.out.println("채팅 실패");						
+				else
+				{
+					System.out.println("채팅 실패");						
+					continue;					
+				}								
+			}
+			//명령어 잘못 입력은 채팅으로 끝				
+			
+			
+			//명령 보내기
 			if(signal.toDoRequest(signal.signalStringToByte(value)))
 			{
 				System.out.println("서버가 명령을 확인했습니다.");
-				
-				//방 만들기 및 참가
-				//방 만들거나 참가후에 this객체의 roomName을 바꿔줘야 한다.
-				if(value.equals(signal.signalByteToString(signal.makeRoom)) || value.equals(signal.signalByteToString(signal.joinRoom)))
-				{
-					String inputRoomName = new String(" ");
-					socketEventUsed.socketEventUsed = true;
-					System.out.println("방 이름을 입력하세요.");
-					try {
-						inputRoomName = inputReader.readLine();
-						System.out.println("입력한 방이름은 "+inputRoomName);
-					} catch (IOException e) {
-						System.out.println("방 입력하는 중 예외 발생");
-						e.printStackTrace();
-						socketEventUsed.socketEventUsed = false;
-						continue;
-					}
-					if(value.equals(signal.signalByteToString(signal.makeRoom)))
-					{
-						if(roomManage.clientsRequest(signal.makeRoom, inputRoomName, null))
-						{
-							socketEventUsed.socketEventUsed = false;
-							this.roomName = new String(inputRoomName);
-							System.out.println("만든 방이름은 "+inputRoomName);							
-							continue;					
-						}
-					}
-					else if(value.equals(signal.signalByteToString(signal.joinRoom)))
-					{
-						socketEventUsed.socketEventUsed = true;
-						if(roomManage.clientsRequest(signal.joinRoom, inputRoomName, null))
-						{
-							socketEventUsed.socketEventUsed = false;
-							this.roomName = new String(inputRoomName);
-							System.out.println("참가한 방이름은 "+inputRoomName);							
-							continue;					
-						}
-					}
-								
-				}
-				//방 만들기 및 참가 끝
-				
-				//방 나가기
-				//방 나간후 this객체의 roomName을 바꿔줘야 한다.
-				else if (value.equals(signal.signalByteToString(signal.exitRoom)))
-				{
-					if(roomManage.clientsRequest(signal.exitRoom, this.roomName,  null))
-					{
-						socketEventUsed.socketEventUsed = false;
-						this.roomName = new String(this.value.unname);						
-						}
-					continue;
-				}
-				//방 나가기 끝
-				
-				//종료
-				else if(value.equals(signal.signalByteToString(signal.exitServer)))
-				{
-					System.out.println("클라이언트를 종료합니다.");
-					exitClient();
-					return ;
-				}
-				//종료 끝
 			}
 			else
 			{
@@ -354,7 +322,75 @@ public class Client extends Thread {
 				//브로드캐스트 죽이기 끝
 				return ;				
 			}
-			//명령 받기끝			
+			
+			
+			//방 만들기 및 참가
+			//방 만들거나 참가후에 this객체의 roomName을 바꿔줘야 한다.
+			if(value.equals(signal.signalByteToString(signal.makeRoom)) || value.equals(signal.signalByteToString(signal.joinRoom)))
+			{
+				String inputRoomName = new String(" ");
+				socketEventUsed.socketEventUsed = true;
+				System.out.println("방 이름을 입력하세요.");
+				try {
+					inputRoomName = inputReader.readLine();
+					System.out.println("입력한 방이름은 "+inputRoomName);
+				} catch (IOException e) {
+					System.out.println("방 입력하는 중 예외 발생");
+					e.printStackTrace();
+					socketEventUsed.socketEventUsed = false;
+					continue;
+				}
+				if(value.equals(signal.signalByteToString(signal.makeRoom)))
+				{
+					if(roomManage.clientsRequest(signal.makeRoom, inputRoomName, null))
+					{
+						socketEventUsed.socketEventUsed = false;
+						this.roomName = new String(inputRoomName);
+						System.out.println("만든 방이름은 "+inputRoomName);							
+						continue;					
+					}
+				}
+				else if(value.equals(signal.signalByteToString(signal.joinRoom)))
+				{
+					socketEventUsed.socketEventUsed = true;
+					if(roomManage.clientsRequest(signal.joinRoom, inputRoomName, null))
+					{
+						socketEventUsed.socketEventUsed = false;
+						this.roomName = new String(inputRoomName);
+						System.out.println("참가한 방이름은 "+inputRoomName);							
+						continue;					
+					}
+				}
+							
+			}
+			//방 만들기 및 참가 끝
+			
+			
+			//방 나가기
+			//방 나간후 this객체의 roomName을 바꿔줘야 한다.
+			else if (value.equals(signal.signalByteToString(signal.exitRoom)))
+			{
+				if(roomManage.clientsRequest(signal.exitRoom, this.roomName,  null))
+				{
+					socketEventUsed.socketEventUsed = false;
+					this.roomName = new String(this.value.unname);						
+					}
+				continue;
+			}
+			//방 나가기 끝
+			
+			
+			//종료
+			else if(value.equals(signal.signalByteToString(signal.exitServer)))
+			{
+				System.out.println("클라이언트를 종료합니다.");
+				exitClient();
+				return ;
+			}
+			//종료 끝
+			
+			
+			//명령 보내기끝			
 			socketEventUsed.socketEventUsed = false;
 		}
 	}

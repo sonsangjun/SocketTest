@@ -54,7 +54,6 @@ public class SocketBroadCastThread extends Thread{
 				synchronized (roomData) {
 					String tempMessage;
 					synchronized (socketBroadCastUsed) {
-						socketBroadCastUsed.broadCastUsed=true;
 						tempMessage = new String(socketBroadCastUsed.message);
 					}
 					for(BufferedWriter B: roomData.clientManage.broadCast)
@@ -73,7 +72,6 @@ public class SocketBroadCastThread extends Thread{
 				//메시지를 보냈으므로 없앤다.
 				synchronized (socketBroadCastUsed) {
 					socketBroadCastUsed.message = new String(socketBroadCastUsed.nullString);
-					socketBroadCastUsed.broadCastUsed=false;
 				}
 			}
 		}
@@ -93,14 +91,12 @@ public class SocketBroadCastThread extends Thread{
 							socketBroadCastUsed.broadCastKill = false;
 							break;
 						}						
-					}
-					socketBroadCastUsed.broadCastUsed=true;
+					}					
 					
 					temp = inputReader.readLine();
 					if(temp.equals(socketBroadCastUsed.nullString))
 					{
 						Thread.sleep(value.waitTime);
-						socketBroadCastUsed.broadCastUsed=false;
 						continue;						
 					}
 					else
@@ -109,12 +105,10 @@ public class SocketBroadCastThread extends Thread{
 							socketBroadCastUsed.message = new String(temp);
 							System.out.println(temp);
 							temp = new String(socketBroadCastUsed.nullString);
-							socketBroadCastUsed.broadCastUsed=false;
 						}						
 					}						
 				}								
-			} catch (IOException | InterruptedException e) {				
-				socketBroadCastUsed.broadCastUsed=false;
+			} catch (IOException | InterruptedException e) {
 				return ;
 			}			
 		}		

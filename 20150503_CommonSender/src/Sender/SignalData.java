@@ -9,7 +9,8 @@ import java.net.Socket;
 public class SignalData {
 	
 	final int signalSize = 2;				//시그널 길이
-	final int signalCount = 14;				//시그널 갯수
+	final int signalCount = 15;				//시그널 갯수
+	final int maxReCount = 3;				//최대 신호 재시도 횟수
 	final byte[] request =		{ 0,0 };	//요청
 	final byte[] response =		{ 0,1 };	//응답함
 	final byte[] wrong	=		{ 0,2 };	//올바르지 않음
@@ -21,12 +22,17 @@ public class SignalData {
 	final byte[] joinRoom	=	{ 1,5 };	//방 참여
 	final byte[] exitRoom	=	{ 1,6 };	//방 나가기
 	final byte[] roomList	=	{ 1,7 };	//방 목록
+	final byte[] talk		=	{ 1,8 };	//채팅
 
 	final byte[] byteSize	=	{ 2,0 };	//바이트배열크기
 	final byte[] byteSend = 	{ 2,1 }; 	//바이트배열보냄
 	final byte[] byteReceive=	{ 2,2 }; 	//바이트배열받음
 	
 	final byte[] exitServer	=	{ 9,0 };	//서버와 연결종료
+	
+	
+	int reCount = 0;						//신호 재시도 횟수
+	
 	
 	
 	Socket socket;
@@ -64,6 +70,7 @@ public class SignalData {
 		this.socket = socket; 
 	}
 	
+	
 	//초기화(초기화 안하며 신호를 보낼수가 없다. 대신 각 신호 메소드에서 초기화를 알아서 시작한다.)
 	public boolean initial()
 	{
@@ -77,6 +84,17 @@ public class SignalData {
 			return false;
 		}
 		return true;
+	}
+	
+	//신호 재시도 카운트
+	//카운트 이상으로 재시도 일어나면 true 반환
+	public boolean signalReCount(boolean countFlag)
+	{
+		if(countFlag)
+			this.reCount++;
+		if(this.reCount > this.maxReCount)
+			return true;
+		return false;	
 	}
 		
 	//신호 equal
@@ -115,6 +133,7 @@ public class SignalData {
 			case 5: return "joinRoom";
 			case 6: return "exitRoom";
 			case 7: return "roomList";
+			case 8: return "talk";
 			}
 		case 2:
 			switch(wantSignal[1])
@@ -145,6 +164,7 @@ public class SignalData {
 		if(wantSignal.equals("joinRoom")) return joinRoom;
 		if(wantSignal.equals("exitRoom")) return exitRoom;
 		if(wantSignal.equals("roomList")) return roomList;
+		if(wantSignal.equals("talk")) return talk;
 		
 		if(wantSignal.equals("byteSize")) return byteSize;
 		if(wantSignal.equals("byteSend")) return byteSend;
