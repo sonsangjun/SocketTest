@@ -55,13 +55,17 @@ public class SignalData {
 	/*	메소드 목록
 	*	public SignalData()													생성자
 	*	public boolean initial()											버퍼스트림 초기화
+	*	public boolean signalReCount(boolean countFlag)						숫자 카운트 함수, 무의미한 명령어가 3회 이상 들어오면 true 반환하는 기능을 만들기 위해 추가함.
 	*	public boolean signalChecking(byte[] target, byte[] wantChecking)	target과 wantChecking가 같으면 true, 다르면 false 반환
 	*	public String SignalByteToString(byte[] wantSignal)					wantSignal 신호이름을 String으로 반환
 	*	public byte[] signalStringToByte(String wantSignal)					wantSignal 신호String을 byteArray로 반환 
 	*	public boolean toRequest()											요청 신호를 보냄
 	*	public boolean toDoRequest(byte[] wantSignal)						원하는 작업(wantSignal) 요청 신호 보냄
-	*	public boolean toResponse(byte[] wantSignal)						원하는 신호(wantSignal)가 들어오면 응답함.
+	*	public boolean toResponse(byte[] wantSignal)						원하는 신호(wantSignal) 가 들어오면 응답함.
 	*	public boolean toConfirm(byte[] responseSignal)						원하는 신호(responseSignal)을 보내기만 한다. 이건 toResponse에게 보내기 위해서 만들었다.
+	*
+	*	read(byte[] 변수) 는 바이트 배열 스트림이 들어오길 기다린다.
+	*	write(byte[] 변수) 는 바이트 배열 스트림을 소켓을 통해 상대방에게 전송한다. (보내길 기다리지 않는다.)
 	*
 	*/
 	

@@ -27,6 +27,28 @@ import javax.sound.midi.VoiceStatus;
  * public void test_I()						test_로마숫자 는 테스트 메소드
  */
 
+
+//안드로이드 코딩하는데 참고할 것.
+/*	기본 동작
+ * (방 관리 및 채팅 기준)
+ * 
+ * 클라이언트				<---->			서버
+ * toDoRequest						toDoResponse(신호 받고 signal.response신호 보냄)
+ * 												(방에 참가하지 않았을 경우 signal.wrong)
+ * 
+ * eventOuput.write					inputReader(클라가 보내준 방목록, 채팅을 받음)
+ * (방이름이나 채팅 목록)
+ * 
+ * receiveSignaltoByte(명령어 받음)		toDoResponse(명령어 보냄)
+ * (상대방의 신호를 받기 기다리는 메소드 입니다.)	(상대방에게 신호를 보내는 메소드 입니다.)
+ * 
+ * 
+ * 해당기능을 가진 함수는 이 클래스 내에
+ * clientTerminate(); 
+ * 에 있습니다. find로 찾아서 확인해주세요.
+
+ */
+
 public class Client extends Thread {
 	ValueCollections value = new ValueCollections();
 	
@@ -224,22 +246,6 @@ public class Client extends Thread {
 			}
 		}
 	}
-	
-	/*	기본 동작
-	 * (방 관리 및 채팅 기준)
-	 * 
-	 * 클라이언트				<---->			서버
-	 * toDoRequest						toDoResponse(신호 받고 signal.response신호 보냄)
-	 * 												(방에 참가하지 않았을 경우 signal.wrong)
-	 * 
-	 * eventOuput.write					inputReader(그걸 받음)
-	 * (방이름이나 채팅 목록)
-	 * 
-	 * receiveSignaltoByte(명령어 받음)		toDoResponse(명령어 보냄)
-	 * 
-	 * 
-
-	 */
 	
 	public void clientTerminate()
 	{
