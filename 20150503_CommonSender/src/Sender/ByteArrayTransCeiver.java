@@ -108,8 +108,9 @@ public class ByteArrayTransCeiver {
 				e.printStackTrace();
 				System.out.println("camera스트림 선언 예외");
 				return false;
-			}					
-			fileByteArray = byteArrayTransCeiverRule.socketCameraUsed.message;
+			}				
+			fileByteArray = byteArrayTransCeiverRule.socketCameraUsed.message.get(0).fileByteArray;
+			
 		}			
 		else
 		{		
@@ -121,7 +122,7 @@ public class ByteArrayTransCeiver {
 				System.out.println("voice스트림 선언 예외");
 				return false;
 			}			
-			fileByteArray = byteArrayTransCeiverRule.socketVoiceUsed.message;
+			fileByteArray = byteArrayTransCeiverRule.socketCameraUsed.message.get(0).fileByteArray;
 		}		
 		//초기에 카메라인지 음성인지 판단 끝		
 		
@@ -178,7 +179,7 @@ public class ByteArrayTransCeiver {
 			}	
 		}		
 		//파일 보내기 끝		
-
+	
 		usedChecking(false);
 		return false;		
 	}
@@ -247,16 +248,14 @@ public class ByteArrayTransCeiver {
 					if(counter*unitSize == fileByteArray.length)
 					{								
 						usedChecking(false);
-						System.out.println("서버에서 데이터 스트림을 받았습니다.");
-						
+						System.out.println(fileByteArray.length+"Byte를 서버에서 받았습니다.");						
 						break;
-					}
-					
+					}					
 					else if(clientReceiveSignal.toAccept(clientReceiveSignal.byteSend))
 					{
 						inputStream.read(fileByteArray, unitSize, byteArrayTransCeiverRule.extra);
 						usedChecking(false);
-						System.out.println("서버에서 데이터 스트림을 받았습니다.");
+						System.out.println(fileByteArray.length+"Byte를 서버에서 받았습니다.");
 						break;								
 					}							
 				}
@@ -277,13 +276,13 @@ public class ByteArrayTransCeiver {
 		if(byteArrayTransCeiverRule.cameraVoice)
 		{
 			synchronized (byteArrayTransCeiverRule.socketCameraUsed) {
-				byteArrayTransCeiverRule.socketCameraUsed.message = fileByteArray;
+				byteArrayTransCeiverRule.socketCameraUsed.message.add(new FileByteArrayClass(fileByteArray));
 			}
 		}
 		else
 		{
 			synchronized (byteArrayTransCeiverRule.socketVoiceUsed) {
-				byteArrayTransCeiverRule.socketVoiceUsed.message = fileByteArray;
+				byteArrayTransCeiverRule.socketVoiceUsed.message.add(new FileByteArrayClass(fileByteArray));
 			}
 		}
 		usedChecking(false);
@@ -463,8 +462,8 @@ public class ByteArrayTransCeiver {
 							{
 								if(counter*unitSize == fileByteArray.length)
 								{										
-									System.out.println(byteArrayTransCeiverRule.roomData.roomName+"에 참가한"+byteArrayTransCeiverRule.roomData.clientManage.clientID.get(i)+"에게 데이터 스트림을 보냈습니다.");
-									System.out.println("보낸 스트림의 크기는 "+byteArrayTransCeiverRule.fileSize+"Byte 입니다.");
+									System.out.println("["+byteArrayTransCeiverRule.roomData.roomName+"] 에 참가한 Client ID : "+byteArrayTransCeiverRule.roomData.clientManage.clientID.get(i)+"에게 데이터 스트림을 보냈습니다.");
+									System.out.println("보낸 스트림의 크기는 "+fileByteArray.length+"Byte 입니다.");
 									continue;
 								}
 								else if(serverTransferSignal.toDoRequest(serverTransferSignal.byteSend))
@@ -472,7 +471,7 @@ public class ByteArrayTransCeiver {
 									outputStream.write(fileByteArray, counter*unitSize, byteArrayTransCeiverRule.extra);
 									outputStream.flush();
 									System.out.println(byteArrayTransCeiverRule.roomData.roomName+"에 참가한"+byteArrayTransCeiverRule.roomData.clientManage.clientID.get(i)+"에게 데이터 스트림을 보냈습니다.");
-									System.out.println("보낸 스트림의 크기는 "+byteArrayTransCeiverRule.fileSize+"Byte 입니다.");											
+									System.out.println("보낸 스트림의 크기는 "+fileByteArray.length+"Byte 입니다.");											
 									continue;
 								}
 							}
@@ -493,7 +492,7 @@ public class ByteArrayTransCeiver {
 			}												//실패하면 다음 클라이언트에게 전송한다.
 			
 			//for문이 끝나면 리턴한다.
-			System.out.println(byteArrayTransCeiverRule.roomData.roomName+" 방의 클라이언트에게 데이터를 전송했습니다.");
+			System.out.println("["+byteArrayTransCeiverRule.roomData.roomName+"] 에 참가한 클라이언트에게 데이터를 전송했습니다.");
 			usedChecking(false);
 			return true;
 		}

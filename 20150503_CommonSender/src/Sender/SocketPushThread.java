@@ -145,7 +145,10 @@ public class SocketPushThread extends Thread{
 		FileOutputStream outputfile;
 		try {
 			outputfile = new FileOutputStream(value.fileName);
-			outputfile.write(this.byteArrayTransCeiverRule.socketCameraUsed.message);
+			synchronized (byteArrayTransCeiverRule.socketCameraUsed.message) {
+				outputfile.write(this.byteArrayTransCeiverRule.socketCameraUsed.message.get(0).fileByteArray);
+				byteArrayTransCeiverRule.socketCameraUsed.message.remove(0);								
+			}
 			outputfile.flush();
 			outputfile.close();
 		} catch (FileNotFoundException e) {
