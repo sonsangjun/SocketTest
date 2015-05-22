@@ -445,6 +445,7 @@ public class Client extends Thread {
 			//카메라 프리뷰 전송
 			else if(valueString.equals(signal.signalByteToString(signal.camera)))
 			{
+				//데이터 스트림 전송에선 event를 자동으로 컨트롤 한다.
 				//프리뷰 이미지를 넣는 코드(message에 이미지 데이터 스트림이 담긴다.)
 				//원래대로라면 해당 클래스에서 이미지를 바로 받아야 하지만, Top클래스에서 배열을 받아옵니다.
 				synchronized (socketCameraUsed) {
@@ -452,7 +453,7 @@ public class Client extends Thread {
 				}
 				
 				ByteArrayTransCeiverRule byteArrayTransCeiverRule = new ByteArrayTransCeiverRule();
-				byteArrayTransCeiverRule.socketEventUsed = this.socketEventUsed;
+				byteArrayTransCeiverRule.socketEventUsed = this.socketEventUsed;	
 				byteArrayTransCeiverRule.socketCameraUsed = this.socketCameraUsed;	//여기에 이미지가 있다. (message에 데이터 있음)
 				byteArrayTransCeiverRule.cameraSocket = this.cameraSocket;
 				byteArrayTransCeiverRule.signal = this.signal;
@@ -466,6 +467,8 @@ public class Client extends Thread {
 				{
 					System.out.println("카메라 프리뷰 전송 성공");
 				}				
+				else
+					System.out.println("카메라 프리뷰 전송 실패");
 			}
 			
 			
