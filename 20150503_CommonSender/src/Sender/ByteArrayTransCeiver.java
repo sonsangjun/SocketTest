@@ -309,8 +309,7 @@ public class ByteArrayTransCeiver {
 		{
 			try {
 				inputStream = new BufferedInputStream(byteArrayTransCeiverRule.cameraSocket.getInputStream());
-				serverTransferSignal = new SignalData(byteArrayTransCeiverRule.cameraSocket);
-				pushSignal = new SignalData(byteArrayTransCeiverRule.pushSocket);
+				serverTransferSignal = new SignalData(byteArrayTransCeiverRule.cameraSocket);				
 			} catch (IOException e) {
 				e.printStackTrace();
 				System.out.println("camera스트림 선언 예외");
@@ -321,8 +320,7 @@ public class ByteArrayTransCeiver {
 		{
 			try {
 				inputStream = new BufferedInputStream(byteArrayTransCeiverRule.voiceSocket.getInputStream());	
-				serverTransferSignal = new SignalData(byteArrayTransCeiverRule.voiceSocket);
-				pushSignal = new SignalData(byteArrayTransCeiverRule.pushSocket);
+				serverTransferSignal = new SignalData(byteArrayTransCeiverRule.voiceSocket);				
 			} catch (IOException e) {
 				e.printStackTrace();
 				System.out.println("voice스트림 선언 예외");
@@ -332,7 +330,7 @@ public class ByteArrayTransCeiver {
 		
 		//signal은 초기화를 시켜야하므로.
 		serverTransferSignal.initial();
-		pushSignal.initial();
+		
 
 		//여기부터 serverTransferSignal을 쓴다.
 		usedChecking(true);
@@ -407,7 +405,9 @@ public class ByteArrayTransCeiver {
 				if(this.byteArrayTransCeiverRule.cameraVoice)
 				{
 					try {
-						outputStream = new BufferedOutputStream(byteArrayTransCeiverRule.roomData.clientManage.cameraSocket.get(i).getOutputStream());						
+						outputStream = new BufferedOutputStream(byteArrayTransCeiverRule.roomData.clientManage.cameraSocket.get(i).getOutputStream());
+						pushSignal = new SignalData(byteArrayTransCeiverRule.roomData.clientManage.pushSocket.get(i));
+						pushSignal.initial();				//각 클라이언트 pushSocket 초기화
 					} catch (IOException e) {
 						System.out.println("["+byteArrayTransCeiverRule.roomData.clientManage.clientID.get(i)+"] 에게 프리뷰 전송실패");
 						e.printStackTrace();
@@ -423,7 +423,8 @@ public class ByteArrayTransCeiver {
 				{
 					try {
 						outputStream = new BufferedOutputStream(byteArrayTransCeiverRule.roomData.clientManage.voiceSocket.get(i).getOutputStream());
-						
+						pushSignal = new SignalData(byteArrayTransCeiverRule.roomData.clientManage.pushSocket.get(i));
+						pushSignal.initial();				//각 클라이언트 pushSocket 초기화
 					} catch (IOException e) {
 						System.out.println("["+byteArrayTransCeiverRule.roomData.clientManage.clientID.get(i)+"] 에게 보이스 전송실패");
 						e.printStackTrace();
@@ -435,6 +436,9 @@ public class ByteArrayTransCeiver {
 						continue;
 					}
 				}
+				
+
+				
 				
 				//클라이언트에게 준비하라고 요청 및 데이터 스트림 전송
 				try {
