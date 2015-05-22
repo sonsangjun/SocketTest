@@ -10,6 +10,8 @@ import java.net.Socket;
 public class SocketPushThread extends Thread{
 	ValueCollections value = new ValueCollections();
 	boolean _server = false;	//서버 여부
+	byte[] cameraByteArray = null;
+	byte[] voiceByteArray = null;
 	
 	SignalData pushSignal;
 	
@@ -63,7 +65,8 @@ public class SocketPushThread extends Thread{
 							socketPushUsed.socketPushUsed = true;
 						}
 						byteArrayTransCeiver = new ByteArrayTransCeiver(cameraTransCeiver);
-						if(!byteArrayTransCeiver.TransCeiver())
+						cameraByteArray = byteArrayTransCeiver.TransCeiver(); 
+						if(cameraByteArray == null)
 						{
 							synchronized (socketPushUsed) {
 								socketPushUsed.socketPushUsed = false;
@@ -92,8 +95,8 @@ public class SocketPushThread extends Thread{
 							socketPushUsed.socketPushUsed = true;
 						}
 						byteArrayTransCeiver = new ByteArrayTransCeiver(voiceTransCeiver);
-						byteArrayTransCeiver.TransCeiver();
-						if(!byteArrayTransCeiver.TransCeiver())
+						voiceByteArray = byteArrayTransCeiver.TransCeiver();
+						if(voiceByteArray == null)
 						{
 							synchronized (socketPushUsed) {
 								socketPushUsed.socketPushUsed = false;
@@ -144,11 +147,8 @@ public class SocketPushThread extends Thread{
 	{
 		FileOutputStream outputfile;
 		try {
-			outputfile = new FileOutputStream(value.fileName);
-			synchronized (byteArrayTransCeiverRule.socketCameraUsed.message) {
-				outputfile.write(this.byteArrayTransCeiverRule.socketCameraUsed.message.get(0).fileByteArray);
-				byteArrayTransCeiverRule.socketCameraUsed.message.remove(0);								
-			}
+			outputfile = new FileOutputStream(value.fileName);			
+			outputfile.write(cameraByteArray);			
 			outputfile.flush();
 			outputfile.close();
 		} catch (FileNotFoundException e) {

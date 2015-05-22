@@ -447,12 +447,12 @@ public class Client extends Thread {
 				//프리뷰 이미지를 넣는 코드(message에 이미지 데이터 스트림이 담긴다.)
 				//원래대로라면 해당 클래스에서 이미지를 바로 받아야 하지만, Top클래스에서 배열을 받아옵니다.
 				synchronized (socketCameraUsed) {
-					socketCameraUsed.message.add(new FileByteArrayClass(cameraByteArray));
+					socketCameraUsed.message = cameraByteArray;
 				}
 				System.out.println("카메라 프리뷰 전송합니다.");
 				
 				ByteArrayTransCeiver byteArrayTransCeiver = new ByteArrayTransCeiver(cameraTransCeiver);
-				if(byteArrayTransCeiver.clientTrans())
+				if(byteArrayTransCeiver.clientTrans() != null)
 				{
 					System.out.println("카메라 프리뷰 전송 성공");
 				}				

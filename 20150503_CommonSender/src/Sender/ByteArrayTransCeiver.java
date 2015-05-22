@@ -26,6 +26,7 @@ import java.util.ArrayList;
  * 	└ 사용됨을 표시해야 클라이언트간 송수신 경쟁이 일어나지 않는다. (혼돈...) 		
  */
 public class ByteArrayTransCeiver {
+	byte[] returnValue = {1};
 	ByteArrayTransCeiverRule byteArrayTransCeiverRule; 
 	
 	IntegerToByteArray integerToByteArray = new IntegerToByteArray();
@@ -67,7 +68,7 @@ public class ByteArrayTransCeiver {
 		
 	
 	//이걸 실행시키면 된다.
-	public boolean TransCeiver()
+	public byte[] TransCeiver()
 	{				
 		//송수신이 클라이언트인가 서버인가 판단
 		if(byteArrayTransCeiverRule.roomData == null)
@@ -86,7 +87,7 @@ public class ByteArrayTransCeiver {
 	
 	//현재 아래 짠 코드는 카메라 프리뷰 전송때 오버헤드가 크다... 이점을 어떻게 해야할지...
 	//클라이언트가 서버에게 전송
-	public boolean clientTrans()
+	public byte[] clientTrans()
 	{			
 		//cameraSocket을 잠근다. 내가 쓸꺼니까
 		usedChecking(true);
@@ -99,6 +100,7 @@ public class ByteArrayTransCeiver {
 		BufferedOutputStream outputStream;
 		//초기에 카메라인지 음성인지 판단
 		byte[] fileByteArray;
+		
 		if(byteArrayTransCeiverRule.cameraVoice)
 		{			
 			try {
@@ -107,9 +109,9 @@ public class ByteArrayTransCeiver {
 			} catch (IOException e) {
 				e.printStackTrace();
 				System.out.println("camera스트림 선언 예외");
-				return false;
+				return null;
 			}				
-			fileByteArray = byteArrayTransCeiverRule.socketCameraUsed.message.get(0).fileByteArray;
+			fileByteArray = byteArrayTransCeiverRule.socketCameraUsed.message;
 			
 		}			
 		else
@@ -120,9 +122,9 @@ public class ByteArrayTransCeiver {
 			} catch (IOException e) {
 				e.printStackTrace();
 				System.out.println("voice스트림 선언 예외");
-				return false;
+				return null;
 			}			
-			fileByteArray = byteArrayTransCeiverRule.socketCameraUsed.message.get(0).fileByteArray;
+			fileByteArray = byteArrayTransCeiverRule.socketCameraUsed.message;
 		}		
 		//초기에 카메라인지 음성인지 판단 끝		
 		
@@ -153,15 +155,20 @@ public class ByteArrayTransCeiver {
 							if(counter*unitSize == fileByteArray.length)
 							{
 								usedChecking(false);
-								return true;									
+								return returnValue;									
 							}
-							if(clientTransferSignal.toDoRequest(clientTransferSignal.byteSend))
+							else if(clientTransferSignal.toDoRequest(clientTransferSignal.byteSend))
 							{
 								outputStream.write(fileByteArray, counter*unitSize, byteArrayTransCeiverRule.extra);
 								outputStream.flush();								
 								usedChecking(false);
-								return true;
-							}								
+								return returnValue;
+							}
+							else
+							{
+								System.out.println("ClientTrans 데이터 전송중 예외");
+								break;
+							}
 						}						
 						else if(clientTransferSignal.toDoRequest(clientTransferSignal.byteSend))
 						{
@@ -175,18 +182,18 @@ public class ByteArrayTransCeiver {
 				System.out.println("clientTrans() output.write(fileSize) 예외");
 				e.printStackTrace();
 				usedChecking(false);
-				return false;
+				return null;
 			}	
 		}		
 		//파일 보내기 끝		
 	
 		usedChecking(false);
-		return false;		
+		return null;		
 	}
 	
 	//20150522
 	//clientReceiver 와 Server의 송신 부분의 signal을 camera나 voice로 바꾸자.
-	public boolean clientReceive()
+	public byte[] clientReceive()
 	{
 		//cameraSocket을 잠근다. 내가 쓸꺼니까
 		usedChecking(true);
@@ -204,7 +211,7 @@ public class ByteArrayTransCeiver {
 			} catch (IOException e) {
 				e.printStackTrace();
 				System.out.println("camera스트림 선언 예외");
-				return false;
+				return null;
 			}					
 		}			
 		else
@@ -215,7 +222,7 @@ public class ByteArrayTransCeiver {
 			} catch (IOException e) {
 				e.printStackTrace();
 				System.out.println("voice스트림 선언 예외");
-				return false;
+				return null;
 			}			
 		}			
 		//signal은 초기화 시켜야 하므로
@@ -233,7 +240,7 @@ public class ByteArrayTransCeiver {
 			{
 				System.out.println("byte 받았다는 확인을 보내는 중 서버와 연결 예외 발생");					
 				usedChecking(false);
-				return false;						
+				return null;						
 			}
 			
 			byteArrayTransCeiverRule.Calc(intFileSize);
@@ -257,7 +264,12 @@ public class ByteArrayTransCeiver {
 						usedChecking(false);
 						System.out.println(fileByteArray.length+"Byte를 서버에서 받았습니다.");
 						break;								
-					}							
+					}
+					else
+					{
+						System.out.println("ClientReceiver 데이터 전송중 예외");
+						break;
+					}
 				}
 				else if(clientReceiveSignal.toAccept(clientReceiveSignal.byteSend))
 				{
@@ -269,29 +281,22 @@ public class ByteArrayTransCeiver {
 			System.out.println("서버가 요청을 하지 않습니다.");
 			e.printStackTrace();
 			usedChecking(false);
-			return false;
+			return null;
 		}
 		
-		//파일 전송이 완료되었다.
-		if(byteArrayTransCeiverRule.cameraVoice)
-		{
-			synchronized (byteArrayTransCeiverRule.socketCameraUsed) {
-				byteArrayTransCeiverRule.socketCameraUsed.message.add(new FileByteArrayClass(fileByteArray));
-			}
-		}
-		else
-		{
-			synchronized (byteArrayTransCeiverRule.socketVoiceUsed) {
-				byteArrayTransCeiverRule.socketVoiceUsed.message.add(new FileByteArrayClass(fileByteArray));
-			}
-		}
 		usedChecking(false);
-		return true;
+		
+		//파일 전송이 완료되었다.
+		//받은 데이터 스트림을 반환한다.
+		if(byteArrayTransCeiverRule.cameraVoice)
+			return fileByteArray;
+		else
+			return fileByteArray;
 	}
 
 	
 	//서버가 클라이언트에게 받아 데이터 스트림을 전송한 클라이언트를 제외하고 방여 참여중인 다른 클라이언트에게 데이터 스트림 전송.
-	public boolean serverTransCeive()
+	public byte[] serverTransCeive()
 	{
 		//cameraSocket을 잠근다. 내가 쓸꺼니까
 		usedChecking(true);
@@ -312,7 +317,7 @@ public class ByteArrayTransCeiver {
 			} catch (IOException e) {
 				e.printStackTrace();
 				System.out.println("camera스트림 선언 예외");
-				return false;
+				return null;
 			}					
 		}			
 		else
@@ -323,7 +328,7 @@ public class ByteArrayTransCeiver {
 			} catch (IOException e) {
 				e.printStackTrace();
 				System.out.println("voice스트림 선언 예외");
-				return false;
+				return null;
 			}			
 		}
 		
@@ -347,7 +352,7 @@ public class ByteArrayTransCeiver {
 				{
 					System.out.println("클라이언트에게 byte사이즈 받았다는 응답을 보내지 못했습니다.");
 					usedChecking(false);
-					return false;						
+					return null;						
 				}
 				System.out.println("데이터 사이즈를 받았습니다."+intFileSize+"Byte");
 				
@@ -367,13 +372,18 @@ public class ByteArrayTransCeiver {
 							break;
 						}
 						
-						if(serverTransferSignal.toAccept(serverTransferSignal.byteSend))
+						else if(serverTransferSignal.toAccept(serverTransferSignal.byteSend))
 						{
 							inputStream.read(fileByteArray, unitSize, byteArrayTransCeiverRule.extra);
 							System.out.println("["+byteArrayTransCeiverRule.roomData.roomName+"]에 참가한 Client ID : "+this.byteArrayTransCeiverRule.clientID+"의 데이터 스트림을 받았습니다.");
 							System.out.println("받은 스트림의 크기는 "+intFileSize+"Byte 입니다.");
 							break;								
-						}							
+						}	
+						else
+						{
+							System.out.println("serverTransCeiver 데이터 받는중 예외");
+							break;
+						}
 					}
 					else if(serverTransferSignal.toAccept(serverTransferSignal.byteSend))
 					{
@@ -385,7 +395,7 @@ public class ByteArrayTransCeiver {
 				System.out.println("클라이언트에게서 정상적으로 데이터를 못받았습니다.");
 				e.printStackTrace();
 				usedChecking(false);
-				return false;
+				return null;
 			}							
 		}		
 		
@@ -474,6 +484,11 @@ public class ByteArrayTransCeiver {
 									System.out.println("보낸 스트림의 크기는 "+fileByteArray.length+"Byte 입니다.");											
 									continue;
 								}
+								else
+								{
+									System.out.println("serverTransCeiver 데이터 전송중 예외");
+									break;
+								}
 							}
 							else if(serverTransferSignal.toDoRequest(serverTransferSignal.byteSend))
 							{
@@ -494,7 +509,7 @@ public class ByteArrayTransCeiver {
 			//for문이 끝나면 리턴한다.
 			System.out.println("["+byteArrayTransCeiverRule.roomData.roomName+"] 에 참가한 클라이언트에게 데이터를 전송했습니다.");
 			usedChecking(false);
-			return true;
+			return returnValue;
 		}
 	}
 	
