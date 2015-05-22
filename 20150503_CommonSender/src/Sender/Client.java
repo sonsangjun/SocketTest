@@ -268,8 +268,8 @@ public class Client extends Thread {
 		{
 			System.out.println("명령을 입력하세요.");
 			System.out.println(signal.signalByteToString(signal.makeRoom)+" 방만들기\t"+signal.signalByteToString(signal.joinRoom)+"방참여\t "+signal.signalByteToString(signal.exitRoom)+" 방나가기\t"+signal.signalByteToString(signal.exitServer)+" 나가기");
-			System.out.println(signal.signalByteToString(signal.roomList)+" 방 목록 요청\t"+signal.signalByteToString(signal.writeYourName)+" Client이름바꾸기");
-			System.out.printf(this.yourName+">");
+			System.out.println(signal.signalByteToString(signal.roomList)+" 방 목록 요청\t"+signal.signalByteToString(signal.writeYourName)+" Client이름바꾸기\t "+signal.signalByteToString(signal.camera)+" 카메라 프리뷰 보내기");
+			System.out.printf("["+this.roomName+"] "+this.yourName+">");
 			try {
 				valueString = inputReader.readLine();	//안드로이드라면 직접 value를 입력해 스레드에게 갖다주는 식으로 변형하면 될듯.
 			} catch (IOException e) {
@@ -330,10 +330,8 @@ public class Client extends Thread {
 			}
 			else
 			{
-				System.out.println("예기치 못한 오류 발생");
-				System.out.println("클라이언트를 종료합니다.");
-				exitClient();
-				
+				System.out.println("올바르지 않은 명령입니다.");
+				continue;
 				//서버에서 날라오는 메시지 받기 끝내기
 				//연결이 종료되면 브로드캐스트는 죽는다. (예외 처리로 죽임 broadCastThread의 111.line)			
 			}
@@ -457,8 +455,11 @@ public class Client extends Thread {
 				byteArrayTransCeiverRule.socketEventUsed = this.socketEventUsed;
 				byteArrayTransCeiverRule.socketCameraUsed = this.socketCameraUsed;	//여기에 이미지가 있다. (message에 데이터 있음)
 				byteArrayTransCeiverRule.cameraSocket = this.cameraSocket;
+				byteArrayTransCeiverRule.signal = this.signal;
 				byteArrayTransCeiverRule.transCeive = false;	//해당 스레드는 무조건 받는다.
 				byteArrayTransCeiverRule.CameraVoice = true;	//카메라 프리뷰를 받는다.
+				
+				
 				
 				ByteArrayTransCeiver byteArrayTransCeiver = new ByteArrayTransCeiver(byteArrayTransCeiverRule);
 				if(byteArrayTransCeiver.clientTrans())

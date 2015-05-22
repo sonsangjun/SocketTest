@@ -41,7 +41,7 @@ public class ByteArrayTransCeiver {
 	SignalData signal;
 	ByteArrayTransCeiverRule byteArrayTransCeiverRule; 
 	
-	IntegerToByteArray integerToByteArray;
+	IntegerToByteArray integerToByteArray = new IntegerToByteArray();
 		
 	/* 바이트 배열 전송포트중
 	 * 9001은 카메라 프리뷰 포트
@@ -67,21 +67,23 @@ public class ByteArrayTransCeiver {
 		this.signal = byteArrayTransCeiverRule.signal;
 	}
 		
-	public void TransCeiver()
+	
+	//이걸 실행시키면 된다.
+	public boolean TransCeiver()
 	{
-		integerToByteArray = new IntegerToByteArray();
+		
 				
 		//송수신이 클라이언트인가 서버인가 판단
 		if(roomData == null)
 		{
 			if(transCeive)
-				clientTrans();
+				return clientTrans();
 			else
-				clientReceive();		
+				return clientReceive();		
 		}
 		else 
 		{
-			serverTransCeive();
+			return serverTransCeive();
 		}			
 	}
 	
@@ -211,7 +213,7 @@ public class ByteArrayTransCeiver {
 	
 	//20150522
 	//clientReceiver 와 Server의 송신 부분의 signal을 camera나 voice로 바꾸자.
-	public void clientReceive()
+	public boolean clientReceive()
 	{
 		//cameraSocket을 잠근다. 내가 쓸꺼니까
 		usedChecking(true);
@@ -229,7 +231,7 @@ public class ByteArrayTransCeiver {
 			} catch (IOException e) {
 				e.printStackTrace();
 				System.out.println("camera스트림 선언 예외");
-				return ;
+				return false;
 			}					
 		}			
 		else
@@ -240,7 +242,7 @@ public class ByteArrayTransCeiver {
 			} catch (IOException e) {
 				e.printStackTrace();
 				System.out.println("voice스트림 선언 예외");
-				return ;
+				return false;
 			}			
 		}			
 		byte[] fileSize = new byte[integerToByteArray.fileSizeIndex];
@@ -255,7 +257,7 @@ public class ByteArrayTransCeiver {
 			{
 				System.out.println("byte 받았다는 확인을 보내는 중 서버와 연결 예외 발생");					
 				usedChecking(false);
-				return ;						
+				return false;						
 			}
 			
 			byteArrayTransCeiverRule.Calc(intFileSize);
@@ -293,7 +295,7 @@ public class ByteArrayTransCeiver {
 			System.out.println("서버가 요청을 하지 않습니다.");
 			e.printStackTrace();
 			usedChecking(false);
-			return ;
+			return false;
 		}
 		
 		//파일 전송이 완료되었다.
@@ -308,12 +310,14 @@ public class ByteArrayTransCeiver {
 			synchronized (socketVoiceUsed) {
 				socketVoiceUsed.message = fileByteArray;
 			}
-		}		
+		}
+		usedChecking(false);
+		return true;
 	}
 
 	
 	//서버가 클라이언트에게 받아 데이터 스트림을 전송한 클라이언트를 제외하고 방여 참여중인 다른 클라이언트에게 데이터 스트림 전송.
-	public void serverTransCeive()
+	public boolean serverTransCeive()
 	{
 		//cameraSocket을 잠근다. 내가 쓸꺼니까
 		usedChecking(true);
@@ -341,7 +345,7 @@ public class ByteArrayTransCeiver {
 				synchronized (socketEventUsed) {
 					socketEventUsed.socketEventUsed = false;
 				}
-				return ;
+				return false;
 			}					
 		}			
 		else
@@ -355,7 +359,7 @@ public class ByteArrayTransCeiver {
 				synchronized (socketEventUsed) {
 					socketEventUsed.socketEventUsed = false;
 				}
-				return ;
+				return false;
 			}			
 		}
 
@@ -377,7 +381,7 @@ public class ByteArrayTransCeiver {
 					synchronized (socketEventUsed) {
 						socketEventUsed.socketEventUsed = false;
 					}
-					return ;						
+					return false;						
 				}
 				
 				byteArrayTransCeiverRule.Calc(intFileSize);
@@ -417,7 +421,7 @@ public class ByteArrayTransCeiver {
 					socketEventUsed.socketEventUsed = false;
 				}
 				usedChecking(false);
-				return ;
+				return false;
 			}							
 		}
 		synchronized (socketEventUsed) {
@@ -509,7 +513,7 @@ public class ByteArrayTransCeiver {
 			//for문이 끝나면 리턴한다.
 			System.out.println(roomData.roomName+" 방의 클라이언트에게 데이터를 전송했습니다.");
 			usedChecking(false);
-			return ;
+			return true;
 		}
 	}
 	

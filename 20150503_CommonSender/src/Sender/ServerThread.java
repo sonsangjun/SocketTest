@@ -66,7 +66,7 @@ public class ServerThread extends Thread {
 	SignalData signal;
 	SocketBroadCastThread socketBroadCastThread = null;
 	ByteArrayTransCeiver byteArrayTransCeiver;
-	ByteArrayTransCeiverRule byteArrayTransCeiverRule;
+	//ByteArrayTransCeiverRule byteArrayTransCeiverRule;	//음성과 영상이 독립적이려면 여기에 선언하면 안된다.
 	RoomManage roomManage = null;
 		
 	SocketBroadCastUsed socketBroadCastUsed = new SocketBroadCastUsed();
@@ -391,6 +391,19 @@ public class ServerThread extends Thread {
 				System.out.println("Client ID : "+this.clientID+" 이름 바꾸는데 문제 생김.");
 				continue;
 			}
+			//이름 바꾸기 끝
+			
+			
+			//연결종료 요청
+			else if(signal.signalChecking(receiveSignal, signal.exitServer))
+			{
+				//신호를 받았다는 응답을 보낸다. 아래 메소드가 false를 반환하면 클라와 연결이 끊긴것이다.
+				if(!signal.toDoResponse(signal.response))
+					break;
+				//신호 응답 끝
+				break;
+			}				
+			//연결종료 요청 끝
 			
 			
 			//대기실에 있는경우 continue;
@@ -451,6 +464,10 @@ public class ServerThread extends Thread {
 				if(!signal.toDoResponse(signal.response))	break;
 				//신호 응답 끝
 				
+				//여기에 선언한다. 
+				ByteArrayTransCeiverRule byteArrayTransCeiverRule;
+				byteArrayTransCeiverRule = new ByteArrayTransCeiverRule();
+				
 				//데이터 스트림 전송전에 초기화 시켜야 한다.				
 				byteArrayTransCeiverRule.socketEventUsed = this.socketEventUsed;
 				byteArrayTransCeiverRule.cameraSocket = this.cameraSocket;
@@ -477,19 +494,6 @@ public class ServerThread extends Thread {
 				
 			}				
 			//각각 정보를 클라에게 받아 다른 클라에게 뿌리는 역할
-			
-			
-			
-			//연결종료 요청
-			else if(signal.signalChecking(receiveSignal, signal.exitServer))
-			{
-				//신호를 받았다는 응답을 보낸다. 아래 메소드가 false를 반환하면 클라와 연결이 끊긴것이다.
-				if(!signal.toDoResponse(signal.response))
-					break;
-				//신호 응답 끝
-				break;
-			}				
-			//연결종료 요청 끝
 			
 			
 			//클라이언트와 연결이 끊어진 경우

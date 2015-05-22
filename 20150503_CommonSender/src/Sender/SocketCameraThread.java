@@ -18,17 +18,20 @@ public class SocketCameraThread extends Thread{
 	ByteArrayTransCeiverRule byteArrayTransCeiverRule = new ByteArrayTransCeiverRule();
 	ByteArrayTransCeiver byteArrayTransCeiver;
 	
+	//클라이언트 측 생성자
 	public SocketCameraThread(Socket eventSocket, SocketEventUsed socketEventUsed, Socket cameraSocket, SocketCameraUsed socketCameraUsed) {
 		this.eventSocket = eventSocket;
 		this.cameraSocket = cameraSocket;
 		this.socketCameraUsed = socketCameraUsed;
 	}
+	
+	//서버측 생성자
 	public SocketCameraThread(boolean _server, ByteArrayTransCeiverRule byteArrayTransCeiverRule) {
 		this._server = _server;
 		this.byteArrayTransCeiverRule = byteArrayTransCeiverRule;
 	}
 	
-	public void rnu()
+	public void run()
 	{
 		if(!_server)	//클라이언트(받는 부분)
 		{
@@ -43,7 +46,9 @@ public class SocketCameraThread extends Thread{
 			while(true)
 			{
 				if(!this.socketCameraUsed.socketCameraThreadKill)
-					byteArrayTransCeiver.clientReceive();			//데이터 스트림을 받는 메소드 입니다.
+					if(byteArrayTransCeiver.TransCeiver());			//데이터 스트림을 받는 메소드 입니다.
+					else
+						break;
 				else
 					break;			
 				
