@@ -1,5 +1,9 @@
 package Sender;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
 //[transmission송신] [reception수신]
 /* Date		20150503 
  * Title 	CommonSender(범용전송기(?))	
@@ -53,19 +57,45 @@ public class Top {
 		}
 		else
 		{
+			//카메라 프리뷰 이미지가 없어서 파일로부터 이미지를 읽어들입니다.
+			//tempFile은 이미지 파일이 담길 바이트 배열.
+			byte[] tempFile;
+			FileInputStream inputStream;
+			try {
+				inputStream = new FileInputStream(value.fileName);
+				tempFile = new byte[inputStream.available()];
+				inputStream.read(tempFile);
+				inputStream.close();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				System.out.println("파일 찾을 수 없음.");
+				return;
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				System.out.println("IO에러");
+				e.printStackTrace();
+				return;
+			}
+			//이미지 파일을 tempFile에 담았습니다. (이미지 파일명은 ValueCollections.java참고)
+			//								(이미지 파일 위치는 프로젝트 폴더안에 넣으세요.)
+			
+						
 			System.out.println("클라이언트 시작");
-			Client client = new Client(null, null);
+			Client client = new Client(tempFile, null);
 			client.start();
 		}
 	}
 }
 /*						 	 Top───────ValueCollections
  *							  │
- * 			┌─────────────────┴─────────────────┐
- * 		 Server								  Client
- * 			│						   ┌────────┤
- * 		ServerThread───────────────────┼SocketBroadCastThread
- *			│						   └ByteArrayTransCeiverThread───────ByteArrayTransCevierRule
+ * 			┌─────────────────┴──────────────────┐
+ * 		 Server						 		  Client
+ * 			│						    ┌────────┤
+ * 		ServerThread────────────────────┼SocketBroadCastThread
+ *			│						    │SocketCameraThread─┬──	SocketCameraUsed	
+ *			│							└SocketVoiceThread──┴──	ByteArrayTransCeiver───────ByteArrayTransCevierRule
+ *			│									 └ SocketVoiceUsed
  *	(List<RoomData> roomDataList) 		
  * 	┌────────────────────────────────────────────── Server,Client에 사용되는 나머지 클래스들 관계
  *  │				

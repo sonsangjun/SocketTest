@@ -50,6 +50,7 @@ public class ServerThread extends Thread {
 	String unname = value.unname;
 	String roomName = new String(unname);
 	String yourName = new String(unname);
+	RoomData roomData = null;
 		
 	int waitTime = value.waitTime;
 	String fileName = value.fileName;
@@ -64,7 +65,8 @@ public class ServerThread extends Thread {
 
 	SignalData signal;
 	SocketBroadCastThread socketBroadCastThread = null;
-	ByteArrayTransCeiverThread byteArrayTransCeiverThread;
+	ByteArrayTransCeiver byteArrayTransCeiver;
+	ByteArrayTransCeiverRule byteArrayTransCeiverRule;
 	RoomManage roomManage = null;
 		
 	SocketBroadCastUsed socketBroadCastUsed = new SocketBroadCastUsed();
@@ -234,6 +236,15 @@ public class ServerThread extends Thread {
 						
 			System.out.println("Client ID : "+this.clientID+" 에게 받은 신호 "+signal.signalByteToString(receiveSignal));
 			
+			//event소켓이 사용중이면 대기
+			if(socketEventUsed.socketEventUsed)
+			{
+				if(signal.toDoResponse(signal.wrong))
+					continue;
+				else
+					break;
+			}
+			
 			//방 목록전송
 			//방에 참가 안하면 데이터나 위치 전송불가
 			if(signal.signalChecking(receiveSignal, signal.roomList))
@@ -277,6 +288,7 @@ public class ServerThread extends Thread {
 							{								
 								System.out.println("방명은 "+R.roomName+" 입니다.");
 								this.roomName = new String(R.roomName);		
+								this.roomData = R;
 								break;
 							}
 						}						
@@ -311,6 +323,7 @@ public class ServerThread extends Thread {
 							{
 								System.out.println("방명은 "+R.roomName+" 입니다.");
 								this.roomName = new String(R.roomName);
+								this.roomData = R;
 								break;								
 							}
 						}						
@@ -337,6 +350,7 @@ public class ServerThread extends Thread {
 				if(roomManage.exitRoom())
 				{
 					System.out.println("Client ID : "+this.clientID+" 방을 나갔습니다.");	
+					this.roomData = null;
 					if(roomManage.delEmptyRoom())
 						System.out.println("Client ID : "+this.clientID+" 빈방을 정리했습니다.");
 					
@@ -422,24 +436,48 @@ public class ServerThread extends Thread {
 			//위치 보내기 끝
 			
 			
-			//바이트 스트림 요청
-			else if(signal.signalChecking(receiveSignal, signal.byteReceive))
+			//각각 정보를 클라에게 받아 다른 클라에게 뿌리는 역할
+			if(signal.signalChecking(receiveSignal, signal.location))
 			{
-				receiveSignal = signal.receiveSignalToByteArray();
-				if(signal.signalChecking(receiveSignal, signal.location))
-				{
-					
-				}
-				else if(signal.signalChecking(receiveSignal, signal.camera))
-				{
-					
-				}
-				else if(signal.signalChecking(receiveSignal, signal.voice))
-				{
-					
-				}				
+				
 			}
-			//바이트 스트림 요청 끝
+			else if(signal.signalChecking(receiveSignal, signal.camera))
+			{
+				//카메라가 이미 사용중이라면 wrong 반환
+				if(socketCameraUsed.socketCameraUsed)
+					signal.toDoResponse(signal.wrong);
+				
+				//신호를 받았다는 응답을 보낸다. 아래 메소드가 false를 반환하면 클라와 연결이 끊긴것이다.
+				if(!signal.toDoResponse(signal.response))	break;
+				//신호 응답 끝
+				
+				//데이터 스트림 전송전에 초기화 시켜야 한다.				
+				byteArrayTransCeiverRule.socketEventUsed = this.socketEventUsed;
+				byteArrayTransCeiverRule.cameraSocket = this.cameraSocket;
+				byteArrayTransCeiverRule.socketCameraUsed = this.socketCameraUsed;
+				byteArrayTransCeiverRule.roomData = this.roomData;
+				byteArrayTransCeiverRule.signal = this.signal;
+				byteArrayTransCeiverRule.clientID = this.clientID;
+				byteArrayTransCeiverRule.CameraVoice = true;
+				
+				SocketCameraThread thread = new SocketCameraThread(true, byteArrayTransCeiverRule);
+				thread.start();
+				
+				//eventUsed 락 걸때 까지의 시간을 잠깐 기다림.
+				try {
+					Thread.sleep(value.waitTime);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}				
+				continue;
+			}
+			else if(signal.signalChecking(receiveSignal, signal.voice))
+			{
+				
+			}				
+			//각각 정보를 클라에게 받아 다른 클라에게 뿌리는 역할
+			
 			
 			
 			//연결종료 요청

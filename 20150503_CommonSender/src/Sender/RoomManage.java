@@ -699,6 +699,7 @@ public class RoomManage {
 			}
 			else
 			{
+				System.out.println("이름을 바꿀 수 없습니다. ( 대기실에서만 바꿀 수 있습니다.)");
 				this.Used = false;
 				return false;
 			}	

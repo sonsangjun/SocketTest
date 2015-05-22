@@ -65,7 +65,8 @@ public class Client extends Thread {
 	
 	
 	SignalData signal;
-	ByteArrayTransCevierRule shared;		//데이터 스트림 송수신 역할
+	ByteArrayTransCeiver byteArrayTransCeiver;	//데이터 스트림 송수신 역할
+	ByteArrayTransCeiverRule shared;			//데이터 스트림 송수신을 위한 초기변수 값
 	IntegerToByteArray integerToByteArray;
 	
 	Socket broadCastSocket;
@@ -78,9 +79,14 @@ public class Client extends Thread {
 	
 	SocketBroadCastThread socketBroadCastThread = null;
 	SocketBroadCastUsed socketBroadCastUsed = new SocketBroadCastUsed();
+	
 	SocketEventUsed socketEventUsed = new SocketEventUsed();
+	
 	SocketCameraUsed socketCameraUsed = new SocketCameraUsed();
+	SocketCameraThread socketCameraThread = null;
+	
 	SocketVoiceUsed socketVoiceUsed = new SocketVoiceUsed();
+	SocketVoiceThread socketVoiceThread = null;
 	
 	RoomData roomData;			//방 목록을 받아오기 위해 선언
 	RoomManage roomManage;		//방 관리하는 클래스
@@ -271,7 +277,21 @@ public class Client extends Thread {
 				e.printStackTrace();
 				continue;
 			}		
+			
+			//각각 데이터 입력이 필요한 카메라, 음성, 위치는 스레드를 각각 만들어 입력받기를 기다림
+			//카메라
+			socketCameraThread = new SocketCameraThread(eventSocket, socketEventUsed, cameraSocket, socketCameraUsed);
+			socketCameraThread.start();
+			
+			//음성
+			
+			//위치
+			//각각 데이터 입력이 필요한 카메라, 음성, 위치(...) 끝
+			
+			
+			//!!!!
 			//이벤트 소켓 사용중이면 continue;
+			//(아래 블록에서 이벤트 소켓의 boolean 값을 자주 바꾸는데, 이건 방 참여와 방 만들기 버튼을 동시에 누르는 행위등등, 동시 접근을 막기 위해서)
 			if(socketEventUsed.socketEventUsed)
 				continue;
 			
@@ -315,24 +335,7 @@ public class Client extends Thread {
 				exitClient();
 				
 				//서버에서 날라오는 메시지 받기 끝내기
-				//연결이 종료되면 브로드캐스트를 죽인다.
-				if(socketBroadCastThread == null);
-				else
-				{
-					synchronized(socketBroadCastUsed){
-						socketBroadCastUsed.broadCastKill = true;
-					}
-				}
-				while(true)
-				{
-					if(socketBroadCastThread.getState() == State.TERMINATED)
-					{
-						socketBroadCastThread = null;
-						break;								
-					}								
-				}
-				//브로드캐스트 죽이기 끝
-				return ;				
+				//연결이 종료되면 브로드캐스트는 죽는다. (예외 처리로 죽임 broadCastThread의 111.line)			
 			}
 			
 			
@@ -372,8 +375,7 @@ public class Client extends Thread {
 						System.out.println("참가한 방이름은 "+inputRoomName);							
 						continue;					
 					}
-				}
-							
+				}							
 			}
 			//방 만들기 및 참가 끝
 			
@@ -442,6 +444,30 @@ public class Client extends Thread {
 			//이름 바꾸기 끝
 			
 			
+			//카메라 프리뷰 전송
+			else if(valueString.equals(signal.signalByteToString(signal.camera)))
+			{
+				//프리뷰 이미지를 넣는 코드(message에 이미지 데이터 스트림이 담긴다.)
+				//원래대로라면 해당 클래스에서 이미지를 바로 받아야 하지만, Top클래스에서 배열을 받아옵니다.
+				synchronized (socketCameraUsed) {
+					socketCameraUsed.message = this.cameraByteArray;
+				}
+				
+				ByteArrayTransCeiverRule byteArrayTransCeiverRule = new ByteArrayTransCeiverRule();
+				byteArrayTransCeiverRule.socketEventUsed = this.socketEventUsed;
+				byteArrayTransCeiverRule.socketCameraUsed = this.socketCameraUsed;	//여기에 이미지가 있다. (message에 데이터 있음)
+				byteArrayTransCeiverRule.cameraSocket = this.cameraSocket;
+				byteArrayTransCeiverRule.transCeive = false;	//해당 스레드는 무조건 받는다.
+				byteArrayTransCeiverRule.CameraVoice = true;	//카메라 프리뷰를 받는다.
+				
+				ByteArrayTransCeiver byteArrayTransCeiver = new ByteArrayTransCeiver(byteArrayTransCeiverRule);
+				if(byteArrayTransCeiver.clientTrans())
+				{
+					System.out.println("카메라 프리뷰 전송 성공");
+				}				
+			}
+			
+			
 			//종료
 			else if(valueString.equals(signal.signalByteToString(signal.exitServer)))
 			{
@@ -452,7 +478,7 @@ public class Client extends Thread {
 			//종료 끝
 			
 			
-			//명령 보내기끝			
+			//명령 보내기끝	(데이터 전송중에 event가 쓰이는 중일수 있으니 동기화 처리안함)		
 			socketEventUsed.socketEventUsed = false;
 		}
 	}

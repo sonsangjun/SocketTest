@@ -42,7 +42,7 @@ public class Server {
 	Socket voiceSocket;
 
 	Socket fileReceiver;
-	ByteArrayTransCevierRule shared;
+	ByteArrayTransCeiverRule shared;
 	byte[] fileStream;
 	
 	SocketBroadCastUsed broadCastUsed = new SocketBroadCastUsed();
