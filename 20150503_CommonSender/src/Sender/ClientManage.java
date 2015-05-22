@@ -13,6 +13,7 @@ public class ClientManage {
 	List<String> yourName 				= Collections.synchronizedList(new ArrayList<String>());
 	List<Integer> clientID				= Collections.synchronizedList(new ArrayList<Integer>());
 	List<BufferedWriter> broadCast		= Collections.synchronizedList(new ArrayList<BufferedWriter>());
+	List<Socket> pushSocket 			= Collections.synchronizedList(new ArrayList<Socket>());
 	List<Socket> eventSocket 			= Collections.synchronizedList(new ArrayList<Socket>());
 	List<Socket> cameraSocket			= Collections.synchronizedList(new ArrayList<Socket>());
 	List<Socket> voiceSocket			= Collections.synchronizedList(new ArrayList<Socket>());

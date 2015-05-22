@@ -99,7 +99,7 @@ public class ByteArrayTransCeiver {
 		BufferedOutputStream outputStream;
 		//초기에 카메라인지 음성인지 판단
 		byte[] fileByteArray;
-		if(byteArrayTransCeiverRule.CameraVoice)
+		if(byteArrayTransCeiverRule.cameraVoice)
 		{			
 			try {
 				outputStream = new BufferedOutputStream(byteArrayTransCeiverRule.cameraSocket.getOutputStream());
@@ -195,7 +195,7 @@ public class ByteArrayTransCeiver {
 		
 		//초기에 카메라인지 음성인지 판단
 		byte[] fileByteArray;
-		if(byteArrayTransCeiverRule.CameraVoice)
+		if(byteArrayTransCeiverRule.cameraVoice)
 		{
 			try {
 				inputStream = new BufferedInputStream(byteArrayTransCeiverRule.cameraSocket.getInputStream());
@@ -274,7 +274,7 @@ public class ByteArrayTransCeiver {
 		}
 		
 		//파일 전송이 완료되었다.
-		if(byteArrayTransCeiverRule.CameraVoice)
+		if(byteArrayTransCeiverRule.cameraVoice)
 		{
 			synchronized (byteArrayTransCeiverRule.socketCameraUsed) {
 				byteArrayTransCeiverRule.socketCameraUsed.message = fileByteArray;
@@ -299,27 +299,21 @@ public class ByteArrayTransCeiver {
 		BufferedInputStream inputStream;
 		BufferedOutputStream outputStream;
 		SignalData serverTransferSignal; 		//해당 시그널은 각 클라이언트에게 전송할때 쓰인다.
-												//클라이언트에게 데이터 받을땐 일반 signal을 쓴다.
-												//독립성을 보장하기 위해서 시그널을 따로 선언한다.
+		SignalData pushSignal;					//대상 클라이언트에게 push하기 위해 만들었다.
 		
-		//Client로부터 데이터를 받는 부분까지는 signal을 쓰므로 락을 건다.
-		synchronized (byteArrayTransCeiverRule.socketEventUsed) {
-			byteArrayTransCeiverRule.socketEventUsed.socketEventUsed = true;
-		}
+												//독립성을 보장하기 위해서 시그널을 따로 선언한다.
 		
 		//초기에 카메라인지 음성인지 판단
 		byte[] fileByteArray = null;
-		if(byteArrayTransCeiverRule.CameraVoice)
+		if(byteArrayTransCeiverRule.cameraVoice)
 		{
 			try {
 				inputStream = new BufferedInputStream(byteArrayTransCeiverRule.cameraSocket.getInputStream());
 				serverTransferSignal = new SignalData(byteArrayTransCeiverRule.cameraSocket);
+				pushSignal = new SignalData(byteArrayTransCeiverRule.pushSocket);
 			} catch (IOException e) {
 				e.printStackTrace();
 				System.out.println("camera스트림 선언 예외");
-				synchronized (byteArrayTransCeiverRule.socketEventUsed) {
-					byteArrayTransCeiverRule.socketEventUsed.socketEventUsed = false;
-				}
 				return false;
 			}					
 		}			
@@ -328,18 +322,17 @@ public class ByteArrayTransCeiver {
 			try {
 				inputStream = new BufferedInputStream(byteArrayTransCeiverRule.voiceSocket.getInputStream());	
 				serverTransferSignal = new SignalData(byteArrayTransCeiverRule.voiceSocket);
+				pushSignal = new SignalData(byteArrayTransCeiverRule.pushSocket);
 			} catch (IOException e) {
 				e.printStackTrace();
 				System.out.println("voice스트림 선언 예외");
-				synchronized (byteArrayTransCeiverRule.socketEventUsed) {
-					byteArrayTransCeiverRule.socketEventUsed.socketEventUsed = false;
-				}
 				return false;
 			}			
 		}
 		
 		//signal은 초기화를 시켜야하므로.
 		serverTransferSignal.initial();
+		pushSignal.initial();
 
 		//여기부터 serverTransferSignal을 쓴다.
 		usedChecking(true);
@@ -357,9 +350,6 @@ public class ByteArrayTransCeiver {
 				{
 					System.out.println("클라이언트에게 byte사이즈 받았다는 응답을 보내지 못했습니다.");
 					usedChecking(false);
-					synchronized (byteArrayTransCeiverRule.socketEventUsed) {
-						byteArrayTransCeiverRule.socketEventUsed.socketEventUsed = false;
-					}
 					return false;						
 				}
 				System.out.println("파일 사이즈를 받았습니다."+intFileSize);
@@ -397,18 +387,10 @@ public class ByteArrayTransCeiver {
 			} catch (IOException e) {
 				System.out.println("클라이언트에게서 정상적으로 데이터를 못받았습니다.");
 				e.printStackTrace();
-				synchronized (byteArrayTransCeiverRule.socketEventUsed) {
-					byteArrayTransCeiverRule.socketEventUsed.socketEventUsed = false;
-				}
 				usedChecking(false);
 				return false;
 			}							
-		}
-		synchronized (byteArrayTransCeiverRule.socketEventUsed) {
-			byteArrayTransCeiverRule.socketEventUsed.socketEventUsed = false;
-		}
-	
-		
+		}		
 		
 		//여기까지는 클라에게 서버가 파일 받는거고(정확히는 데이터스트림)
 		//아래부터는 서버가 클라이언트에게 뿌린다.		
@@ -422,16 +404,20 @@ public class ByteArrayTransCeiver {
 					continue;
 				
 				//카메라인지 소리인지 구분해 전송 소켓 열기(초기화)
-				if(this.byteArrayTransCeiverRule.CameraVoice)
+				if(this.byteArrayTransCeiverRule.cameraVoice)
 				{
 					try {
-						outputStream = new BufferedOutputStream(byteArrayTransCeiverRule.roomData.clientManage.cameraSocket.get(i).getOutputStream());
-						
+						outputStream = new BufferedOutputStream(byteArrayTransCeiverRule.roomData.clientManage.cameraSocket.get(i).getOutputStream());						
 					} catch (IOException e) {
 						System.out.println("["+byteArrayTransCeiverRule.roomData.clientManage.clientID.get(i)+"] 에게 프리뷰 전송실패");
 						e.printStackTrace();
 						continue;	//전송실패하면 다음 클라이언트에게 전송
-					}					
+					}
+					if(!pushSignal.toDoRequest(pushSignal.camera))
+					{
+						System.out.println("Client ID : "+this.byteArrayTransCeiverRule.clientID+" camera이미지 전송중 연결끊김");
+						continue;
+					}
 				}
 				else
 				{
@@ -442,9 +428,14 @@ public class ByteArrayTransCeiver {
 						System.out.println("["+byteArrayTransCeiverRule.roomData.clientManage.clientID.get(i)+"] 에게 보이스 전송실패");
 						e.printStackTrace();
 						continue;
-					}					
+					}
+					if(!pushSignal.toDoRequest(pushSignal.voice))
+					{
+						System.out.println("Client ID : "+this.byteArrayTransCeiverRule.clientID+" voice 전송중 연결끊김");
+						continue;
+					}
 				}
-						
+				
 				//클라이언트에게 준비하라고 요청 및 데이터 스트림 전송
 				try {
 					outputStream.write(fileSize);
@@ -500,7 +491,7 @@ public class ByteArrayTransCeiver {
 	//간단한 체크 함수
 	public void usedChecking(boolean used)	//사용하면 true,	안사용하면 false
 	{		
-		if(this.byteArrayTransCeiverRule.CameraVoice)
+		if(this.byteArrayTransCeiverRule.cameraVoice)
 		{
 			synchronized (byteArrayTransCeiverRule.socketCameraUsed) {
 				byteArrayTransCeiverRule.socketCameraUsed.socketCameraUsed = used;

@@ -23,6 +23,7 @@ public class RoomManage {
 	List<RoomData> roomDataList;
 	SignalData signal;
 
+	Socket pushSocket;
 	Socket broadCastSocket;
 	Socket eventSocket;
 	Socket cameraSocket;
@@ -32,9 +33,10 @@ public class RoomManage {
 	SocketBroadCastThread socketBroadCastThread;
 	
 	//서버용 생성자
-	public RoomManage(String yourName, int clientID, Socket broadCastSocket, Socket eventSocket, Socket cameraSocket, Socket voiceSocket, List<RoomData> roomDataList, SignalData signal, SocketBroadCastUsed socketBroadCastUsed, SocketBroadCastThread socketBroadCastThread) {
+	public RoomManage(String yourName, int clientID, Socket pushSocket, Socket broadCastSocket, Socket eventSocket, Socket cameraSocket, Socket voiceSocket, List<RoomData> roomDataList, SignalData signal, SocketBroadCastUsed socketBroadCastUsed, SocketBroadCastThread socketBroadCastThread) {
 		this.yourName = new String(yourName);
 		this.clientID = clientID;
+		this.pushSocket = pushSocket;
 		this.broadCastSocket = broadCastSocket;
 		this.eventSocket = eventSocket;
 		this.cameraSocket = cameraSocket;
@@ -151,6 +153,7 @@ public class RoomManage {
 			}
 			roomDataList.get(index).clientManage.yourName.add(yourName);
 			roomDataList.get(index).clientManage.clientID.add(this.clientID);
+			roomDataList.get(index).clientManage.pushSocket.add(pushSocket);
 			roomDataList.get(index).clientManage.eventSocket.add(eventSocket);
 			roomDataList.get(index).clientManage.cameraSocket.add(cameraSocket);
 			roomDataList.get(index).clientManage.voiceSocket.add(voiceSocket);
@@ -258,6 +261,7 @@ public class RoomManage {
 					}
 					R.clientManage.yourName.add(yourName);
 					R.clientManage.clientID.add(this.clientID);
+					R.clientManage.pushSocket.add(pushSocket);
 					R.clientManage.eventSocket.add(eventSocket);
 					R.clientManage.cameraSocket.add(cameraSocket);
 					R.clientManage.voiceSocket.add(voiceSocket);
@@ -326,6 +330,7 @@ public class RoomManage {
 					int index = R.clientManage.clientID.indexOf(this.clientID);
 					R.clientManage.yourName.remove(index);
 					R.clientManage.clientID.remove(index);
+					R.clientManage.pushSocket.remove(index);
 					R.clientManage.broadCast.remove(index);
 					R.clientManage.eventSocket.remove(index);
 					R.clientManage.cameraSocket.remove(index);
@@ -395,6 +400,7 @@ public class RoomManage {
 				int index = R.clientManage.clientID.indexOf(this.clientID);
 				R.clientManage.yourName.remove(index);
 				R.clientManage.clientID.remove(index);
+				R.clientManage.pushSocket.remove(index);
 				R.clientManage.broadCast.remove(index);
 				R.clientManage.eventSocket.remove(index);
 				R.clientManage.cameraSocket.remove(index);

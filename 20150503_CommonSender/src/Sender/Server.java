@@ -31,11 +31,13 @@ public class Server {
 	int portNum = value.portNum;
 	String fileName = value.fileName;		//서버 테스트 용으로 만듬
 	
+	ServerSocket pushServerSocket;			//portNum : 8998
 	ServerSocket broadCastServerSocket;		//portNum : 8999
 	ServerSocket eventServerSocket;			//portNum : 9000
 	ServerSocket cameraServerSocket;		//portNum : 9001
 	ServerSocket voiceServerSocket;			//portNum : 9002
 	
+	Socket pushSocket;
 	Socket broadCastSocket;
 	Socket eventSocket;
 	Socket cameraSocket;
@@ -60,6 +62,7 @@ public class Server {
 	public void standardServer()
 	{
 		try {
+			pushServerSocket = new ServerSocket(portNum-2);
 			broadCastServerSocket = new ServerSocket(portNum-1);
 			eventServerSocket = new ServerSocket(portNum);
 			cameraServerSocket = new ServerSocket(portNum+1);
@@ -73,12 +76,13 @@ public class Server {
 		while(true)
 		{
 			try {
+				pushSocket = pushServerSocket.accept();
 				broadCastSocket = broadCastServerSocket.accept();
 				eventSocket = eventServerSocket.accept();
 				cameraSocket = cameraServerSocket.accept();
 				voiceSocket = voiceServerSocket.accept();
 				
-				Thread serverThread = new ServerThread(broadCastSocket, eventSocket, cameraSocket, voiceSocket);
+				Thread serverThread = new ServerThread(pushSocket, broadCastSocket, eventSocket, cameraSocket, voiceSocket);
 				
 				serverThread.start();				
 			} catch (IOException e) {
@@ -92,6 +96,7 @@ public class Server {
 	public void testServer(String fileName)
 	{		
 		try {
+			pushServerSocket = new ServerSocket(portNum-2);
 			broadCastServerSocket = new ServerSocket(portNum-1);
 			eventServerSocket = new ServerSocket(portNum);
 			cameraServerSocket = new ServerSocket(portNum+1);
@@ -105,6 +110,9 @@ public class Server {
 		{
 			System.out.println("서버 연결 대기중");
 			try{
+				pushSocket = pushServerSocket.accept();
+				System.out.println("pushServerSocket연결성공");
+				
 				broadCastSocket = broadCastServerSocket.accept();
 				System.out.println("broadCastServerSocket연결성공");
 				
@@ -117,7 +125,7 @@ public class Server {
 				voiceSocket = voiceServerSocket.accept();
 				System.out.println("voiceSocket연결성공");
 				
-				Thread serverThread = new ServerThread(broadCastSocket, eventSocket, cameraSocket, voiceSocket);
+				Thread serverThread = new ServerThread(pushSocket, broadCastSocket, eventSocket, cameraSocket, voiceSocket);
 				serverThread.start();
 			}catch(IOException e) {
 				System.out.println("테스트 서버 IO예외 발생 "+e.getMessage());

@@ -55,6 +55,7 @@ public class ServerThread extends Thread {
 	int waitTime = value.waitTime;
 	String fileName = value.fileName;
 	
+	Socket pushSocket;
 	Socket broadCastSocket;
 	Socket eventSocket;					//Socket부터
 	Socket cameraSocket;
@@ -68,7 +69,8 @@ public class ServerThread extends Thread {
 	ByteArrayTransCeiver byteArrayTransCeiver;
 	//ByteArrayTransCeiverRule byteArrayTransCeiverRule;	//음성과 영상이 독립적이려면 여기에 선언하면 안된다.
 	RoomManage roomManage = null;
-		
+	
+	SocketPushUsed socketPushUsed = new SocketPushUsed();
 	SocketBroadCastUsed socketBroadCastUsed = new SocketBroadCastUsed();
 	SocketEventUsed socketEventUsed = new SocketEventUsed();
 	SocketCameraUsed socketCameraUsed = new SocketCameraUsed();
@@ -77,8 +79,9 @@ public class ServerThread extends Thread {
 	static List<RoomData> roomDataList = Collections.synchronizedList(new ArrayList<RoomData>());
 	static int assignedClientID = 0;
 	
-	public ServerThread(Socket broadCastSocket, Socket eventSocket,	Socket cameraSocket,Socket voiceSocket) 
+	public ServerThread(Socket pushSocket, Socket broadCastSocket, Socket eventSocket,	Socket cameraSocket,Socket voiceSocket) 
 	{
+		this.pushSocket = pushSocket;
 		this.broadCastSocket = broadCastSocket;
 		this.eventSocket = eventSocket;
 		this.cameraSocket = cameraSocket;
@@ -137,7 +140,7 @@ public class ServerThread extends Thread {
 				roomDataList.get(0).clientManage.clientID.add(this.clientID);
 				System.out.println("대기실에 현재 "+roomDataList.get(0).clientManage.clientID.size()+" 있습니다.");
 				int totalLogin = 0;
-				roomManage = new RoomManage(yourName, this.clientID, broadCastSocket, eventSocket, cameraSocket, voiceSocket, roomDataList, signal, socketBroadCastUsed, socketBroadCastThread);
+				roomManage = new RoomManage(yourName, this.clientID, pushSocket ,broadCastSocket, eventSocket, cameraSocket, voiceSocket, roomDataList, signal, socketBroadCastUsed, socketBroadCastThread);
 				
 				System.out.println("방에 참여한 인원은 ");				
 				for(RoomData R:roomDataList)
@@ -356,7 +359,7 @@ public class ServerThread extends Thread {
 					
 					//exitRoom 이후에 join이나 make할것 이므로 번거롭지 않게 미리 만들어둔다.
 					synchronized (roomDataList) {
-						roomManage = new RoomManage(yourName, this.clientID, broadCastSocket, eventSocket, cameraSocket, voiceSocket, roomDataList, signal, socketBroadCastUsed, socketBroadCastThread);
+						roomManage = new RoomManage(yourName, this.clientID, pushSocket,broadCastSocket, eventSocket, cameraSocket, voiceSocket, roomDataList, signal, socketBroadCastUsed, socketBroadCastThread);
 					}
 					//roomManage 선언 끝
 					
@@ -466,28 +469,11 @@ public class ServerThread extends Thread {
 				
 				//여기에 선언한다. 
 				ByteArrayTransCeiverRule byteArrayTransCeiverRule;
-				byteArrayTransCeiverRule = new ByteArrayTransCeiverRule();
+				byteArrayTransCeiverRule = new ByteArrayTransCeiverRule(clientID, socketCameraUsed, cameraSocket, socketPushUsed, pushSocket,roomData);
 				
-				//데이터 스트림 전송전에 초기화 시켜야 한다.				
-				byteArrayTransCeiverRule.socketEventUsed = this.socketEventUsed;
-				byteArrayTransCeiverRule.cameraSocket = this.cameraSocket;
-				byteArrayTransCeiverRule.socketCameraUsed = this.socketCameraUsed;
-				byteArrayTransCeiverRule.roomData = this.roomData;
-				byteArrayTransCeiverRule.signal = this.signal;
-				byteArrayTransCeiverRule.clientID = this.clientID;
-				byteArrayTransCeiverRule.CameraVoice = true;
-				
-				
-				SocketCameraThread thread = new SocketCameraThread(true, byteArrayTransCeiverRule);
+				//데이터 스트림 전송전에 초기화 시켜야 한다.								
+				SocketPushThread thread = new SocketPushThread(true, byteArrayTransCeiverRule);
 				thread.start();
-				
-				//eventUsed 락 걸때 까지의 시간을 잠깐 기다림.
-				try {
-					Thread.sleep(value.waitTime);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}				
 				continue;
 			}
 			else if(signal.signalChecking(receiveSignal, signal.voice))

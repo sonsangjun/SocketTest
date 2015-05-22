@@ -66,9 +66,11 @@ public class Client extends Thread {
 	
 	SignalData signal;
 	ByteArrayTransCeiver byteArrayTransCeiver;	//데이터 스트림 송수신 역할
-	ByteArrayTransCeiverRule shared;			//데이터 스트림 송수신을 위한 초기변수 값
+	ByteArrayTransCeiverRule cameraTransCeiver;	//카메라 프리뷰 데이터 송수신
+	ByteArrayTransCeiverRule voiceTransCeiver;	//음성 데이터 송수신
 	IntegerToByteArray integerToByteArray;
 	
+	Socket pushSocket;
 	Socket broadCastSocket;
 	Socket eventSocket;
 	Socket cameraSocket;
@@ -76,17 +78,17 @@ public class Client extends Thread {
 	
 	BufferedInputStream eventInput;
 	BufferedOutputStream eventOutput;
+		
 	
 	SocketBroadCastThread socketBroadCastThread = null;
-	SocketBroadCastUsed socketBroadCastUsed = new SocketBroadCastUsed();
+	SocketPushThread socketPushThread = null;
 	
-	SocketEventUsed socketEventUsed = new SocketEventUsed();
-	
-	SocketCameraUsed socketCameraUsed = new SocketCameraUsed();
-	SocketCameraThread socketCameraThread = null;
-	
+	SocketPushUsed socketPushUsed = new SocketPushUsed();
+	SocketBroadCastUsed socketBroadCastUsed = new SocketBroadCastUsed();	
+	SocketEventUsed socketEventUsed = new SocketEventUsed();	
+	SocketCameraUsed socketCameraUsed = new SocketCameraUsed();	
 	SocketVoiceUsed socketVoiceUsed = new SocketVoiceUsed();
-	SocketVoiceThread socketVoiceThread = null;
+	
 	
 	RoomData roomData;			//방 목록을 받아오기 위해 선언
 	RoomManage roomManage;		//방 관리하는 클래스
@@ -145,6 +147,12 @@ public class Client extends Thread {
 		socketBroadCastThread = new SocketBroadCastThread(broadCastSocket, socketBroadCastUsed);
 		socketBroadCastThread.start();
 		
+		//데이터 입력이 필요한 카메라, 음성, 위치는 스레드를 만들어 입력받기를 기다림(Push)
+		cameraTransCeiver = new ByteArrayTransCeiverRule(false, socketCameraUsed, cameraSocket);
+		voiceTransCeiver = new ByteArrayTransCeiverRule(false, false, socketVoiceUsed, voiceSocket);
+		socketPushThread = new SocketPushThread(pushSocket,socketPushUsed,cameraTransCeiver,voiceTransCeiver);
+		socketPushThread.start();
+
 		
 		//-----------------------------------------------------------------------------
 		//여기부터 클라이언트에서 작동될 메소드 호출(todo)
@@ -276,18 +284,7 @@ public class Client extends Thread {
 				System.out.println("입력에러");
 				e.printStackTrace();
 				continue;
-			}		
-			
-			//각각 데이터 입력이 필요한 카메라, 음성, 위치는 스레드를 각각 만들어 입력받기를 기다림
-			//카메라
-			socketCameraThread = new SocketCameraThread(eventSocket, socketEventUsed, cameraSocket, socketCameraUsed);
-			socketCameraThread.start();
-			
-			//음성
-			
-			//위치
-			//각각 데이터 입력이 필요한 카메라, 음성, 위치(...) 끝
-			
+			}					
 			
 			//!!!!
 			//이벤트 소켓 사용중이면 continue;
@@ -452,17 +449,7 @@ public class Client extends Thread {
 					socketCameraUsed.message = this.cameraByteArray;
 				}
 				
-				ByteArrayTransCeiverRule byteArrayTransCeiverRule = new ByteArrayTransCeiverRule();
-				byteArrayTransCeiverRule.socketEventUsed = this.socketEventUsed;	
-				byteArrayTransCeiverRule.socketCameraUsed = this.socketCameraUsed;	//여기에 이미지가 있다. (message에 데이터 있음)
-				byteArrayTransCeiverRule.cameraSocket = this.cameraSocket;
-				byteArrayTransCeiverRule.signal = this.signal;
-				byteArrayTransCeiverRule.transCeive = false;	//해당 스레드는 무조건 받는다.
-				byteArrayTransCeiverRule.CameraVoice = true;	//카메라 프리뷰를 받는다.
-				
-				
-				
-				ByteArrayTransCeiver byteArrayTransCeiver = new ByteArrayTransCeiver(byteArrayTransCeiverRule);
+				ByteArrayTransCeiver byteArrayTransCeiver = new ByteArrayTransCeiver(cameraTransCeiver);
 				if(byteArrayTransCeiver.clientTrans())
 				{
 					System.out.println("카메라 프리뷰 전송 성공");
