@@ -54,7 +54,7 @@ public class SocketPushThread extends Thread{
 				byte[] tempSignal = new byte[pushSignal.signalSize];
 				
 				tempSignal = pushSignal.receiveSignalToByteArray();
-				System.out.println("서버에서 "+pushSignal.signalByteToString(tempSignal));
+				System.out.println("서버에서 "+pushSignal.signalByteToString(tempSignal)); //테스트
 				if(pushSignal.signalChecking(tempSignal, pushSignal.camera))
 				{
 					if(pushSignal.toDoResponse(pushSignal.response))	//서버측에서 push.todorequest요청(429line.ByteArray~Ceiver.java)
@@ -117,6 +117,7 @@ public class SocketPushThread extends Thread{
 				else		//푸쉬는 위의 두 신호가 아닌 다른게 날라오면 죽는다.
 					break;
 				
+				System.out.println("서버에서 "+pushSignal.signalByteToString(tempSignal)); //테스트
 				synchronized (socketPushUsed) {
 					socketPushUsed.socketPushUsed = false;
 				}

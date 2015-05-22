@@ -407,7 +407,11 @@ public class ByteArrayTransCeiver {
 					try {
 						outputStream = new BufferedOutputStream(byteArrayTransCeiverRule.roomData.clientManage.cameraSocket.get(i).getOutputStream());
 						pushSignal = new SignalData(byteArrayTransCeiverRule.roomData.clientManage.pushSocket.get(i));
+						serverTransferSignal = new SignalData(byteArrayTransCeiverRule.roomData.clientManage.cameraSocket.get(i));
+						
 						pushSignal.initial();				//각 클라이언트 pushSocket 초기화
+						serverTransferSignal.initial();
+						
 					} catch (IOException e) {
 						System.out.println("["+byteArrayTransCeiverRule.roomData.clientManage.clientID.get(i)+"] 에게 프리뷰 전송실패");
 						e.printStackTrace();
@@ -424,7 +428,10 @@ public class ByteArrayTransCeiver {
 					try {
 						outputStream = new BufferedOutputStream(byteArrayTransCeiverRule.roomData.clientManage.voiceSocket.get(i).getOutputStream());
 						pushSignal = new SignalData(byteArrayTransCeiverRule.roomData.clientManage.pushSocket.get(i));
+						serverTransferSignal = new SignalData(byteArrayTransCeiverRule.roomData.clientManage.voiceSocket.get(i));
+						
 						pushSignal.initial();				//각 클라이언트 pushSocket 초기화
+						serverTransferSignal.initial();
 					} catch (IOException e) {
 						System.out.println("["+byteArrayTransCeiverRule.roomData.clientManage.clientID.get(i)+"] 에게 보이스 전송실패");
 						e.printStackTrace();
