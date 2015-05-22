@@ -245,6 +245,9 @@ public class ByteArrayTransCeiver {
 				return false;
 			}			
 		}			
+		//signal은 초기화 시켜야 하므로
+		clientReceiveSignal.initial();
+		
 		byte[] fileSize = new byte[integerToByteArray.fileSizeIndex];
 		int intFileSize;
 		integerToByteArray.initialByteArray(fileSize);
@@ -362,6 +365,9 @@ public class ByteArrayTransCeiver {
 				return false;
 			}			
 		}
+		
+		//signal은 초기화를 시켜야하므로.
+		serverTransferSignal.initial();
 
 		usedChecking(true);
 		byte[] fileSize = new byte[integerToByteArray.fileSizeIndex];
