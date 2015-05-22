@@ -191,7 +191,13 @@ public class SignalData {
 		} catch (IOException e) {
 			e.printStackTrace();
 			return wrong;
+		}catch (java.lang.NullPointerException e)
+		{
+			System.out.println("signal초기화가 필요합니다.(SignalData의 initial()호출바람");
+			e.printStackTrace();
+			return wrong;
 		}
+		
 		return temp;		
 	}
 	
@@ -218,6 +224,11 @@ public class SignalData {
 			System.out.println("Request 예외");
 			e.printStackTrace();
 			return false;
+		}catch (java.lang.NullPointerException e)
+		{
+			System.out.println("signal초기화가 필요합니다.(SignalData의 initial()호출바람");
+			e.printStackTrace();
+			return false;
 		}
 		
 		try {
@@ -226,7 +237,13 @@ public class SignalData {
 			System.out.println("Request의 response예외");
 			e.printStackTrace();
 			return false;
+		} catch (java.lang.NullPointerException e)
+		{
+			System.out.println("signal초기화가 필요합니다.(SignalData의 initial()호출바람");
+			e.printStackTrace();
+			return false;
 		}		
+		
 		if(signalChecking(signalByte, response))
 			return true;
 		else 
@@ -250,7 +267,13 @@ public class SignalData {
 			System.out.println("response 소켓 입력대기중 예외");
 			e.printStackTrace();
 			return false;
+		} catch (java.lang.NullPointerException e)
+		{
+			System.out.println("signal초기화가 필요합니다.(SignalData의 initial()호출바람");
+			e.printStackTrace();
+			return false;
 		}
+		
 		if(signalChecking(signalByte, wantSignal))
 		{
 			try {
@@ -258,6 +281,11 @@ public class SignalData {
 				output.flush();
 			} catch (IOException e) {
 				System.out.println("response중 소켓 response보냄 예외");
+				e.printStackTrace();
+				return false;
+			} catch (java.lang.NullPointerException e)
+			{
+				System.out.println("signal초기화가 필요합니다.(SignalData의 initial()호출바람");
 				e.printStackTrace();
 				return false;
 			}
@@ -272,6 +300,11 @@ public class SignalData {
 			} catch (IOException e) {
 				System.out.println("response중 wrong보냄 예외");
 				e.printStackTrace();
+			}
+			catch (java.lang.NullPointerException e)
+			{
+				System.out.println("signal초기화가 필요합니다.(SignalData의 initial()호출바람");
+				e.printStackTrace();				
 			}
 			return false;
 		}
@@ -289,6 +322,12 @@ public class SignalData {
 			e.printStackTrace();
 			return false;
 		}
+		catch (java.lang.NullPointerException e)
+		{
+			System.out.println("signal초기화가 필요합니다.(SignalData의 initial()호출바람");
+			e.printStackTrace();
+			return false;
+		}
 	}
 	
 	//응답신호를 확인만 함(toDoResponse 대응)
@@ -303,6 +342,11 @@ public class SignalData {
 				return false;
 		} catch (IOException e) {
 			System.out.println("toDoResponse신호 받는데 예외");
+			e.printStackTrace();
+			return false;
+		} catch (java.lang.NullPointerException e)
+		{
+			System.out.println("signal초기화가 필요합니다.(SignalData의 initial()호출바람");
 			e.printStackTrace();
 			return false;
 		}

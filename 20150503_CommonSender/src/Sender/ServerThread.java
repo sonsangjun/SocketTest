@@ -477,6 +477,7 @@ public class ServerThread extends Thread {
 				byteArrayTransCeiverRule.clientID = this.clientID;
 				byteArrayTransCeiverRule.CameraVoice = true;
 				
+				
 				SocketCameraThread thread = new SocketCameraThread(true, byteArrayTransCeiverRule);
 				thread.start();
 				

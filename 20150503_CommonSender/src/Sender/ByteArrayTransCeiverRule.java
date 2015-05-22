@@ -9,18 +9,20 @@ public class ByteArrayTransCeiverRule {
 	int fileUnitSize = 8192;		//파일 분할 단위는 8KByte
 	
 	//데이터 스트림 전송전에 초기화 시켜야 한다.
-	SocketEventUsed socketEventUsed;
-	SocketCameraUsed socketCameraUsed;
-	SocketVoiceUsed socketVoiceUsed;
+	SocketEventUsed socketEventUsed;	//signal사용중인지 체크
+	SocketCameraUsed socketCameraUsed;	//장치 사용중인지 체크
+	SocketVoiceUsed socketVoiceUsed;	//송수신할 데이터스트림을 포함하고 있다.(받는경우 전송된 데이터스트림, 이런경우 byte[]만 선언해서 넘겨주면 된다.)
 	
 	Socket cameraSocket;
 	Socket voiceSocket;
 	
-	RoomData roomData;
+	RoomData roomData	=	null;				//클라이언트는 null이다.
 	SignalData signal;
 	int clientID;
-	boolean transCeive;			//서버일경우 이 값은 뭐든상관없다.
-	boolean CameraVoice;		//프리뷰 이미지 전송이면 true 아니면 false
+	boolean transCeive;				//서버일경우 이 값은 뭐든상관없다.
+									//Trans(송신)(업로드)는 true, Ceive(수신)(다운로드)는 false
+	
+	boolean CameraVoice = false;	//Camera 는 true,		Voice는 false;
 	
 	
 	
