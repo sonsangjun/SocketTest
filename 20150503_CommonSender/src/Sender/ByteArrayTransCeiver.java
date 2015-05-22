@@ -352,7 +352,7 @@ public class ByteArrayTransCeiver {
 					usedChecking(false);
 					return false;						
 				}
-				System.out.println("파일 사이즈를 받았습니다."+intFileSize);
+				System.out.println("데이터 사이즈를 받았습니다."+intFileSize+"Byte");
 				
 				byteArrayTransCeiverRule.Calc(intFileSize);
 				int counter=0;
@@ -373,7 +373,7 @@ public class ByteArrayTransCeiver {
 						if(serverTransferSignal.toAccept(serverTransferSignal.byteSend))
 						{
 							inputStream.read(fileByteArray, unitSize, byteArrayTransCeiverRule.extra);
-							System.out.println(byteArrayTransCeiverRule.roomData.roomName+"에 참가한 "+this.byteArrayTransCeiverRule.clientID+"의 데이터 스트림을 받았습니다.");
+							System.out.println("["+byteArrayTransCeiverRule.roomData.roomName+"]에 참가한 Client ID : "+this.byteArrayTransCeiverRule.clientID+"의 데이터 스트림을 받았습니다.");
 							System.out.println("받은 스트림의 크기는 "+intFileSize+"Byte 입니다.");
 							break;								
 						}							

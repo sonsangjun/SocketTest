@@ -108,6 +108,7 @@ public class Client extends Thread {
 	{		
 		try {
 			System.out.println("서버 연결중");
+			pushSocket = new Socket(ServerIP, portNum-2);
 			broadCastSocket = new Socket(ServerIP, portNum-1);
 			eventSocket = new Socket(ServerIP, portNum);
 			cameraSocket = new Socket(ServerIP, portNum+1);
@@ -147,7 +148,7 @@ public class Client extends Thread {
 		socketBroadCastThread = new SocketBroadCastThread(broadCastSocket, socketBroadCastUsed);
 		socketBroadCastThread.start();
 		
-		//데이터 입력이 필요한 카메라, 음성, 위치는 스레드를 만들어 입력받기를 기다림(Push)
+		//데이터 입력이 필요한 카메라, 음성, 위치는 스레드를 만들어 입력받기를 기다림(Push)(맨 앞 매개변수가 false면 데이터 스트림을 받는다.)
 		cameraTransCeiver = new ByteArrayTransCeiverRule(false, socketCameraUsed, cameraSocket);
 		voiceTransCeiver = new ByteArrayTransCeiverRule(false, false, socketVoiceUsed, voiceSocket);
 		socketPushThread = new SocketPushThread(pushSocket,socketPushUsed,cameraTransCeiver,voiceTransCeiver);
@@ -448,6 +449,7 @@ public class Client extends Thread {
 				synchronized (socketCameraUsed) {
 					socketCameraUsed.message = this.cameraByteArray;
 				}
+				System.out.println("카메라 프리뷰 전송합니다.");
 				
 				ByteArrayTransCeiver byteArrayTransCeiver = new ByteArrayTransCeiver(cameraTransCeiver);
 				if(byteArrayTransCeiver.clientTrans())

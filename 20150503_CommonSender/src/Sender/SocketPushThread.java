@@ -50,9 +50,11 @@ public class SocketPushThread extends Thread{
 					continue;
 				
 				pushSignal = new SignalData(pushSocket);
+				pushSignal.initial();
 				byte[] tempSignal = new byte[pushSignal.signalSize];
 				
 				tempSignal = pushSignal.receiveSignalToByteArray();
+				System.out.println("서버에서 "+pushSignal.signalByteToString(tempSignal));
 				if(pushSignal.signalChecking(tempSignal, pushSignal.camera))
 				{
 					if(pushSignal.toDoResponse(pushSignal.response))	//서버측에서 push.todorequest요청(429line.ByteArray~Ceiver.java)
