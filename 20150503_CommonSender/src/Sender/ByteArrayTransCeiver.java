@@ -165,10 +165,13 @@ public class ByteArrayTransCeiver {
 					int packetSize = value.packetSize;
 					while(true)
 					{
-						if(counter >= fileByteArray.length)
+						if(counter >= fileByteArray.length-packetSize)
+						{
+							outputStream.write(fileByteArray, counter, counter-(fileByteArray.length-packetSize)); 
 							break;
+						}
 						outputStream.write(fileByteArray, counter, packetSize);
-						counter++;
+						counter+=packetSize;
 					}	
 					outputStream.flush();
 				}				
@@ -255,10 +258,13 @@ public class ByteArrayTransCeiver {
 			int packetSize = value.packetSize;			
 			while(true)
 			{
-				if(counter >= fileByteArray.length)
+				if(counter >= fileByteArray.length-packetSize)
+				{
+					inputStream.read(fileByteArray, counter, counter-(fileByteArray.length-packetSize)); 
 					break;
+				}
 				inputStream.read(fileByteArray, counter, packetSize);
-				counter++;
+				counter+=packetSize;
 			}
 			System.out.println("받은 데이터 크기 "+counter+"Byte");
 			
@@ -363,10 +369,13 @@ public class ByteArrayTransCeiver {
 				int packetSize = value.packetSize;
 				while(true)
 				{
-					if(counter >= fileByteArray.length)
+					if(counter >= fileByteArray.length-packetSize)
+					{
+						inputStream.read(fileByteArray, counter, counter-(fileByteArray.length-packetSize)); 
 						break;
+					}
 					inputStream.read(fileByteArray, counter, packetSize);
-					counter++;
+					counter+=packetSize;
 				}				
 				System.out.println("받은 데이터 "+counter+"Byte");
 				
@@ -461,10 +470,13 @@ public class ByteArrayTransCeiver {
 						int packetSize = value.packetSize;
 						while(true)
 						{
-							if(counter >= fileByteArray.length)
+							if(counter >= fileByteArray.length-packetSize)
+							{
+								outputStream.write(fileByteArray, counter, counter-(fileByteArray.length-packetSize)); 
 								break;
+							}
 							outputStream.write(fileByteArray, counter, packetSize);
-							counter++;
+							counter+=packetSize;
 						}	
 						outputStream.flush();
 						System.out.println("["+byteArrayTransCeiverRule.roomData.roomName+"]방에 참여한 Client ID : "+byteArrayTransCeiverRule.roomData.clientManage.clientID.get(i)+" 에게"+counter+"Byte 데이터 스트림 전송");
