@@ -12,7 +12,8 @@ public class OneByteTransfer {
 	//final String ServerIP = "221.156.9.145";
 	final String ServerIP = "168.131.151.169";
 	final String fileName = "test.jpeg";
-	final int packetSize = 4;	//4바이트까지는 무난하다. 8바이트부터는 호러사진...
+	final int packetSize = 8;	//4바이트까지는 무난하다. 8바이트부터는 호러사진... 그리고, 전송속도는 기계의 영향을 많이 받는다.
+								//사설 IP 라즈베리 파이의 전송속도보다 원격으로 멀리있는 연구실 컴퓨터가 더 빠르다... 원격에 지연시간도 더 길어도..
 	
 	byte[] returnValue = {1};
 	byte[] fileByteArray;
