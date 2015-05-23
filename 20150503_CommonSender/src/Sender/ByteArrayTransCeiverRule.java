@@ -33,7 +33,7 @@ public class ByteArrayTransCeiverRule {
 			this.socketCameraUsed = socketCameraUsed;
 		}
 		
-		//음성
+		//음성(두번째 boolean cameraVoice값에 상관없이 cameraVoice = false. 그냥 오버로딩할때 구분시켜놓을려고 끼워넣은 매개변수)
 		public ByteArrayTransCeiverRule(boolean transCeive,boolean cameraVoice, SocketVoiceUsed socketVoiceUsed, Socket voiceSocket)
 		{
 			this.cameraVoice = false;

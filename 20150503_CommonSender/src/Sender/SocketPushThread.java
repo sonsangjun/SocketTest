@@ -55,7 +55,6 @@ public class SocketPushThread extends Thread{
 				byte[] tempSignal = new byte[pushSignal.signalSize];
 				
 				tempSignal = pushSignal.receiveSignalToByteArray();
-				System.out.println("서버에서 "+pushSignal.signalByteToString(tempSignal)); //테스트
 				if(pushSignal.signalChecking(tempSignal, pushSignal.camera))
 				{
 					if(pushSignal.toDoResponse(pushSignal.response))	//서버측에서 push.todorequest요청(429line.ByteArray~Ceiver.java)
@@ -136,8 +135,9 @@ public class SocketPushThread extends Thread{
 		else			
 		{
 			byteArrayTransCeiver = new ByteArrayTransCeiver(byteArrayTransCeiverRule);
-			if(byteArrayTransCeiver.serverTransCeive() != null);
-		}			
+			if(byteArrayTransCeiver.TransCeiver() != null);
+		}
+		
 	}
 
 	//테스트 메소드(결과물을 정상적으로 받았는지 파일로 출력해 확인)

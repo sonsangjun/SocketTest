@@ -149,9 +149,9 @@ public class Client extends Thread {
 		socketBroadCastThread.start();
 		
 		//데이터 입력이 필요한 카메라, 음성, 위치는 스레드를 만들어 입력받기를 기다림(Push)(맨 앞 매개변수가 false면 데이터 스트림을 받는다.)
-		cameraTransCeiver = new ByteArrayTransCeiverRule(false, socketCameraUsed, cameraSocket);
-		voiceTransCeiver = new ByteArrayTransCeiverRule(false, false, socketVoiceUsed, voiceSocket);
-		socketPushThread = new SocketPushThread(pushSocket,socketPushUsed,cameraTransCeiver,voiceTransCeiver);
+		ByteArrayTransCeiverRule cameraTrans = new ByteArrayTransCeiverRule(false, socketCameraUsed, cameraSocket);
+		ByteArrayTransCeiverRule voiceTrans = new ByteArrayTransCeiverRule(false, false, socketVoiceUsed, voiceSocket);
+		socketPushThread = new SocketPushThread(pushSocket,socketPushUsed,cameraTrans,voiceTrans);
 		socketPushThread.start();
 
 		
@@ -208,7 +208,8 @@ public class Client extends Thread {
 	//서버와 연결종료
 	public boolean exitClient()
 	{
-		try {
+		try {					
+			pushSocket.close();
 			broadCastSocket.close();
 			eventSocket.close();
 			cameraSocket.close();
@@ -253,6 +254,8 @@ public class Client extends Thread {
 			{
 				System.out.println(eventSocket.getInetAddress().getHostName()+"통신실패");
 				try {
+					pushSocket.close();
+					broadCastSocket.close();
 					eventSocket.close();
 					cameraSocket.close();
 					voiceSocket.close();
@@ -275,6 +278,11 @@ public class Client extends Thread {
 		
 		while(true)
 		{
+			//카메라 음성 보내기 전에 클래스 인스턴스 화
+			//이 클래스를 매개변수로 넘겨야 하기 때문에 무조건 선언해줘야 한다.
+			this.cameraTransCeiver = new ByteArrayTransCeiverRule(true, socketCameraUsed, cameraSocket);
+			this.voiceTransCeiver = new ByteArrayTransCeiverRule(true, false, socketVoiceUsed, voiceSocket);
+			
 			System.out.println("명령을 입력하세요.");
 			System.out.println(signal.signalByteToString(signal.makeRoom)+" 방만들기\t"+signal.signalByteToString(signal.joinRoom)+"방참여\t "+signal.signalByteToString(signal.exitRoom)+" 방나가기\t"+signal.signalByteToString(signal.exitServer)+" 나가기");
 			System.out.println(signal.signalByteToString(signal.roomList)+" 방 목록 요청\t"+signal.signalByteToString(signal.writeYourName)+" Client이름바꾸기\t "+signal.signalByteToString(signal.camera)+" 카메라 프리뷰 보내기");
@@ -449,10 +457,10 @@ public class Client extends Thread {
 				synchronized (socketCameraUsed) {
 					socketCameraUsed.message = cameraByteArray;
 				}
-				System.out.println("카메라 프리뷰 전송합니다. 사이즈는 	: "+ socketCameraUsed.message.length);
+				System.out.println("카메라 프리뷰 전송합니다. 사이즈는 :"+ socketCameraUsed.message.length);
 				
 				ByteArrayTransCeiver byteArrayTransCeiver = new ByteArrayTransCeiver(cameraTransCeiver);
-				if(byteArrayTransCeiver.clientTrans() != null)
+				if(byteArrayTransCeiver.TransCeiver() != null)
 					System.out.println("카메라 프리뷰 전송 성공");			
 				else
 					System.out.println("카메라 프리뷰 전송 실패");

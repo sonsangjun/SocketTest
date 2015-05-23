@@ -2,6 +2,8 @@ package Sender;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -151,7 +153,7 @@ public class ByteArrayTransCeiver {
 		byte[] fileSize = new byte[integerToByteArray.fileSizeIndex];
 		integerToByteArray.initialByteArray(fileSize);
 		if(clientTransferSignal.toDoRequest(clientTransferSignal.byteReceive))
-		{
+		{			
 			integerToByteArray.getBytes(fileByteArray.length,fileSize);		
 			try {
 				outputStream.write(fileSize);
@@ -187,10 +189,11 @@ public class ByteArrayTransCeiver {
 						}						
 						else if(clientTransferSignal.toDoRequest(clientTransferSignal.byteSend))
 						{
+							System.out.println("보낸 파일 크기는 : "+counter*(unitSize));
 							outputStream.write(fileByteArray, counter*unitSize, unitSize);
 							outputStream.flush();
 							counter++;
-						}
+						}						
 					}						
 				}				
 			} catch (IOException e) {
@@ -325,10 +328,11 @@ public class ByteArrayTransCeiver {
 	}
 
 	
+	//서버 데이터 전송
 	//서버가 클라이언트에게 받아 데이터 스트림을 전송한 클라이언트를 제외하고 방여 참여중인 다른 클라이언트에게 데이터 스트림 전송.
 	public byte[] serverTransCeive()
 	{
-		//cameraSocket or voiceSocket을 잠근다. 내가 쓸꺼니까
+
 		if(byteArrayTransCeiverRule.cameraVoice)
 		{
 			if(byteArrayTransCeiverRule.socketCameraUsed.socketCameraUsed)
@@ -344,7 +348,7 @@ public class ByteArrayTransCeiver {
 			else
 				;		
 	
-		
+		//cameraSocket or voiceSocket을 잠근다. 내가 쓸꺼니까		
 		usedChecking(true);
 		BufferedInputStream inputStream;
 		BufferedOutputStream outputStream;
@@ -389,6 +393,7 @@ public class ByteArrayTransCeiver {
 		int intFileSize;
 		integerToByteArray.initialByteArray(fileSize);
 		
+		//clientTrans toDoRequest(clientTransFerSignal.byteReceive) 대응 ( 약 153Line )
 		if(serverTransferSignal.toAccept(serverTransferSignal.byteReceive))
 		{	
 			try {
@@ -414,8 +419,8 @@ public class ByteArrayTransCeiver {
 					{
 						if(counter*unitSize == fileByteArray.length)
 						{							
-							System.out.println(byteArrayTransCeiverRule.roomData.roomName+"에 참가한 "+this.byteArrayTransCeiverRule.clientID+"의 데이터 스트림을 받았습니다.");
-							System.out.println("받은 스트림의 크기는 "+intFileSize+"Byte 입니다.");
+							System.out.println(byteArrayTransCeiverRule.roomData.roomName+"에 참가한  Client ID : "+this.byteArrayTransCeiverRule.clientID+"의 데이터 스트림을 받았습니다.");
+							System.out.println("받은 스트림의 크기는 "+counter*unitSize+"Byte 입니다.");
 							break;
 						}
 						
@@ -423,7 +428,7 @@ public class ByteArrayTransCeiver {
 						{
 							inputStream.read(fileByteArray, unitSize, byteArrayTransCeiverRule.extra);
 							System.out.println("["+byteArrayTransCeiverRule.roomData.roomName+"]에 참가한 Client ID : "+this.byteArrayTransCeiverRule.clientID+"의 데이터 스트림을 받았습니다.");
-							System.out.println("받은 스트림의 크기는 "+intFileSize+"Byte 입니다.");
+							System.out.println("받은 스트림의 크기는 "+(counter*unitSize+byteArrayTransCeiverRule.extra)+"Byte 입니다.");
 							break;								
 						}	
 						else
@@ -451,6 +456,18 @@ public class ByteArrayTransCeiver {
 			return null;
 		}
 		
+		
+		//테스트 서버가 확실히 그림을 받았는지 확인해야 겠음
+		try {
+			FileOutputStream testOutput = new FileOutputStream("test.jpg");
+			testOutput.write(fileByteArray);
+			testOutput.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
 		//여기까지는 클라에게 서버가 파일 받는거고(정확히는 데이터스트림)
 		//아래부터는 서버가 클라이언트에게 뿌린다.		
 		while(true)
@@ -459,8 +476,9 @@ public class ByteArrayTransCeiver {
 			for(int i=0; i<byteArrayTransCeiverRule.roomData.clientManage.clientID.size(); i++)
 			{				
 				//자기 자신이면 통과
-				if(byteArrayTransCeiverRule.roomData.clientManage.clientID.get(i) == this.byteArrayTransCeiverRule.clientID)
-					continue;
+				if(byteArrayTransCeiverRule.roomData.clientManage.clientID.get(i).equals(this.byteArrayTransCeiverRule.clientID))
+					continue;				
+					
 				
 				//카메라인지 소리인지 구분해 전송 소켓 열기(초기화)
 				if(this.byteArrayTransCeiverRule.cameraVoice)
@@ -554,7 +572,8 @@ public class ByteArrayTransCeiver {
 					continue;
 				}						
 															//실패할경우 if문을 빠져나온다.
-			}												//실패하면 다음 클라이언트에게 전송한다.
+			}//실패하면 다음 클라이언트에게 전송한다.
+			
 			
 			//for문이 끝나면 리턴한다.
 			System.out.println("["+byteArrayTransCeiverRule.roomData.roomName+"] 에 참가한 클라이언트에게 데이터를 전송했습니다.");
@@ -562,6 +581,8 @@ public class ByteArrayTransCeiver {
 			return returnValue;
 		}
 	}
+	//서버 데이터 전송 끝
+	
 	
 	//간단한 체크 함수
 	public void usedChecking(boolean used)	//사용하면 true,	안사용하면 false
