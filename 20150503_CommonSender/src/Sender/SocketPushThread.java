@@ -1,6 +1,5 @@
 package Sender;
 
-import java.io.BufferedInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -65,8 +64,8 @@ public class SocketPushThread extends Thread{
 							socketPushUsed.socketPushUsed = true;
 						}
 						byteArrayTransCeiver = new ByteArrayTransCeiver(cameraTransCeiver);
-						cameraByteArray = byteArrayTransCeiver.TransCeiver(); 
-						if(cameraByteArray == null)
+						cameraByteArray = byteArrayTransCeiver.TransCeiver(); 	//TransCeiver()가 서버에서 받은 카메라 데이터 스트림을 반환한다.(byte[])
+						if(cameraByteArray == null)								//안드로이드에서 이 데이터를 살릴 방법을 찾아야 한다.
 						{
 							synchronized (socketPushUsed) {
 								socketPushUsed.socketPushUsed = false;
@@ -95,8 +94,8 @@ public class SocketPushThread extends Thread{
 							socketPushUsed.socketPushUsed = true;
 						}
 						byteArrayTransCeiver = new ByteArrayTransCeiver(voiceTransCeiver);
-						voiceByteArray = byteArrayTransCeiver.TransCeiver();
-						if(voiceByteArray == null)
+						voiceByteArray = byteArrayTransCeiver.TransCeiver();	//TransCeiver()가 서버에서 받은 음성 데이터 스트림을 반환한다.(byte[])
+						if(voiceByteArray == null)								//안드로이드에서 이 데이터를 살릴 방법을 찾아야 한다.
 						{
 							synchronized (socketPushUsed) {
 								socketPushUsed.socketPushUsed = false;
@@ -126,7 +125,6 @@ public class SocketPushThread extends Thread{
 				}
 				
 				
-				
 				//여기부터는 테스트 메소드 호출. 안드로이드에서 작업할시 이 데이터 스트림을 이용해 화면에 출력되도록 코드를 짜주세요.
 				if(testMethod())
 					System.out.println("데이터스트림을 파일로 출력하였습니다.");				
@@ -138,7 +136,7 @@ public class SocketPushThread extends Thread{
 		else			
 		{
 			byteArrayTransCeiver = new ByteArrayTransCeiver(byteArrayTransCeiverRule);
-			byteArrayTransCeiver.serverTransCeive();
+			if(byteArrayTransCeiver.serverTransCeive() != null);
 		}			
 	}
 

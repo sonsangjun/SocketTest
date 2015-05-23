@@ -58,10 +58,10 @@ public class Client extends Thread {
 	int waitTime = value.waitTime;
 	String ServerIP = value.ServerIP;
 	int clientID;
-	byte[] cameraByteArray;		//카메라 프리뷰 바이트 배열
-	byte[] voiceByteArray;		//음성 바이트 배열
+	byte[] cameraByteArray = null;		//카메라 프리뷰 바이트 배열
+	byte[] voiceByteArray = null;		//음성 바이트 배열
 	String roomName = new String(value.unname);
-	String yourName = new String(" ");
+	String yourName = new String(value.yourName);
 	
 	
 	SignalData signal;
@@ -278,7 +278,7 @@ public class Client extends Thread {
 			System.out.println("명령을 입력하세요.");
 			System.out.println(signal.signalByteToString(signal.makeRoom)+" 방만들기\t"+signal.signalByteToString(signal.joinRoom)+"방참여\t "+signal.signalByteToString(signal.exitRoom)+" 방나가기\t"+signal.signalByteToString(signal.exitServer)+" 나가기");
 			System.out.println(signal.signalByteToString(signal.roomList)+" 방 목록 요청\t"+signal.signalByteToString(signal.writeYourName)+" Client이름바꾸기\t "+signal.signalByteToString(signal.camera)+" 카메라 프리뷰 보내기");
-			System.out.printf("["+this.roomName+"] "+this.yourName+">");
+			System.out.printf("["+this.roomName+"] ("+this.yourName+")>");
 			try {
 				valueString = inputReader.readLine();	//안드로이드라면 직접 value를 입력해 스레드에게 갖다주는 식으로 변형하면 될듯.
 			} catch (IOException e) {
@@ -449,13 +449,11 @@ public class Client extends Thread {
 				synchronized (socketCameraUsed) {
 					socketCameraUsed.message = cameraByteArray;
 				}
-				System.out.println("카메라 프리뷰 전송합니다.");
+				System.out.println("카메라 프리뷰 전송합니다. 사이즈는 	: "+ socketCameraUsed.message.length);
 				
 				ByteArrayTransCeiver byteArrayTransCeiver = new ByteArrayTransCeiver(cameraTransCeiver);
 				if(byteArrayTransCeiver.clientTrans() != null)
-				{
-					System.out.println("카메라 프리뷰 전송 성공");
-				}				
+					System.out.println("카메라 프리뷰 전송 성공");			
 				else
 					System.out.println("카메라 프리뷰 전송 실패");
 			}

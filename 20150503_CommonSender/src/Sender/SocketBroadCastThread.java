@@ -77,8 +77,7 @@ public class SocketBroadCastThread extends Thread{
 		}
 		
 		else if(roomData == null)		//클라이언트인 경우
-		{
-			
+		{			
 			String temp = new String(socketBroadCastUsed.nullString);
 			try {
 				BufferedReader inputReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));

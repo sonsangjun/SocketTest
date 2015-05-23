@@ -469,7 +469,7 @@ public class ServerThread extends Thread {
 				
 				//여기에 선언한다. 
 				ByteArrayTransCeiverRule byteArrayTransCeiverRule;
-				byteArrayTransCeiverRule = new ByteArrayTransCeiverRule(clientID, socketCameraUsed, cameraSocket, socketPushUsed, pushSocket,roomData);
+				byteArrayTransCeiverRule = new ByteArrayTransCeiverRule(clientID, socketCameraUsed, socketPushUsed, roomData);
 				
 				//데이터 스트림 전송전에 초기화 시켜야 한다.								
 				SocketPushThread thread = new SocketPushThread(true, byteArrayTransCeiverRule);

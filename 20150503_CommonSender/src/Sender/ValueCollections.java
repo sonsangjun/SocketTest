@@ -7,6 +7,7 @@ public class ValueCollections {
 	final String upLine = new String("──────────────────────────────");
 	final String downLine = new String("──────────────────────────────");
 	
+	final String yourName = new String("null");
 	final String unname = new String("unname");	//방에 참여안했을때, unname으로 할당
 	//final String ServerIP = "168.131.151.169";
 	final String ServerIP = "221.156.9.145";	//외부에서 테스트할때 IP

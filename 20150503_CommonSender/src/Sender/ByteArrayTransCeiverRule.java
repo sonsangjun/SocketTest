@@ -46,24 +46,27 @@ public class ByteArrayTransCeiverRule {
 	
 	//서버
 		//카메라
-		public ByteArrayTransCeiverRule(int clientID, SocketCameraUsed socketCameraUsed, Socket cameraSocket, SocketPushUsed socketPushUsed, Socket pushSocket, RoomData roomData)
+		public ByteArrayTransCeiverRule(int clientID, SocketCameraUsed socketCameraUsed, SocketPushUsed socketPushUsed, RoomData roomData)
 		{
+			int index = roomData.clientManage.clientID.indexOf(clientID);
 			this.clientID = clientID;
 			this.cameraVoice = true;
 			this.socketCameraUsed = socketCameraUsed;
-			this.cameraSocket = cameraSocket;
-			this.pushSocket = pushSocket;
+			this.cameraSocket = roomData.clientManage.cameraSocket.get(index);
+			this.pushSocket = roomData.clientManage.pushSocket.get(index);
 			this.socketPushUsed = socketPushUsed;
 			this.roomData = roomData;
 		}
 		
 		//음성
-		public ByteArrayTransCeiverRule(int clientID, boolean cameraVoice, SocketVoiceUsed socketVoiceUsed, Socket voiceSocket, SocketPushUsed socketPushUsed, Socket pushSocket,RoomData roomData) {
+		public ByteArrayTransCeiverRule(int clientID, boolean cameraVoice, SocketVoiceUsed socketVoiceUsed,  SocketPushUsed socketPushUsed, RoomData roomData) 
+		{
+			int index = roomData.clientManage.clientID.indexOf(clientID);
 			this.clientID = clientID;
 			this.cameraVoice = false;
 			this.socketVoiceUsed = socketVoiceUsed;
-			this.voiceSocket = voiceSocket;
-			this.pushSocket = pushSocket;
+			this.voiceSocket = roomData.clientManage.voiceSocket.get(index);
+			this.pushSocket = roomData.clientManage.pushSocket.get(index);
 			this.socketPushUsed = socketPushUsed;
 			this.roomData = roomData;		
 		}	
