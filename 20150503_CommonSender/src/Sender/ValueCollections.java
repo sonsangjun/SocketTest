@@ -16,7 +16,7 @@ public class ValueCollections {
 	final int waitTime = 100;					//정말 기다려야 하는 시간
 	final int coolTime = 10000;					//위치 정보등을 받는 주기(interval)
 	final int portNum = 9000;
-	final int packetSize = 4;					//한번에 얼마나 보낼지 (기본 1Byte)
+	final int packetSize = 1;					//한번에 얼마나 보낼지 (기본 1Byte)
 	
 	final double basicLatitude = 35.159773;		//기본 위도
 	final double BasicLongitude = 126.851568;	//기본 경도
