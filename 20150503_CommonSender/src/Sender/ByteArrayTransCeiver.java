@@ -28,6 +28,7 @@ import java.util.ArrayList;
  * 	└ 사용됨을 표시해야 클라이언트간 송수신 경쟁이 일어나지 않는다. (혼돈...) 		
  */
 public class ByteArrayTransCeiver {
+	ValueCollections value = new ValueCollections();
 	byte[] returnValue = {1};
 	ByteArrayTransCeiverRule byteArrayTransCeiverRule; 
 	
@@ -160,41 +161,16 @@ public class ByteArrayTransCeiver {
 				outputStream.flush();
 				if(clientTransferSignal.toCatchResponse(clientTransferSignal.byteSize))
 				{
-					byteArrayTransCeiverRule.Calc(fileByteArray.length);
-					int counter = 0;
-					int unitSize = byteArrayTransCeiverRule.fileUnitSize;
-					int maxCounter = byteArrayTransCeiverRule.counter;
-						
+					int counter = 0;	
+					int packetSize = value.packetSize;
 					while(true)
 					{
-						if(counter >= maxCounter)
-						{
-							if(counter*unitSize == fileByteArray.length)
-							{
-								usedChecking(false);
-								return returnValue;									
-							}
-							else if(clientTransferSignal.toDoRequest(clientTransferSignal.byteSend))
-							{
-								outputStream.write(fileByteArray, counter*unitSize, byteArrayTransCeiverRule.extra);
-								outputStream.flush();								
-								usedChecking(false);
-								return returnValue;
-							}
-							else
-							{
-								System.out.println("ClientTrans 데이터 전송중 예외");
-								break;
-							}
-						}						
-						else if(clientTransferSignal.toDoRequest(clientTransferSignal.byteSend))
-						{
-							System.out.println("보낸 파일 크기는 : "+counter*(unitSize));
-							outputStream.write(fileByteArray, counter*unitSize, unitSize);
-							outputStream.flush();
-							counter++;
-						}						
-					}						
+						if(counter >= fileByteArray.length)
+							break;
+						outputStream.write(fileByteArray, counter, packetSize);
+						counter++;
+					}	
+					outputStream.flush();
 				}				
 			} catch (IOException e) {
 				System.out.println("clientTrans() output.write(fileSize) 예외");
@@ -276,40 +252,17 @@ public class ByteArrayTransCeiver {
 				return null;						
 			}
 			
-			byteArrayTransCeiverRule.Calc(intFileSize);
 			int counter=0;
-			int unitSize = byteArrayTransCeiverRule.fileUnitSize;
-			int maxCounter = byteArrayTransCeiverRule.counter;
-			
+			int packetSize = value.packetSize;			
 			while(true)
 			{
-				if(counter >= maxCounter)
-				{
-					if(counter*unitSize == fileByteArray.length)
-					{								
-						usedChecking(false);
-						System.out.println(fileByteArray.length+"Byte를 서버에서 받았습니다.");						
-						break;
-					}					
-					else if(clientReceiveSignal.toAccept(clientReceiveSignal.byteSend))
-					{
-						inputStream.read(fileByteArray, unitSize, byteArrayTransCeiverRule.extra);
-						usedChecking(false);
-						System.out.println(fileByteArray.length+"Byte를 서버에서 받았습니다.");
-						break;								
-					}
-					else
-					{
-						System.out.println("ClientReceiver 데이터 전송중 예외");
-						break;
-					}
-				}
-				else if(clientReceiveSignal.toAccept(clientReceiveSignal.byteSend))
-				{
-					inputStream.read(fileByteArray, counter*unitSize, unitSize);
-					counter++;
-				}						
+				if(counter >= fileByteArray.length)
+					break;
+				inputStream.read(fileByteArray, counter, packetSize);
+				counter++;
 			}
+			System.out.println("받은 데이터 크기 "+counter+"Byte");
+			
 		} catch (IOException e) {
 			System.out.println("서버가 요청을 하지 않습니다.");
 			e.printStackTrace();
@@ -317,9 +270,8 @@ public class ByteArrayTransCeiver {
 			return null;
 		}
 		
-		usedChecking(false);
-		
-		//파일 전송이 완료되었다.
+		usedChecking(false);		
+		//데이터를 받았다.
 		//받은 데이터 스트림을 반환한다.
 		if(byteArrayTransCeiverRule.cameraVoice)
 			return fileByteArray;
@@ -408,41 +360,17 @@ public class ByteArrayTransCeiver {
 				}
 				System.out.println("데이터 사이즈를 받았습니다."+intFileSize+"Byte");
 				
-				byteArrayTransCeiverRule.Calc(intFileSize);
 				int counter=0;
-				int unitSize = byteArrayTransCeiverRule.fileUnitSize;
-				int maxCounter = byteArrayTransCeiverRule.counter;
-				
+				int packetSize = value.packetSize;
 				while(true)
 				{
-					if(counter >= maxCounter)
-					{
-						if(counter*unitSize == fileByteArray.length)
-						{							
-							System.out.println(byteArrayTransCeiverRule.roomData.roomName+"에 참가한  Client ID : "+this.byteArrayTransCeiverRule.clientID+"의 데이터 스트림을 받았습니다.");
-							System.out.println("받은 스트림의 크기는 "+counter*unitSize+"Byte 입니다.");
-							break;
-						}
-						
-						else if(serverTransferSignal.toAccept(serverTransferSignal.byteSend))
-						{
-							inputStream.read(fileByteArray, unitSize, byteArrayTransCeiverRule.extra);
-							System.out.println("["+byteArrayTransCeiverRule.roomData.roomName+"]에 참가한 Client ID : "+this.byteArrayTransCeiverRule.clientID+"의 데이터 스트림을 받았습니다.");
-							System.out.println("받은 스트림의 크기는 "+(counter*unitSize+byteArrayTransCeiverRule.extra)+"Byte 입니다.");
-							break;								
-						}	
-						else
-						{
-							System.out.println("serverTransCeiver 데이터 받는중 예외");
-							break;
-						}
-					}
-					else if(serverTransferSignal.toAccept(serverTransferSignal.byteSend))
-					{
-						inputStream.read(fileByteArray, counter*unitSize, unitSize);
-						counter++;
-					}						
-				}
+					if(counter >= fileByteArray.length)
+						break;
+					inputStream.read(fileByteArray, counter, packetSize);
+					counter++;
+				}				
+				System.out.println("받은 데이터 "+counter+"Byte");
+				
 			} catch (IOException e) {
 				System.out.println("클라이언트에게서 정상적으로 데이터를 못받았습니다.");
 				e.printStackTrace();
@@ -521,8 +449,7 @@ public class ByteArrayTransCeiver {
 						System.out.println("Client ID : "+this.byteArrayTransCeiverRule.clientID+" voice 전송중 연결끊김");
 						continue;
 					}
-				}
-				
+				}				
 				
 				//클라이언트에게 준비하라고 요청 및 데이터 스트림 전송
 				try {
@@ -532,48 +459,24 @@ public class ByteArrayTransCeiver {
 					if(serverTransferSignal.toCatchResponse(serverTransferSignal.byteSize))
 					{
 						int counter = 0;
-						int unitSize = byteArrayTransCeiverRule.fileUnitSize;
-						int maxCounter = byteArrayTransCeiverRule.counter;
+						int packetSize = value.packetSize;
 						while(true)
 						{
-							if(counter >= maxCounter)
-							{
-								if(counter*unitSize == fileByteArray.length)
-								{										
-									System.out.println("["+byteArrayTransCeiverRule.roomData.roomName+"] 에 참가한 Client ID : "+byteArrayTransCeiverRule.roomData.clientManage.clientID.get(i)+"에게 데이터 스트림을 보냈습니다.");
-									System.out.println("보낸 스트림의 크기는 "+fileByteArray.length+"Byte 입니다.");
-									break;
-								}
-								else if(serverTransferSignal.toDoRequest(serverTransferSignal.byteSend))
-								{
-									outputStream.write(fileByteArray, counter*unitSize, byteArrayTransCeiverRule.extra);
-									outputStream.flush();
-									System.out.println(byteArrayTransCeiverRule.roomData.roomName+"에 참가한"+byteArrayTransCeiverRule.roomData.clientManage.clientID.get(i)+"에게 데이터 스트림을 보냈습니다.");
-									System.out.println("보낸 스트림의 크기는 "+fileByteArray.length+"Byte 입니다.");											
-									break;
-								}
-								else
-								{
-									System.out.println("serverTransCeiver 데이터 전송중 예외");
-									break;
-								}
-							}
-							else if(serverTransferSignal.toDoRequest(serverTransferSignal.byteSend))
-							{
-								outputStream.write(fileByteArray, counter*unitSize, unitSize);
-								outputStream.flush();
-								counter++;										
-							}
-						}
+							if(counter >= fileByteArray.length)
+								break;
+							outputStream.write(fileByteArray, counter, packetSize);
+							counter++;
+						}	
+						outputStream.flush();
+						System.out.println("["+byteArrayTransCeiverRule.roomData.roomName+"]방에 참여한 Client ID : "+byteArrayTransCeiverRule.roomData.clientManage.clientID.get(i)+" 에게"+counter+"Byte 데이터 스트림 전송");
 					}
 				} catch (IOException e) {
-					System.out.println("["+byteArrayTransCeiverRule.roomData.clientManage.clientID.get(i)+"] 에게 전송실패");
+					System.out.println("["+byteArrayTransCeiverRule.roomData.roomName+"]방에 참여한 Client ID : "+byteArrayTransCeiverRule.roomData.clientManage.clientID.get(i)+" 에게 전송실패");
 					e.printStackTrace();						
 					continue;
 				}						
 															//실패할경우 if문을 빠져나온다.
-			}//실패하면 다음 클라이언트에게 전송한다.
-			
+			}//실패하면 다음 클라이언트에게 전송한다.			
 			
 			//for문이 끝나면 리턴한다.
 			System.out.println("["+byteArrayTransCeiverRule.roomData.roomName+"] 에 참가한 클라이언트에게 데이터를 전송했습니다.");
