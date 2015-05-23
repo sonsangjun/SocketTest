@@ -179,9 +179,10 @@ public class ByteArrayTransCeiver {
 				return null;
 			}	
 		}		
-		//파일 보내기 끝			
+		//파일 보내기 끝		
+	
 		usedChecking(false);
-		return returnValue;		
+		return null;		
 	}
 	
 	//20150522

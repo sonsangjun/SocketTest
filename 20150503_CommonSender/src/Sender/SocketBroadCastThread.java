@@ -109,9 +109,7 @@ public class SocketBroadCastThread extends Thread{
 				}								
 			} catch (IOException | InterruptedException e) {
 				return ;
-			} catch (java.lang.NullPointerException e) {
-				return ;
-			}
+			}			
 		}		
 	}
 }
