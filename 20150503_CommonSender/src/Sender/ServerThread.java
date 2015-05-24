@@ -37,7 +37,6 @@ package Sender;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,9 +51,6 @@ public class ServerThread extends Thread {
 	String yourName = new String(unname);
 	RoomData roomData = null;
 		
-	int waitTime = value.waitTime;
-	String fileName = value.fileName;
-	
 	Socket pushSocket;
 	Socket broadCastSocket;
 	Socket eventSocket;					//Socket부터
@@ -67,8 +63,9 @@ public class ServerThread extends Thread {
 	SignalData signal;
 	SocketBroadCastThread socketBroadCastThread = null;
 	ByteArrayTransCeiver byteArrayTransCeiver;
-	//ByteArrayTransCeiverRule byteArrayTransCeiverRule;	//음성과 영상이 독립적이려면 여기에 선언하면 안된다.
 	RoomManage roomManage = null;
+	LocationManage locationManage = null;
+	
 	
 	SocketPushUsed socketPushUsed = new SocketPushUsed();
 	SocketBroadCastUsed socketBroadCastUsed = new SocketBroadCastUsed();
@@ -239,10 +236,14 @@ public class ServerThread extends Thread {
 						
 			System.out.println("Client ID : "+this.clientID+" 에게 받은 신호 "+signal.signalByteToString(receiveSignal));
 			
+			//소켓이 닫히면 연결종료
+			if(eventSocket.isClosed())
+				break;
+			
 			//event소켓이 사용중이면 대기
 			if(socketEventUsed.socketEventUsed)
 			{
-				if(signal.toDoResponse(signal.wrong))
+				if(signal.toDoResponse(signal.wait))
 					continue;
 				else
 					break;
@@ -425,8 +426,7 @@ public class ServerThread extends Thread {
 			if(signal.signalChecking(receiveSignal, signal.talk))
 			{
 				//신호를 받았다는 응답을 보낸다. 아래 메소드가 false를 반환하면 클라와 연결이 끊긴것이다.
-				if(!signal.toDoResponse(signal.response))
-					break;
+				if(!signal.toDoResponse(signal.response))	break;
 				//신호 응답 끝
 				
 				String temp = roomManage.talk();	//서버도 보기 위해 반환값을 String으로 한다.
@@ -444,19 +444,59 @@ public class ServerThread extends Thread {
 			//채팅 끝
 			
 			
-			//위치 보내기
+			//위치는 해당스레드에서 socketEventUsed를 직접수정한다.
+			//위치는 카메라,음성 송수신 방식과 다르다. 위치는 클라이언트가 일정 주기마다 요청한다.
+			//또한, 일정 주기마다 클라이언트가 위치 정보를 보낸다.
+			//위치 받기
 			if(signal.signalChecking(receiveSignal, signal.location))
 			{
+				synchronized (socketEventUsed) {
+					socketEventUsed.socketEventUsed = true;
+				}
+				//신호를 받았다는 응답을 보낸다. 아래 메소드가 false를 반환하면 클라와 연결이 끊긴것이다.
+				if(!signal.toDoResponse(signal.response))	break;
+				//신호 응답 끝			
 				
+				locationManage = new LocationManage(eventSocket, roomData);
+				if(locationManage.serverReceiver() != null)
+				{
+					int index = roomData.clientManage.clientID.indexOf(this.clientID);
+					System.out.println("Client ID : "+this.clientID+"의 현재 위치는 "+roomData.clientManage.latitude.get(index)+" , "+roomData.clientManage.longitude.get(index)+" 입니다.");
+				}
+				else
+					System.out.println("Client ID : "+this.clientID+" 의 현재 위치는 알 수 없습니다.");
+				synchronized (socketEventUsed) {
+					socketEventUsed.socketEventUsed = false;
+				}
+				continue;
 			}
-			//위치 보내기 끝
+			//위치 받기 끝
 			
 			
 			//각각 정보를 클라에게 받아 다른 클라에게 뿌리는 역할
-			if(signal.signalChecking(receiveSignal, signal.location))
+			//위치목록 보내기
+			if(signal.signalChecking(receiveSignal, signal.locationList))
 			{
+				synchronized (socketEventUsed) {
+					socketEventUsed.socketEventUsed = true;
+				}
+				//신호를 받았다는 응답을 보낸다. 아래 메소드가 false를 반환하면 클라와 연결이 끊긴것이다.
+				if(!signal.toDoResponse(signal.response))	break;
+				//신호 응답 끝	
 				
+				locationManage = new LocationManage(eventSocket, roomData);
+				if(locationManage.serverListSender())
+					System.out.println("Client ID : "+this.clientID+" 위치 목록을 보냈습니다.");
+				else
+					System.out.println("Client ID : "+this.clientID+" 위치 목록 전송 실패했습니다.");
+				synchronized (socketEventUsed) {
+					socketEventUsed.socketEventUsed = false;
+				}
+				continue;				
 			}
+			//위치 목록 보내기
+			
+			//카메라 시작
 			else if(signal.signalChecking(receiveSignal, signal.camera))
 			{
 				//카메라가 이미 사용중이라면 wrong 반환
@@ -467,6 +507,10 @@ public class ServerThread extends Thread {
 				if(!signal.toDoResponse(signal.response))	break;
 				//신호 응답 끝
 				
+				synchronized (socketCameraUsed) {				//서버에서 직접 락을 건다.	false는 따로 넣지않는다. 
+					socketCameraUsed.socketCameraUsed = true;	//나중에 스레드에서 락을 알아서 풀기 때문에 상관없다.					
+				}			
+				
 				//여기에 선언한다. 
 				ByteArrayTransCeiverRule byteArrayTransCeiverRule;
 				byteArrayTransCeiverRule = new ByteArrayTransCeiverRule(clientID, socketCameraUsed, socketPushUsed, roomData);
@@ -476,11 +520,36 @@ public class ServerThread extends Thread {
 				thread.start();
 				continue;
 			}
+			//카메라 끝
+			
+			
+			//음성 시작
 			else if(signal.signalChecking(receiveSignal, signal.voice))
 			{
+				//음성이 사용중이면 wrong 반환
+				if(socketVoiceUsed.socketVoiceUsed)
+					signal.toDoResponse(signal.wrong);
 				
-			}				
-			//각각 정보를 클라에게 받아 다른 클라에게 뿌리는 역할
+				//신호를 받았다는 응답을 보낸다. 아래 메소드가 false를 반환하면 클라와 연결이 끊긴것이다.
+				if(!signal.toDoResponse(signal.response))	break;
+				//신호 응답 끝
+				
+				synchronized (socketVoiceUsed) {			//서버에서 직접 락을 건다.	false는 따로 넣지않는다. 					
+					socketVoiceUsed.socketVoiceUsed = true;	//나중에 스레드에서 락을 알아서 풀기 때문에 상관없다.						
+				}
+				
+				//여기에 선언한다. 
+				ByteArrayTransCeiverRule byteArrayTransCeiverRule;
+				byteArrayTransCeiverRule = new ByteArrayTransCeiverRule(clientID, false, socketVoiceUsed, socketPushUsed, roomData);
+				
+				//데이터 스트림 전송전에 초기화 시켜야 한다.								
+				SocketPushThread thread = new SocketPushThread(true, byteArrayTransCeiverRule);
+				thread.start();
+				continue;
+				
+			}		
+			//음성끝
+			//각각 정보를 클라에게 받아 다른 클라에게 뿌리는 역할 끝
 			
 			
 			//클라이언트와 연결이 끊어진 경우
@@ -532,18 +601,5 @@ public class ServerThread extends Thread {
 				break;
 			}
 		}
-	}
-	
-	
-	
-	/*	파일전송 및 방 만들기 테스트
-	 * 	클라이언트의 요청을 받아 방을 만들고
-	 * 	데이터 스트림을 서버에 전송한다.
-	 * 	스트림을 전송받은 서버는 방에 참여한 다른 클라이언트에게 파일을 전송한다.
-	 * 	전송을 마치면 연결을 종료한다.
-	 */	
-	public void test_III()	
-	{
-		
 	}
 }

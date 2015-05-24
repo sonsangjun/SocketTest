@@ -59,13 +59,22 @@ public class Top {
 		{
 			//카메라 프리뷰 이미지가 없어서 파일로부터 이미지를 읽어들입니다.
 			//tempFile은 이미지 파일이 담길 바이트 배열.
-			byte[] tempFile;
-			FileInputStream inputStream;
+			/*
+			byte[] imageTempFile;
+			byte[] voiceTempFile;
+			FileInputStream imageStream;
+			FileInputStream voiceStream;
 			try {
-				inputStream = new FileInputStream(value.fileName);
-				tempFile = new byte[inputStream.available()];
-				inputStream.read(tempFile);
-				inputStream.close();
+				imageStream = new FileInputStream(value.imageFileName);
+				voiceStream = new FileInputStream(value.voiceFileName);
+				imageTempFile = new byte[imageStream.available()];
+				voiceTempFile = new byte[voiceStream.available()];
+				
+				imageStream.read(imageTempFile);
+				voiceStream.read(voiceTempFile);
+				
+				imageStream.close();
+				voiceStream.close();
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -77,12 +86,13 @@ public class Top {
 				e.printStackTrace();
 				return;
 			}
-			//이미지 파일을 tempFile에 담았습니다. (이미지 파일명은 ValueCollections.java참고)
-			//								(이미지 파일 위치는 프로젝트 폴더안에 넣으세요.)
-			
-						
+			//각각 파일을 tempFile에 담았습니다. (각각 파일명은 ValueCollections.java참고)
+			//								(각각 파일 위치는 프로젝트 폴더안에 넣으세요.)
+									
 			System.out.println("클라이언트 시작");
-			Client client = new Client(tempFile, null);
+			Client client = new Client(imageTempFile, voiceTempFile); */
+			Client client = new Client(null, null);
+			
 			client.start();
 		}
 	}

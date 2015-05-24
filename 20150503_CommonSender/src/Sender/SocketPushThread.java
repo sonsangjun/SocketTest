@@ -5,6 +5,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
+
+/////////////////////////////////////////////////////////////////////
+//79, 111 Line에 테스트 메소드 있습니다. 안드로이드 개발할때 지우던가 주석처리 해주세요/
+/////////////////////////////////////////////////////////////////////
+
 //20150521 카메라 프리뷰 스레드
 public class SocketPushThread extends Thread{
 	ValueCollections value = new ValueCollections();
@@ -55,14 +60,15 @@ public class SocketPushThread extends Thread{
 				byte[] tempSignal = new byte[pushSignal.signalSize];
 				
 				tempSignal = pushSignal.receiveSignalToByteArray();
+				synchronized (socketPushUsed) {
+					socketPushUsed.socketPushUsed = true;
+				}
+				
 				if(pushSignal.signalChecking(tempSignal, pushSignal.camera))
 				{
 					if(pushSignal.toDoResponse(pushSignal.response))	//서버측에서 push.todorequest요청(429line.ByteArray~Ceiver.java)
 					{
-						synchronized (socketPushUsed) {
-							socketPushUsed.socketPushUsed = true;
-						}
-						byteArrayTransCeiver = new ByteArrayTransCeiver(cameraTransCeiver);
+						byteArrayTransCeiver = new ByteArrayTransCeiver(cameraTransCeiver);	
 						cameraByteArray = byteArrayTransCeiver.TransCeiver(); 	//TransCeiver()가 서버에서 받은 카메라 데이터 스트림을 반환한다.(byte[])
 						if(cameraByteArray == null)								//안드로이드에서 이 데이터를 살릴 방법을 찾아야 한다.
 						{
@@ -75,6 +81,11 @@ public class SocketPushThread extends Thread{
 						synchronized (socketPushUsed) {
 							socketPushUsed.socketPushUsed = false;
 						}
+						/////////////////////////////////////////////////////////////////////////////
+						//테스트 메소드 호출. 안드로이드에서 작업할시 이 데이터 스트림을 이용해 화면에 출력되도록 코드를 짜주세요.
+						if(testMethod(value.imageFileName,cameraByteArray))
+							System.out.println("데이터스트림을 파일로 출력하였습니다.");	
+						/////////////////////////////////////////////////////////////////////////////
 					}
 					else
 					{
@@ -89,10 +100,7 @@ public class SocketPushThread extends Thread{
 				{
 					if(pushSignal.toDoResponse(pushSignal.response))	//서버측에서 push.todorequest요청(429line.ByteArray~Ceiver.java)
 					{
-						synchronized (socketPushUsed) {
-							socketPushUsed.socketPushUsed = true;
-						}
-						byteArrayTransCeiver = new ByteArrayTransCeiver(voiceTransCeiver);
+						byteArrayTransCeiver = new ByteArrayTransCeiver(voiceTransCeiver);	//왜 TestMethod에서 호출하면 null예외가 발생하나?
 						voiceByteArray = byteArrayTransCeiver.TransCeiver();	//TransCeiver()가 서버에서 받은 음성 데이터 스트림을 반환한다.(byte[])
 						if(voiceByteArray == null)								//안드로이드에서 이 데이터를 살릴 방법을 찾아야 한다.
 						{
@@ -105,6 +113,11 @@ public class SocketPushThread extends Thread{
 						synchronized (socketPushUsed) {
 							socketPushUsed.socketPushUsed = false;
 						}
+						/////////////////////////////////////////////////////////////////////////////
+						//테스트 메소드 호출. 안드로이드에서 작업할시 이 데이터 스트림을 이용해 화면에 출력되도록 코드를 짜주세요.
+						if(testMethod(value.voiceFileName,voiceByteArray))
+							System.out.println("데이터스트림을 파일로 출력하였습니다.");	
+						/////////////////////////////////////////////////////////////////////////////
 					}
 					else
 					{
@@ -118,15 +131,9 @@ public class SocketPushThread extends Thread{
 				else		//푸쉬는 위의 두 신호가 아닌 다른게 날라오면 죽는다.
 					break;
 				
-				System.out.println("서버에서 "+pushSignal.signalByteToString(tempSignal)); //테스트
 				synchronized (socketPushUsed) {
 					socketPushUsed.socketPushUsed = false;
-				}
-				
-				
-				//여기부터는 테스트 메소드 호출. 안드로이드에서 작업할시 이 데이터 스트림을 이용해 화면에 출력되도록 코드를 짜주세요.
-				if(testMethod())
-					System.out.println("데이터스트림을 파일로 출력하였습니다.");				
+				}			
 			}
 		}		
 		
@@ -137,16 +144,17 @@ public class SocketPushThread extends Thread{
 			byteArrayTransCeiver = new ByteArrayTransCeiver(byteArrayTransCeiverRule);
 			if(byteArrayTransCeiver.TransCeiver() != null);
 		}
+		//서버 끝
 		
 	}
 
 	//테스트 메소드(결과물을 정상적으로 받았는지 파일로 출력해 확인)
-	public boolean testMethod()
+	public boolean testMethod(String fileName, byte[] byteArray)
 	{
 		FileOutputStream outputfile;
 		try {
-			outputfile = new FileOutputStream(value.fileName);			
-			outputfile.write(cameraByteArray);			
+			outputfile = new FileOutputStream(fileName);			
+			outputfile.write(byteArray);			
 			outputfile.flush();
 			outputfile.close();
 		} catch (FileNotFoundException e) {
@@ -159,6 +167,5 @@ public class SocketPushThread extends Thread{
 			return false;
 		}
 		return true;
-	}
-
+	}		
 }

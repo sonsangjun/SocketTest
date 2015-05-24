@@ -6,6 +6,8 @@ import java.util.List;
 //두 경우에만 쓰인다.
 //객체 직렬화 전송을 위해 만들었다.
 public class RoomDataToArray implements java.io.Serializable{
+	public boolean checking = false;		//클라가 서버에서 받은 위치정보를 확인했는지 여부 (true 했다.)
+	
 	List<String> wantList = null;
 	List<Integer> wantJoinNumber = null;	//이건 방목록 보낼때만 유효
 	

@@ -142,7 +142,7 @@ public class ByteArrayTransCeiver {
 				System.out.println("voice스트림 선언 예외");
 				return null;
 			}			
-			fileByteArray = byteArrayTransCeiverRule.socketCameraUsed.message;
+			fileByteArray = byteArrayTransCeiverRule.socketVoiceUsed.message;
 		}		
 		//초기에 카메라인지 음성인지 판단 끝		
 		
@@ -284,21 +284,10 @@ public class ByteArrayTransCeiver {
 	//서버가 클라이언트에게 받아 데이터 스트림을 전송한 클라이언트를 제외하고 방여 참여중인 다른 클라이언트에게 데이터 스트림 전송.
 	public byte[] serverTransCeive()
 	{
+		//클라이언트는 해당 클래스에서 락을 잠가도, 사용자의 응답속도가 클라이언트 처리 보다 느려 상관없지만.
+		//서버는 여러 클라이언트 요청을 동시에 받으므로 여기에서 락을 확인하지 말고,
+		//직접 ServerThread에서 락을 확인해 잠그도록 수정한다.
 
-		if(byteArrayTransCeiverRule.cameraVoice)
-		{
-			if(byteArrayTransCeiverRule.socketCameraUsed.socketCameraUsed)
-			{
-				return null;
-			}
-			else
-				;
-		}
-		else
-			if(byteArrayTransCeiverRule.socketVoiceUsed.socketVoiceUsed)
-				return null;
-			else
-				;		
 	
 		//cameraSocket or voiceSocket을 잠근다. 내가 쓸꺼니까		
 		usedChecking(true);
