@@ -118,11 +118,9 @@ public class SocketPushThread extends Thread{
 				else		//푸쉬는 위의 두 신호가 아닌 다른게 날라오면 죽는다.
 					break;
 				
-				System.out.println("서버에서 "+pushSignal.signalByteToString(tempSignal)); //테스트
 				synchronized (socketPushUsed) {
 					socketPushUsed.socketPushUsed = false;
 				}
-				
 				
 				//여기부터는 테스트 메소드 호출. 안드로이드에서 작업할시 이 데이터 스트림을 이용해 화면에 출력되도록 코드를 짜주세요.
 				if(testMethod())
@@ -137,6 +135,7 @@ public class SocketPushThread extends Thread{
 			byteArrayTransCeiver = new ByteArrayTransCeiver(byteArrayTransCeiverRule);
 			if(byteArrayTransCeiver.TransCeiver() != null);
 		}
+		//서버 끝
 		
 	}
 

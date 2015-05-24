@@ -104,7 +104,7 @@ public class Client extends Thread {
 		this.voiceByteArray = voiceByteArray;
 	}
 		
-	public void run()
+	public void run()  
 	{		
 		try {
 			System.out.println("서버 연결중");
@@ -276,6 +276,7 @@ public class Client extends Thread {
 		roomManage = new RoomManage(" ", clientID, eventSocket, signal);	//방 관리 클래스
 		
 		
+		//클라이언트가 명령을 받고 수행하는 부분		
 		while(true)
 		{
 			//카메라 음성 보내기 전에 클래스 인스턴스 화
@@ -329,7 +330,8 @@ public class Client extends Thread {
 			//명령어 잘못 입력은 채팅으로 끝				
 			
 			
-			//명령 보내기
+			//명령 보내기(서버 측에서 신호를 reponse, wait, wrong 세가지로 보내기 때문에 구분을 위해)
+			//요청(toDoRequest)가 아닌 toDoResponse(원래는 응답)로 신호를 보내고 toCatchResponse로 받는다.
 			if(signal.toDoRequest(signal.signalStringToByte(valueString)))
 			{
 				System.out.println("서버가 명령을 확인했습니다.");

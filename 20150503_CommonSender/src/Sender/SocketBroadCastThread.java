@@ -62,10 +62,13 @@ public class SocketBroadCastThread extends Thread{
 							B.write(tempMessage);
 							B.newLine();
 							B.flush();			
+						} catch (java.net.SocketException e) {
+							System.out.println("BroadCast Server 예외 발생 (연결문제있는 Client있습니다.)exception : "+e.getMessage());
+							continue;
 						} catch (IOException e) {
 							e.printStackTrace();						
 							continue;
-						}			
+						}
 					}
 				}
 				
@@ -92,7 +95,7 @@ public class SocketBroadCastThread extends Thread{
 						}						
 					}					
 					
-					temp = inputReader.readLine();
+					temp = inputReader.readLine();	//temp가 null이라는건 연결이 끊겼음을 의미.(연결된 소켓에서 아무것도 들어온게 없으니)
 					if(temp.equals(socketBroadCastUsed.nullString))
 					{
 						Thread.sleep(value.waitTime);
@@ -108,8 +111,12 @@ public class SocketBroadCastThread extends Thread{
 					}						
 				}								
 			} catch (IOException | InterruptedException e) {
+				System.out.println("BroadCast 예외 발생 Client 재시작하세요. exception : "+e.getMessage());
 				return ;
-			}			
+			} catch (java.lang.NullPointerException e) {
+				System.out.println("BroadCast 예외 발생 Client 재시작하세요. exception : "+e.getMessage());
+				return ;
+			}
 		}		
 	}
 }

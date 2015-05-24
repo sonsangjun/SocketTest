@@ -9,11 +9,12 @@ import java.net.Socket;
 public class SignalData {
 	
 	final int signalSize 		= 2;				//시그널 길이
-	final int signalCount		= 16;				//시그널 갯수
+	final int signalCount		= 17;				//시그널 갯수
 	final int maxReCount 		= 3;				//최대 신호 재시도 횟수
 	final byte[] request 		=	{ 0,0 };	//요청
 	final byte[] response		=	{ 0,1 };	//응답함
 	final byte[] wrong			=	{ 0,2 };	//올바르지 않음
+	final byte[] wait			=	{ 0,3 };	//대기
 	
 	final byte[] location 		= 	{ 1,0 }; 	//위치
 	final byte[] camera			=	{ 1,1 }; 	//카메라 프리뷰 이미지
@@ -24,6 +25,7 @@ public class SignalData {
 	final byte[] roomList		=	{ 1,7 };	//방 목록
 	final byte[] talk			=	{ 1,8 };	//채팅
 	final byte[] writeYourName	=	{ 1,9 };	//이름 입력
+	final byte[] locationList	=	{ 1,10};	//위치 목록
 
 	final byte[] byteSize		=	{ 2,0 };	//바이트배열크기
 	final byte[] byteSend		= 	{ 2,1 }; 	//바이트배열보냄
@@ -105,6 +107,9 @@ public class SignalData {
 	//신호 equal
 	public boolean signalChecking(byte[] target, byte[] wantChecking)
 	{
+		if(target == null)	//신호가 null인경우 연결이 끊긴거.
+			return false;
+		
 		for(int i=0; i<signalSize; i++)
 		{
 			if(target[i] == wantChecking[i])
@@ -118,6 +123,8 @@ public class SignalData {
 	//신호 이름 반환(바이트->문자열)
 	public String signalByteToString(byte[] wantSignal)
 	{
+		if(wantSignal == null)
+			return null;
 		switch(wantSignal[0])
 		{
 		case 0:
@@ -126,6 +133,7 @@ public class SignalData {
 			case 0: return "request";
 			case 1: return "response";
 			case 2: return "wrong";
+			case 3: return "wait";
 			}
 		case 1:
 			switch(wantSignal[1])
@@ -140,6 +148,7 @@ public class SignalData {
 			case 7: return "roomList";
 			case 8: return "talk";
 			case 9: return "writeYourName";
+			case 10: return "locationList";
 			}
 		case 2:
 			switch(wantSignal[1])
@@ -159,9 +168,12 @@ public class SignalData {
 	//신호바이트반환(원하는 신호가 없으면 null)
 	public byte[] signalStringToByte(String wantSignal)
 	{		
+		if(wantSignal == null) return null;
+		
 		if(wantSignal.equals("request")) return request;
 		if(wantSignal.equals("response")) return response;
 		if(wantSignal.equals("wrong")) return wrong;
+		if(wantSignal.equals("wait")) return wait;
 		
 		if(wantSignal.equals("location")) return location;
 		if(wantSignal.equals("camera")) return camera;
@@ -172,6 +184,7 @@ public class SignalData {
 		if(wantSignal.equals("roomList")) return roomList;
 		if(wantSignal.equals("talk")) return talk;
 		if(wantSignal.equals("writeYourName")) return writeYourName;
+		if(wantSignal.equals("locationList")) return locationList;
 		
 		if(wantSignal.equals("byteSize")) return byteSize;
 		if(wantSignal.equals("byteSend")) return byteSend;
@@ -188,12 +201,16 @@ public class SignalData {
 		byte[] temp = new byte[signalSize];
 		try {
 			input.read(temp);
-		} catch (IOException e) {
-			return wrong;
-		}catch (java.lang.NullPointerException e)
-		{
-			System.out.println("signal초기화가 필요합니다.(SignalData의 initial()호출바람");
+		}catch (java.net.SocketException e) {
+			System.out.println("소켓이 리셋된거 같아요.");
 			e.printStackTrace();
+			return wrong;
+		} catch (java.lang.NullPointerException e)
+		{
+			System.out.println("signal초기화가 필요합니다.(SignalData의 initial()호출바람) exception : "+e.getMessage());
+			e.printStackTrace();
+			return wrong;
+		}catch (IOException e) {
 			return wrong;
 		}
 		
@@ -219,7 +236,12 @@ public class SignalData {
 		try {
 			output.write(wantSignal);		
 			output.flush();
-		} catch (IOException e) {
+		}catch (java.net.SocketException e) {
+			System.out.println("소켓이 리셋된거 같아요.");
+			e.printStackTrace();
+			return false;
+		}
+		catch (IOException e) {
 			System.out.println("Request 예외");
 			e.printStackTrace();
 			return false;
@@ -232,6 +254,10 @@ public class SignalData {
 		
 		try {
 			input.read(signalByte);
+		}catch (java.net.SocketException e) {
+			System.out.println("소켓이 리셋된거 같아요.");
+			e.printStackTrace();
+			return false;
 		} catch (IOException e) {
 			System.out.println("Request의 response예외");
 			e.printStackTrace();
@@ -243,7 +269,6 @@ public class SignalData {
 			return false;
 		}				
 		
-		System.out.println("signal : "+signalByteToString(signalByte));
 		if(signalChecking(signalByte, response))
 			return true;
 		else 
@@ -263,6 +288,10 @@ public class SignalData {
 					
 		try {
 			input.read(signalByte);
+		}catch (java.net.SocketException e) {
+			System.out.println("소켓이 리셋된거 같아요.");
+			e.printStackTrace();
+			return false;
 		} catch (IOException e) {
 			System.out.println("response 소켓 입력대기중 예외");
 			e.printStackTrace();
@@ -279,6 +308,10 @@ public class SignalData {
 			try {
 				output.write(response);
 				output.flush();
+			}catch (java.net.SocketException e) {
+				System.out.println("소켓이 리셋된거 같아요.");
+				e.printStackTrace();
+				return false;
 			} catch (IOException e) {
 				System.out.println("response중 소켓 response보냄 예외");
 				e.printStackTrace();
@@ -297,6 +330,10 @@ public class SignalData {
 			try {
 				output.write(wrong);
 				output.flush();	
+			}catch (java.net.SocketException e) {
+				System.out.println("소켓이 리셋된거 같아요.");
+				e.printStackTrace();
+				return false;
 			} catch (IOException e) {
 				System.out.println("response중 wrong보냄 예외");
 				e.printStackTrace();
@@ -317,6 +354,10 @@ public class SignalData {
 			output.write(responseSignal);
 			output.flush();
 			return true;
+		}catch (java.net.SocketException e) {
+			System.out.println("소켓이 리셋된거 같아요.");
+			e.printStackTrace();
+			return false;
 		} catch (IOException e) {
 			System.out.println("toConfirm(요청에대한 응답)실패");
 			e.printStackTrace();
@@ -340,6 +381,10 @@ public class SignalData {
 				return true;
 			else
 				return false;
+		}catch (java.net.SocketException e) {
+			System.out.println("소켓이 리셋된거 같아요.");
+			e.printStackTrace();
+			return false;
 		} catch (IOException e) {
 			System.out.println("toDoResponse신호 받는데 예외");
 			e.printStackTrace();
