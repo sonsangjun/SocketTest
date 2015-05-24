@@ -142,7 +142,7 @@ public class ByteArrayTransCeiver {
 				System.out.println("voice스트림 선언 예외");
 				return null;
 			}			
-			fileByteArray = byteArrayTransCeiverRule.socketCameraUsed.message;
+			fileByteArray = byteArrayTransCeiverRule.socketVoiceUsed.message;
 		}		
 		//초기에 카메라인지 음성인지 판단 끝		
 		

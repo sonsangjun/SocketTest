@@ -290,8 +290,16 @@ public class Client extends Thread {
 		myLongtitude.add(value.BasicLongitude);
 		
 		myLocation = new RoomDataToArray(myClientID,myLatitude,myLongtitude);
+		
+		List<Integer>ClientIDList = Collections.synchronizedList(new ArrayList<Integer>());
+		List<Double> LatitudeList = Collections.synchronizedList(new ArrayList<Double>());
+		List<Double> LongtitudeList = Collections.synchronizedList(new ArrayList<Double>());
+		
+		locationList = new RoomDataToArray(ClientIDList, LatitudeList, LongtitudeList);
+		
 		LocationManage locationManage = new LocationManage(eventSocket, socketEventUsed, myLocation, locationList);
 		locationManage.start();
+		//위치 정보 제공을 위해 초기화 끝
 		
 		
 		//클라이언트가 명령을 받고 수행하는 부분		
@@ -317,6 +325,13 @@ public class Client extends Thread {
 				e.printStackTrace();
 				continue;
 			}					
+			
+			if(eventSocket.isClosed())
+			{
+				System.out.println("연결을 종료합니다.");
+				break;
+			}
+				
 			
 			//!!!!
 			//이벤트 소켓 사용중이면 continue;
@@ -408,7 +423,10 @@ public class Client extends Thread {
 			if(valueString.equals(signal.signalByteToString(signal.makeRoom)) || valueString.equals(signal.signalByteToString(signal.joinRoom)))
 			{
 				String inputRoomName = new String(" ");
-				socketEventUsed.socketEventUsed = true;
+				synchronized (socketEventUsed) {
+					socketEventUsed.socketEventUsed = true;	
+				}
+				
 				System.out.println("방 이름을 입력하세요.");
 				try {
 					inputRoomName = inputReader.readLine();
@@ -416,14 +434,18 @@ public class Client extends Thread {
 				} catch (IOException e) {
 					System.out.println("방 입력하는 중 예외 발생");
 					e.printStackTrace();
-					socketEventUsed.socketEventUsed = false;
+					synchronized (socketEventUsed) {
+						socketEventUsed.socketEventUsed = false;	
+					}
 					continue;
 				}
 				if(valueString.equals(signal.signalByteToString(signal.makeRoom)))
 				{
 					if(roomManage.clientsRequest(signal.makeRoom, inputRoomName, null))
 					{
-						socketEventUsed.socketEventUsed = false;
+						synchronized (socketEventUsed) {
+							socketEventUsed.socketEventUsed = false;	
+						}
 						this.roomName = new String(inputRoomName);
 						System.out.println("만든 방이름은 "+inputRoomName);							
 						continue;					
@@ -434,7 +456,9 @@ public class Client extends Thread {
 					socketEventUsed.socketEventUsed = true;
 					if(roomManage.clientsRequest(signal.joinRoom, inputRoomName, null))
 					{
-						socketEventUsed.socketEventUsed = false;
+						synchronized (socketEventUsed) {
+							socketEventUsed.socketEventUsed = false;	
+						}
 						this.roomName = new String(inputRoomName);
 						System.out.println("참가한 방이름은 "+inputRoomName);							
 						continue;					
@@ -448,13 +472,19 @@ public class Client extends Thread {
 			//방 나간후 this객체의 roomName을 바꿔줘야 한다.
 			else if (valueString.equals(signal.signalByteToString(signal.exitRoom)))
 			{
-				socketEventUsed.socketEventUsed = true;
+				synchronized (socketEventUsed) {
+					socketEventUsed.socketEventUsed = true;	
+				}
 				if(roomManage.clientsRequest(signal.exitRoom, this.roomName,  null))
 				{
-					socketEventUsed.socketEventUsed = false;
-					this.roomName = new String(this.value.unname);						
+					synchronized (socketEventUsed) {
+						socketEventUsed.socketEventUsed = false;	
 					}
-				socketEventUsed.socketEventUsed = false;
+					this.roomName = new String(this.value.unname);						
+				}
+				synchronized (socketEventUsed) {
+					socketEventUsed.socketEventUsed = false;	
+				}
 				continue;
 			}
 			//방 나가기 끝
@@ -463,7 +493,9 @@ public class Client extends Thread {
 			//방 목록 요청
 			else if(valueString.equals(signal.signalByteToString(signal.roomList)))
 			{
-				socketEventUsed.socketEventUsed = true;
+				synchronized (socketEventUsed) {
+					socketEventUsed.socketEventUsed = true;	
+				}
 				roomDataToArray = new RoomDataToArray(null, null);
 				if(roomManage.clientsRequest(signal.roomList, null, roomDataToArray))
 				{						
@@ -473,7 +505,9 @@ public class Client extends Thread {
 						System.out.println(roomDataToArray.wantList.get(i)+"\t"+roomDataToArray.wantJoinNumber.get(i));
 					System.out.println(value.downLine);
 				}	
-				socketEventUsed.socketEventUsed = false;
+				synchronized (socketEventUsed) {
+					socketEventUsed.socketEventUsed = false;	
+				}
 				continue;
 			}
 			//방 목록 요청 끝
@@ -482,10 +516,14 @@ public class Client extends Thread {
 			//이름 바꾸기
 			else if(valueString.equals(signal.signalByteToString(signal.writeYourName)))
 			{
-				socketEventUsed.socketEventUsed = true;
+				synchronized (socketEventUsed) {
+					socketEventUsed.socketEventUsed = true;	
+				}
 				
 				String inputRoomName = new String(" ");
-				socketEventUsed.socketEventUsed = true;
+				synchronized (socketEventUsed) {
+					socketEventUsed.socketEventUsed = true;	
+				}
 				System.out.println("이름을 입력하세요.");
 				try {
 					inputRoomName = inputReader.readLine();
@@ -493,16 +531,22 @@ public class Client extends Thread {
 				} catch (IOException e) {
 					System.out.println("입력하는 중 예외 발생");
 					e.printStackTrace();
-					socketEventUsed.socketEventUsed = false;
+					synchronized (socketEventUsed) {
+						socketEventUsed.socketEventUsed = false;	
+					}
 					continue;
 				}
 				
 				if(roomManage.clientsRequest(signal.writeYourName, inputRoomName, null))
 				{
 					this.yourName = new String(inputRoomName);
-					socketEventUsed.socketEventUsed = false;
+					synchronized (socketEventUsed) {
+						socketEventUsed.socketEventUsed = false;	
+					}
 				}
-				socketEventUsed.socketEventUsed = false;
+				synchronized (socketEventUsed) {
+					socketEventUsed.socketEventUsed = false;	
+				}
 				continue;
 			}
 			//이름 바꾸기 끝
@@ -548,10 +592,10 @@ public class Client extends Thread {
 				return ;
 			}
 			//종료 끝
-			
-			
-			//명령 보내기끝	(데이터 전송중에 event가 쓰이는 중일수 있으니 동기화 처리안함)		
-			socketEventUsed.socketEventUsed = false;
+		
+			synchronized (socketEventUsed) {
+				socketEventUsed.socketEventUsed = true;	
+			}
 		}
 	}
 }

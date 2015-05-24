@@ -236,6 +236,10 @@ public class ServerThread extends Thread {
 						
 			System.out.println("Client ID : "+this.clientID+" 에게 받은 신호 "+signal.signalByteToString(receiveSignal));
 			
+			//소켓이 닫히면 연결종료
+			if(eventSocket.isClosed())
+				break;
+			
 			//event소켓이 사용중이면 대기
 			if(socketEventUsed.socketEventUsed)
 			{

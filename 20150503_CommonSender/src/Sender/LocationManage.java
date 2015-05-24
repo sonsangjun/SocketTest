@@ -160,10 +160,14 @@ public class LocationManage extends Thread{
 	//위치목록을 받음. 클라이언트가 호출하는 메소드(클라꺼)
 	public RoomDataToArray clientListReceiver()
 	{
+		RoomDataToArray temp = null;
 		ObjectInputStream inputLocationList = null;
 		try {
 			inputLocationList = new ObjectInputStream(eventSocket.getInputStream());
-			locationList = (RoomDataToArray) inputLocationList.readObject();
+			temp = (RoomDataToArray) inputLocationList.readObject();
+			locationList.clientID = temp.clientID;
+			locationList.latitude = temp.latitude;
+			locationList.longitude= temp.longitude;
 		}catch (java.net.SocketException e) {
 			System.out.println("소켓이 리셋된거 같아요.");
 			e.printStackTrace();
@@ -182,11 +186,7 @@ public class LocationManage extends Thread{
 	//서버측(그냥 위치하나를 받음)
 	//위치 받고 새위치로 수정까지 함.
 	public RoomDataToArray serverReceiver()
-	{
-		synchronized (socketEventUsed) {
-			socketEventUsed.socketEventUsed = true;
-		}
-		
+	{		
 		ObjectInputStream inputLocation = null;
 		RoomDataToArray clientLocation = null;
 		try {

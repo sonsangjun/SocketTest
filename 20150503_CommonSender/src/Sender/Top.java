@@ -89,8 +89,8 @@ public class Top {
 			//								(각각 파일 위치는 프로젝트 폴더안에 넣으세요.)
 									
 			System.out.println("클라이언트 시작");
-			//Client client = new Client(imageTempFile, voiceTempFile);
-			Client client = new Client(null, null);
+			Client client = new Client(imageTempFile, voiceTempFile);
+			//Client client = new Client(null, null);
 			
 			client.start();
 		}
