@@ -9,6 +9,7 @@ public class Client {
 	SharedData shared;
 	int portNum;
 	int fileSizeIndex;
+	int unitSize;
 	String fileName;
 	String ServerIP;
 	
@@ -20,12 +21,13 @@ public class Client {
 	ArrayList<Thread> threadList;
 	
 	
-	Client(int portNum, String fileName, int fileSizeIndex,String ServerIP)
+	Client(int portNum, String fileName, int fileSizeIndex,String ServerIP,int unitSize)
 	{
 		this.portNum = portNum;
 		this.fileName = fileName;
 		this.fileSizeIndex = fileSizeIndex;		
 		this.ServerIP = ServerIP;
+		this.unitSize = unitSize;
 		threadList = new ArrayList<Thread>();
 		shared = new SharedData(0,fileSizeIndex);
 	}
@@ -37,8 +39,8 @@ public class Client {
 			fileSizeSocket = new Socket(ServerIP, portNum);
 			fileStreamSocket = new Socket(ServerIP, portNum+1);
 				
-			CCT = new ClientCheckingThread(fileSizeSocket, shared, fileSizeIndex);
-			CT = new ClientThread(fileStreamSocket, shared, fileName);
+			CCT = new ClientCheckingThread(fileSizeSocket, shared, fileSizeIndex,unitSize);
+			CT = new ClientThread(fileStreamSocket, shared, fileName,unitSize);
 			threadList.add(CCT);
 			threadList.add(CT);
 			Monitor = new MonitorThread(threadList, intervalTime);

@@ -8,6 +8,7 @@ public class Server {
 	final int intervalTime = 5000;
 	int portNum;
 	int fileSizeIndex;
+	int unitSize;
 	String fileName;
 	
 	ServerSocket fileServerSize = null;
@@ -18,11 +19,12 @@ public class Server {
 	ArrayList<Thread> threadList = new ArrayList<Thread>();
 	
 	
-	Server(int portNum,String fileName,int fileSizeIndex)
+	Server(int portNum,String fileName,int fileSizeIndex,int unitSize)
 	{
 		this.portNum = portNum;
 		this.fileName = fileName;		
 		this.fileSizeIndex = fileSizeIndex;
+		this.unitSize = unitSize;
 	}
 	
 	
@@ -45,8 +47,8 @@ public class Server {
 			System.out.println("두 소켓 연걸 모두 성공 \n파일사이즈 "+portNum+"포트 \n파일받는곳 "+(portNum+1)+"포트");
 			System.out.println("두 소켓에 대한 스레드 작성");
 			
-			ServerCheckingThread SCT = new ServerCheckingThread(fileSizeSocket,shared);
-			ServerThread ST = new ServerThread(fileSocket,shared,fileName,fileSizeIndex);
+			ServerCheckingThread SCT = new ServerCheckingThread(fileSizeSocket,shared,unitSize);
+			ServerThread ST = new ServerThread(fileSocket,shared,fileName,fileSizeIndex,unitSize);
 			
 			threadList.add(SCT);
 			threadList.add(ST);
