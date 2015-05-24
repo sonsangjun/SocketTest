@@ -36,6 +36,7 @@ public class LocationManage extends Thread{
 	public void run() {
 		boolean cycle = true;
 		SignalData signal = new SignalData(eventSocket);
+		signal.initial();
 		while(true)
 		{
 			if(socketEventUsed.socketEventUsed)
@@ -47,71 +48,84 @@ public class LocationManage extends Thread{
 				}
 				if(cycle)
 				{
-					//서버에게 위치 정보를 보낸다.
-					if(signal.toDoRequest(signal.location))
+					//서버에게 위치 정보를 보낸다.(toDoRequest로 설정하면 세부 설정을 할수 없어 toDoResponse쓴다.)
+					if(signal.toDoResponse(signal.location))
 					{
-						if(!clientsender())
-							break;	
-						try {
-							Thread.sleep(value.coolTime);
-						} catch (InterruptedException e) {
-							System.out.println("LocationManage 예외, exception : "+e.getMessage());
-							e.printStackTrace();
-						}	
-						synchronized (socketEventUsed) {
-							socketEventUsed.socketEventUsed = false;
+						if(signal.toCatchResponse(signal.response))
+						{
+							if(!clientsender())
+								break;	
+							synchronized (socketEventUsed) {
+								socketEventUsed.socketEventUsed = false;
+							}
+							try {
+								Thread.sleep(value.coolTime);
+							} catch (InterruptedException e) {
+								System.out.println("LocationManage 예외, exception : "+e.getMessage());
+								e.printStackTrace();
+							}
+							cycle = !cycle;						
 						}
-						cycle = !cycle;
+						
+						else
+						{							
+							synchronized (socketEventUsed) {
+								socketEventUsed.socketEventUsed = false;
+							}
+							try {
+								Thread.sleep(value.coolTime);
+							} catch (InterruptedException e) {
+								System.out.println("Location중 LocationManage 예외, exception : "+e.getMessage());
+								e.printStackTrace();
+							}	
+							cycle = !cycle;								
+						}
 					}
+					//연결이 끊긴경우 false이기 때문에 
 					else
-					{
-						//todoRequest까지는 잘못 할 수 있다.
-						try {
-							Thread.sleep(value.coolTime);
-						} catch (InterruptedException e) {
-							System.out.println("Location중 LocationManage 예외, exception : "+e.getMessage());
-							e.printStackTrace();
-						}	
-						synchronized (socketEventUsed) {
-							socketEventUsed.socketEventUsed = false;
-						}
-						cycle = !cycle;
-					}	
+						break;
+					
 					//서버에게 위치 정보를 보낸다. 끝
 				}
 				else
 				{
 					//서버에게 위치 정보를 받아온다.
-					if(signal.toDoRequest(signal.locationList))
+					if(signal.toDoResponse(signal.locationList))
 					{
-						if(clientListReceiver() == null)
-							break;
-						try {
-							Thread.sleep(value.coolTime);
-						} catch (InterruptedException e) {
-							System.out.println("LocationList중 LocationManage 예외, exception : "+e.getMessage());
-							e.printStackTrace();
+						if(signal.toCatchResponse(signal.response))
+						{
+							if(clientListReceiver() == null)
+								break;
+							synchronized (socketEventUsed) {
+								socketEventUsed.socketEventUsed = false;
+							}
+							try {
+								Thread.sleep(value.coolTime);
+							} catch (InterruptedException e) {
+								System.out.println("LocationList중 LocationManage 예외, exception : "+e.getMessage());
+								e.printStackTrace();
+							}
+							cycle = !cycle;								
 						}
-						synchronized (roomData) {
-							socketEventUsed.socketEventUsed = false;
-						}
-						cycle = !cycle;						
+						else
+						{
+							//todoRequest까지는 잘못 할 수 있다.
+							synchronized (socketEventUsed) {
+								socketEventUsed.socketEventUsed = false;
+							}
+							try {
+								Thread.sleep(value.coolTime);
+							} catch (InterruptedException e) {
+								System.out.println("Location중 LocationManage 예외, exception : "+e.getMessage());
+								e.printStackTrace();
+							}	
+							cycle = !cycle;							
+						}					
 					}
+					//연결이 끊긴경우 false이기 때문에 
 					else
-					{
-						//todoRequest까지는 잘못 할 수 있다.
-						try {
-							Thread.sleep(value.coolTime);
-						} catch (InterruptedException e) {
-							System.out.println("Location중 LocationManage 예외, exception : "+e.getMessage());
-							e.printStackTrace();
-						}	
-						synchronized (socketEventUsed) {
-							socketEventUsed.socketEventUsed = false;
-						}
-						cycle = !cycle;
-					}						
-				}
+						break;
+				}	//서버에게 위치 정보를 받아온다. 끝
 				continue;
 			}			
 		}

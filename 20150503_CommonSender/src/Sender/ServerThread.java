@@ -471,7 +471,7 @@ public class ServerThread extends Thread {
 			
 			//각각 정보를 클라에게 받아 다른 클라에게 뿌리는 역할
 			//위치목록 보내기
-			if(signal.signalChecking(receiveSignal, signal.location))
+			if(signal.signalChecking(receiveSignal, signal.locationList))
 			{
 				synchronized (socketEventUsed) {
 					socketEventUsed.socketEventUsed = true;

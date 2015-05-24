@@ -11,8 +11,8 @@ public class ValueCollections {
 	final String yourName = new String("null");
 	final String unname = new String("unname");	//방에 참여안했을때, unname으로 할당
 	//final String ServerIP = "168.131.151.169";
-	final String ServerIP = "168.131.153.170";	//DB서버 IP
-	//final String ServerIP = "221.156.9.145";	//외부에서 테스트할때 IP
+	//final String ServerIP = "168.131.153.170";	//DB서버 IP
+	final String ServerIP = "221.156.9.145";	//외부에서 테스트할때 IP
 	//final String ServerIP = "192.168.0.3";	//사설IP 서버
 	final int waitTime = 100;					//정말 기다려야 하는 시간
 	final int coolTime = 10000;					//위치 정보등을 받는 주기(interval)
