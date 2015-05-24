@@ -59,6 +59,7 @@ public class Top {
 		{
 			//카메라 프리뷰 이미지가 없어서 파일로부터 이미지를 읽어들입니다.
 			//tempFile은 이미지 파일이 담길 바이트 배열.
+			/*
 			byte[] imageTempFile;
 			byte[] voiceTempFile;
 			FileInputStream imageStream;
@@ -89,8 +90,8 @@ public class Top {
 			//								(각각 파일 위치는 프로젝트 폴더안에 넣으세요.)
 									
 			System.out.println("클라이언트 시작");
-			Client client = new Client(imageTempFile, voiceTempFile);
-			//Client client = new Client(null, null);
+			Client client = new Client(imageTempFile, voiceTempFile); */
+			Client client = new Client(null, null);
 			
 			client.start();
 		}

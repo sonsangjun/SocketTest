@@ -40,7 +40,16 @@ public class LocationManage extends Thread{
 		while(true)
 		{
 			if(socketEventUsed.socketEventUsed)
+			{
+				try {
+					Thread.sleep(value.waitTime);	//100ms주기로 대기한다. 	
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 				continue;
+			}
+				
+				
 			else
 			{
 				synchronized (socketEventUsed) {

@@ -4,8 +4,8 @@ package Sender;
 //자주 쓰는 상수들을 모아놓았습니다.
 //자주쓰는걸 이렇게 관리하니 편하군요.
 public class ValueCollections {
-	final String upLine = new String("──────────────────────────────");
-	final String downLine = new String("──────────────────────────────");
+	final String upLine = new String("──────────────────────────────────────────────────");
+	final String downLine = new String("──────────────────────────────────────────────────");
 	
 	
 	final String yourName = new String("null");

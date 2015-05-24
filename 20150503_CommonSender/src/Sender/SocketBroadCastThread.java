@@ -112,9 +112,11 @@ public class SocketBroadCastThread extends Thread{
 				}								
 			} catch (IOException | InterruptedException e) {
 				System.out.println("BroadCast 예외 발생 Client 재시작하세요. exception : "+e.getMessage());
+				e.printStackTrace();
 				return ;
 			} catch (java.lang.NullPointerException e) {
 				System.out.println("BroadCast 예외 발생 Client 재시작하세요. exception : "+e.getMessage());
+				e.printStackTrace();
 				return ;
 			}
 		}		

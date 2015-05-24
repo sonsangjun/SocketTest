@@ -376,11 +376,14 @@ public class Client extends Thread {
 			}
 			//명령어 잘못 입력은 채팅으로 끝				
 			
-			//테스트(무작위 위치 정보 제공)
-			synchronized (myLocation) {
-				myLocation.latitude.set(0, Math.random()*100);
-				myLocation.longitude.set(0, Math.random()*100);
-			}			
+			//////////////////////////////////////////////////////////////////////////////
+			//테스트(무작위 위치 정보 제공)														//
+			synchronized (myLocation) {													//
+				myLocation.latitude.set(0, Math.random()*100);							//
+				myLocation.longitude.set(0, Math.random()*100);							//
+			}																			//
+			//////////////////////////////////////////////////////////////////////////////
+			
 			//위치 현황 보기는 서버에게 요청할 필요가 없으므로 여기서 걸림.
 			if(valueString.equals(signal.signalByteToString(signal.locationList)))
 			{
@@ -397,6 +400,18 @@ public class Client extends Thread {
 				}
 				continue;
 			}
+			
+			//클라이언트 테스트 이므로 데이터가 없을땐, continue한다. 실제 안드로이드에서는 데이터를 바로 넣어줘야 한다.
+			//////////////////////////////////////////////////////////////////////////////
+			if(valueString.equals(signal.signalByteToString(signal.camera)) || valueString.equals(signal.signalByteToString(signal.voice)))
+			{
+				if(cameraByteArray == null || voiceByteArray == null)
+				{
+					System.out.println("보내려는 데이터가 없습니다.");
+					continue;
+				}				
+			}				
+			//////////////////////////////////////////////////////////////////////////////
 			
 			
 			//명령 보내기(서버 측에서 신호를 reponse, wait, wrong 세가지로 보내기 때문에 구분을 위해)
@@ -560,6 +575,8 @@ public class Client extends Thread {
 				//데이터 스트림 전송에선 event를 자동으로 컨트롤 한다.
 				//프리뷰 이미지를 넣는 코드(message에 이미지 데이터 스트림이 담긴다.)
 				//원래대로라면 해당 클래스에서 이미지를 바로 받아야 하지만, Top클래스에서 배열을 받아옵니다.
+
+					
 				synchronized (socketCameraUsed) {
 					socketCameraUsed.message = cameraByteArray;
 				}
