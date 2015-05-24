@@ -9,6 +9,9 @@ import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Scanner;
 
 import javax.sound.midi.VoiceStatus;
@@ -88,6 +91,9 @@ public class Client extends Thread {
 	SocketEventUsed socketEventUsed = new SocketEventUsed();	
 	SocketCameraUsed socketCameraUsed = new SocketCameraUsed();	
 	SocketVoiceUsed socketVoiceUsed = new SocketVoiceUsed();
+	
+	RoomDataToArray myLocation;
+	RoomDataToArray locationList = null;
 	
 	
 	RoomData roomData;			//방 목록을 받아오기 위해 선언
@@ -275,6 +281,18 @@ public class Client extends Thread {
 		RoomDataToArray roomDataToArray = null;	//방 목록을 저장하는 변수
 		roomManage = new RoomManage(" ", clientID, eventSocket, signal);	//방 관리 클래스
 		
+		//위치 정보 제공을 위해 초기화 (collections.synchronizedList는 스레드간 데이터 동시 접근할때 발생하는 예외를 미리 방지하기 위해서)
+		List<Integer>myClientID = Collections.synchronizedList(new ArrayList<Integer>());
+		List<Double> myLatitude = Collections.synchronizedList(new ArrayList<Double>());
+		List<Double> myLongtitude = Collections.synchronizedList(new ArrayList<Double>());
+		myClientID.add(this.clientID);
+		myLatitude.add(value.basicLatitude);
+		myLongtitude.add(value.BasicLongitude);
+		
+		myLocation = new RoomDataToArray(myClientID,myLatitude,myLongtitude);
+		LocationManage locationManage = new LocationManage(eventSocket, socketEventUsed, myLocation, locationList);
+		locationManage.start();
+		
 		
 		//클라이언트가 명령을 받고 수행하는 부분		
 		while(true)
@@ -284,9 +302,13 @@ public class Client extends Thread {
 			this.cameraTransCeiver = new ByteArrayTransCeiverRule(true, socketCameraUsed, cameraSocket);
 			this.voiceTransCeiver = new ByteArrayTransCeiverRule(true, false, socketVoiceUsed, voiceSocket);
 			
+			System.out.println(value.upLine);
 			System.out.println("명령을 입력하세요.");
 			System.out.println(signal.signalByteToString(signal.makeRoom)+" 방만들기\t"+signal.signalByteToString(signal.joinRoom)+"방참여\t "+signal.signalByteToString(signal.exitRoom)+" 방나가기\t"+signal.signalByteToString(signal.exitServer)+" 나가기");
-			System.out.println(signal.signalByteToString(signal.roomList)+" 방 목록 요청\t"+signal.signalByteToString(signal.writeYourName)+" Client이름바꾸기\t "+signal.signalByteToString(signal.camera)+" 카메라 프리뷰 보내기");
+			System.out.println(signal.signalByteToString(signal.roomList)+" 방 목록\t"+signal.signalByteToString(signal.writeYourName)+" 내이름 바꾸기\t "+signal.signalByteToString(signal.camera)+" 카메라 보내기\t"+signal.signalByteToString(signal.voice)+" 음성보내기");
+			System.out.println(signal.signalByteToString(signal.locationList)+" 위치 현황");
+			System.out.println(value.downLine);
+			
 			System.out.printf("["+this.roomName+"] ("+this.yourName+")>");
 			try {
 				valueString = inputReader.readLine();	//안드로이드라면 직접 value를 입력해 스레드에게 갖다주는 식으로 변형하면 될듯.
@@ -300,7 +322,11 @@ public class Client extends Thread {
 			//이벤트 소켓 사용중이면 continue;
 			//(아래 블록에서 이벤트 소켓의 boolean 값을 자주 바꾸는데, 이건 방 참여와 방 만들기 버튼을 동시에 누르는 행위등등, 동시 접근을 막기 위해서)
 			if(socketEventUsed.socketEventUsed)
+			{
+				System.out.println("EventSocket이 사용중입니다.");
 				continue;
+			}
+				
 			
 			//명령어 잘못 입력은 채팅으로
 			//여기만 toDoRequest(talk)로 따로 씀.
@@ -329,17 +355,49 @@ public class Client extends Thread {
 			}
 			//명령어 잘못 입력은 채팅으로 끝				
 			
+			//테스트(무작위 위치 정보 제공)
+			synchronized (myLocation) {
+				myLocation.latitude.set(0, Math.random()*100);
+				myLocation.longitude.set(0, Math.random()*100);
+			}			
+			//위치 현황 보기는 서버에게 요청할 필요가 없으므로 여기서 걸림.
+			if(valueString.equals(signal.signalByteToString(signal.locationList)))
+			{
+				if(locationList == null)
+					System.out.println("위치 현황이 없습니다.");
+				else
+				{
+					System.out.println(value.upLine+"\nClientID \t latitude \t longtitude\n"+value.downLine);
+					synchronized (locationList) {
+						for(int i=0; i<locationList.clientID.size(); i++)
+							System.out.println(locationList.clientID.get(i)+" \t "+locationList.latitude.get(i)+" \t "+locationList.longitude.get(i));
+					}
+					System.out.println(value.downLine);
+				}
+				continue;
+			}
+			
 			
 			//명령 보내기(서버 측에서 신호를 reponse, wait, wrong 세가지로 보내기 때문에 구분을 위해)
-			//요청(toDoRequest)가 아닌 toDoResponse(원래는 응답)로 신호를 보내고 toCatchResponse로 받는다.
-			if(signal.toDoRequest(signal.signalStringToByte(valueString)))
+			//요청(toDoRequest)가 아닌 toDoResponse(원래는 응답)로 신호를 보내고 receiveSignalToByteArray로 받는다.
+			if(signal.toDoResponse(signal.signalStringToByte(valueString)))
 			{
-				System.out.println("서버가 명령을 확인했습니다.");
+				byte[] tempSignal = new byte[signal.signalSize];
+				tempSignal = signal.receiveSignalToByteArray();
+				if(signal.signalChecking(tempSignal, signal.response))
+					System.out.println("서버가 명령을 확인했습니다.");
+				else if(signal.signalChecking(tempSignal, signal.wait))
+				{
+					System.out.println("서버가 바쁩니다. 잠시후에 다시 명령을 내려주세요.");
+					continue;
+				}					
+				else 
+					System.out.println("올바르지 않은 명령입니다.");
 			}
 			else
 			{
-				System.out.println("올바르지 않은 명령입니다.");
-				continue;
+				System.out.println("연결을 종료합니다.");
+				break;
 				//서버에서 날라오는 메시지 받기 끝내기
 				//연결이 종료되면 브로드캐스트는 죽는다. (예외 처리로 죽임 broadCastThread의 111.line)			
 			}
@@ -467,7 +525,20 @@ public class Client extends Thread {
 				else
 					System.out.println("카메라 프리뷰 전송 실패");
 			}
-			
+			else if(valueString.equals(signal.signalByteToString(signal.voice)))
+			{
+				synchronized (socketVoiceUsed) {
+					socketVoiceUsed.message = voiceByteArray;
+				}
+				System.out.println("음성 전송합니다. 크기는 : "+socketVoiceUsed.message.length);
+				
+				ByteArrayTransCeiver byteArrayTransCeiver = new ByteArrayTransCeiver(voiceTransCeiver);
+				if(byteArrayTransCeiver.TransCeiver() != null)
+					System.out.println("음성 전송 성공");
+				else
+					System.out.println("음성 전송 실패");
+			}
+
 			
 			//종료
 			else if(valueString.equals(signal.signalByteToString(signal.exitServer)))

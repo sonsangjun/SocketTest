@@ -37,7 +37,6 @@ package Sender;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,9 +51,6 @@ public class ServerThread extends Thread {
 	String yourName = new String(unname);
 	RoomData roomData = null;
 		
-	int waitTime = value.waitTime;
-	String fileName = value.fileName;
-	
 	Socket pushSocket;
 	Socket broadCastSocket;
 	Socket eventSocket;					//Socket부터
@@ -495,7 +491,6 @@ public class ServerThread extends Thread {
 				continue;				
 			}
 			//위치 목록 보내기
-			
 			
 			//카메라 시작
 			else if(signal.signalChecking(receiveSignal, signal.camera))

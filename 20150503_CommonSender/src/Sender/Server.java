@@ -29,7 +29,7 @@ public class Server {
 	ValueCollections value = new ValueCollections();
 	int waitTime = value.waitTime;
 	int portNum = value.portNum;
-	String fileName = value.fileName;		//서버 테스트 용으로 만듬
+	
 	
 	ServerSocket pushServerSocket;			//portNum : 8998
 	ServerSocket broadCastServerSocket;		//portNum : 8999
@@ -55,7 +55,7 @@ public class Server {
 	public void mainServer()
 	{
 		//일단 테스트 용이므로 테스트서버 메소드를 호출한다.
-		testServer(fileName);		
+		testServer();		
 	}
 	
 	//정식 서버
@@ -93,7 +93,7 @@ public class Server {
 	}
 	
 	//테스트 서버
-	public void testServer(String fileName)
+	public void testServer()
 	{		
 		try {
 			pushServerSocket = new ServerSocket(portNum-2);

@@ -143,21 +143,41 @@ public class SocketPushThread extends Thread{
 	public boolean testMethod()
 	{
 		FileOutputStream outputfile;
-		try {
-			outputfile = new FileOutputStream(value.fileName);			
-			outputfile.write(cameraByteArray);			
-			outputfile.flush();
-			outputfile.close();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return false;
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return false;
+		if(byteArrayTransCeiverRule.cameraVoice)
+		{
+			try {
+				outputfile = new FileOutputStream(value.imageFileName);			
+				outputfile.write(cameraByteArray);			
+				outputfile.flush();
+				outputfile.close();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return false;
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return false;
+			}
+			return true;
 		}
-		return true;
+		else
+		{
+			try {
+				outputfile = new FileOutputStream(value.voiceFileName);			
+				outputfile.write(voiceByteArray);			
+				outputfile.flush();
+				outputfile.close();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return false;
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return false;
+			}
+			return true;
+		}		
 	}
-
 }
