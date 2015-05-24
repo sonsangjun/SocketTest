@@ -349,16 +349,22 @@ public class Client extends Thread {
 			if(signal.signalStringToByte(valueString) == null || valueString.equals(signal.signalByteToString(signal.talk)))
 			{
 				signal.signalReCount(true);	//장난칠경우 3회까지 봐줌
-				socketEventUsed.socketEventUsed = true;
+				synchronized (socketEventUsed) {
+					socketEventUsed.socketEventUsed = true;
+				}				
 				if(signal.toDoRequest(signal.talk))
 				{
 					if(roomManage.clientsRequest(signal.talk, valueString, null))
 					{
-						socketEventUsed.socketEventUsed = false;
+						synchronized (socketEventUsed) {
+							socketEventUsed.socketEventUsed = false;
+						}						
 						continue;					
 					}				
 				}
-				socketEventUsed.socketEventUsed = false;
+				synchronized (socketEventUsed) {
+					socketEventUsed.socketEventUsed = false;	
+				}	
 				
 				if(signal.signalReCount(false))	//3회 이상 장난 칠경우 종료 시켜버림.
 					System.out.println("채팅 실패");						
@@ -453,7 +459,6 @@ public class Client extends Thread {
 				}
 				else if(valueString.equals(signal.signalByteToString(signal.joinRoom)))
 				{
-					socketEventUsed.socketEventUsed = true;
 					if(roomManage.clientsRequest(signal.joinRoom, inputRoomName, null))
 					{
 						synchronized (socketEventUsed) {
@@ -521,9 +526,6 @@ public class Client extends Thread {
 				}
 				
 				String inputRoomName = new String(" ");
-				synchronized (socketEventUsed) {
-					socketEventUsed.socketEventUsed = true;	
-				}
 				System.out.println("이름을 입력하세요.");
 				try {
 					inputRoomName = inputReader.readLine();
@@ -594,7 +596,7 @@ public class Client extends Thread {
 			//종료 끝
 		
 			synchronized (socketEventUsed) {
-				socketEventUsed.socketEventUsed = true;	
+				socketEventUsed.socketEventUsed = false;	
 			}
 		}
 	}
