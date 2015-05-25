@@ -9,8 +9,6 @@ import java.net.Socket;
 /////////////////////////////////////////////////////////////////////
 //79, 111 Line에 테스트 메소드 있습니다. 안드로이드 개발할때 지우던가 주석처리 해주세요/
 /////////////////////////////////////////////////////////////////////
-
-//20150521 카메라 프리뷰 스레드
 public class SocketPushThread extends Thread{
 	ValueCollections value = new ValueCollections();
 	boolean _server = false;	//서버 여부

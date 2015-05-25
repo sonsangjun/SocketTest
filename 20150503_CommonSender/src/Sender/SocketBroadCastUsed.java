@@ -14,6 +14,4 @@ public class SocketBroadCastUsed {
 		broadCastKill = false;
 		message = new String(nullString);
 	}
-	
-
 }

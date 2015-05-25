@@ -512,7 +512,7 @@ public class RoomManage {
 		if(talkString != null)
 		{
 			synchronized (socketBroadCastUsed) {
-				socketBroadCastUsed.message = new String("Client ID : "+this.clientID+" : <"+this.yourName+">"+talkString);
+				socketBroadCastUsed.message = new String("["+this.clientID+"]<"+this.yourName+"> "+talkString);
 			}
 			signal.toDoResponse(signal.talk);
 			return talkString;
