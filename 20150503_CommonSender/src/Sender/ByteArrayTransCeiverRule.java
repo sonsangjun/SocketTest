@@ -10,7 +10,7 @@ public class ByteArrayTransCeiverRule {
 	
 	//데이터 스트림 전송전에 초기화 시켜야 한다.
 	SocketCameraUsed socketCameraUsed;	//장치 사용중인지 체크
-	SocketVoiceUsed socketVoiceUsed;	//송수신할 데이터스트림을 포함하고 있다.(받는경우 전송된 데이터스트림, 이런경우 byte[]만 선언해서 넘겨주면 된다.)
+	SocketVoiceUsed socketVoiceUsed;	//송수신할 데이터스트림을 포함하고 있다.(받는경우 전송된 데이터스트림, 아마 for문으로 일일이 다 집어넣어야할듯.)
 	SocketPushUsed socketPushUsed;
 	
 	Socket cameraSocket;

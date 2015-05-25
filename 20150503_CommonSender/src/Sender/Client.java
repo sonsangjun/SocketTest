@@ -231,14 +231,7 @@ public class Client extends Thread {
 	//클라이언트가 서버에게 요청하는 부분
 	//방과 관련된게 아니면 null입력
 	//이 함수 호출하기 전에 ClientSharedData.inputUsed = true;로 바꾸고 호출끝나면 false로바꿈
-	
-
-	
-	
-	
-	
-	
-	
+		
 	//!!테스트 메소드!!
 	//!!Test 메소드!!
 	public void test_II()
@@ -317,7 +310,7 @@ public class Client extends Thread {
 			System.out.println(signal.signalByteToString(signal.locationList)+" 위치 현황");
 			System.out.println(value.downLine);
 			
-			System.out.printf("["+this.roomName+"] ("+this.yourName+")>");
+			System.out.printf("["+this.roomName+"]["+this.clientID+"]("+this.yourName+")>");
 			try {
 				valueString = inputReader.readLine();	//안드로이드라면 직접 value를 입력해 스레드에게 갖다주는 식으로 변형하면 될듯.
 			} catch (IOException e) {
@@ -580,7 +573,7 @@ public class Client extends Thread {
 				synchronized (socketCameraUsed) {
 					socketCameraUsed.message = cameraByteArray;
 				}
-				System.out.println("카메라 프리뷰 전송합니다. 사이즈는 :"+ socketCameraUsed.message.length);
+				System.out.println("카메라 프리뷰 전송합니다. 사이즈는 :"+ socketCameraUsed.message.length+"Byte");
 				
 				ByteArrayTransCeiver byteArrayTransCeiver = new ByteArrayTransCeiver(cameraTransCeiver);
 				if(byteArrayTransCeiver.TransCeiver() != null)
@@ -593,7 +586,7 @@ public class Client extends Thread {
 				synchronized (socketVoiceUsed) {
 					socketVoiceUsed.message = voiceByteArray;
 				}
-				System.out.println("음성 전송합니다. 크기는 : "+socketVoiceUsed.message.length);
+				System.out.println("음성 전송합니다. 크기는 : "+socketVoiceUsed.message.length+"Byte");
 				
 				ByteArrayTransCeiver byteArrayTransCeiver = new ByteArrayTransCeiver(voiceTransCeiver);
 				if(byteArrayTransCeiver.TransCeiver() != null)
