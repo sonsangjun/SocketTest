@@ -573,7 +573,7 @@ public class Client extends Thread {
 				synchronized (socketCameraUsed) {
 					socketCameraUsed.message = cameraByteArray;
 				}
-				System.out.println("카메라 프리뷰 전송합니다. 사이즈는 :"+ socketCameraUsed.message.length);
+				System.out.println("카메라 프리뷰 전송합니다. 사이즈는 :"+ socketCameraUsed.message.length+"Byte");
 				
 				ByteArrayTransCeiver byteArrayTransCeiver = new ByteArrayTransCeiver(cameraTransCeiver);
 				if(byteArrayTransCeiver.TransCeiver() != null)
@@ -586,7 +586,7 @@ public class Client extends Thread {
 				synchronized (socketVoiceUsed) {
 					socketVoiceUsed.message = voiceByteArray;
 				}
-				System.out.println("음성 전송합니다. 크기는 : "+socketVoiceUsed.message.length);
+				System.out.println("음성 전송합니다. 크기는 : "+socketVoiceUsed.message.length+"Byte");
 				
 				ByteArrayTransCeiver byteArrayTransCeiver = new ByteArrayTransCeiver(voiceTransCeiver);
 				if(byteArrayTransCeiver.TransCeiver() != null)

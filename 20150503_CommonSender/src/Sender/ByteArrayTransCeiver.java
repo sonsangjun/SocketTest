@@ -274,9 +274,17 @@ public class ByteArrayTransCeiver {
 		//데이터를 받았다.
 		//받은 데이터 스트림을 반환한다.
 		if(byteArrayTransCeiverRule.cameraVoice)
+		{
+			byteArrayTransCeiverRule.socketCameraUsed.message = fileByteArray;
 			return fileByteArray;
+		}
 		else
-			return fileByteArray;
+		{
+			byteArrayTransCeiverRule.socketVoiceUsed.message = fileByteArray;
+			return fileByteArray; 
+		}
+			
+
 	}
 
 	
@@ -372,19 +380,7 @@ public class ByteArrayTransCeiver {
 			System.out.println("Client ID : "+byteArrayTransCeiverRule.clientID+" 로 부터 데이터 스트림을 못 받았습니다.");
 			return null;
 		}
-		
-		
-		//테스트 서버가 확실히 그림을 받았는지 확인해야 겠음
-		try {
-			FileOutputStream testOutput = new FileOutputStream("test.jpg");
-			testOutput.write(fileByteArray);
-			testOutput.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		
+				
 		//여기까지는 클라에게 서버가 파일 받는거고(정확히는 데이터스트림)
 		//아래부터는 서버가 클라이언트에게 뿌린다.		
 		while(true)

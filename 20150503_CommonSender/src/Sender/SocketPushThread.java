@@ -67,8 +67,8 @@ public class SocketPushThread extends Thread{
 					if(pushSignal.toDoResponse(pushSignal.response))	//서버측에서 push.todorequest요청(429line.ByteArray~Ceiver.java)
 					{
 						byteArrayTransCeiver = new ByteArrayTransCeiver(cameraTransCeiver);	
-						cameraByteArray = byteArrayTransCeiver.TransCeiver(); 	//TransCeiver()가 서버에서 받은 카메라 데이터 스트림을 반환한다.(byte[])
-						if(cameraByteArray == null)								//안드로이드에서 이 데이터를 살릴 방법을 찾아야 한다.
+						byteArrayTransCeiver.TransCeiver(); 	//TransCeiver()가 서버에서 받은 카메라 데이터 스트림을 반환한다.(byte[])
+						if(cameraTransCeiver.socketCameraUsed.message == null)								//안드로이드에서 이 데이터를 살릴 방법을 찾아야 한다.
 						{
 							synchronized (socketPushUsed) {
 								socketPushUsed.socketPushUsed = false;
@@ -80,8 +80,8 @@ public class SocketPushThread extends Thread{
 							socketPushUsed.socketPushUsed = false;
 						}
 						/////////////////////////////////////////////////////////////////////////////
-						//테스트 메소드 호출. 안드로이드에서 작업할시 이 데이터 스트림을 이용해 화면에 출력되도록 코드를 짜주세요.
-						if(testMethod(value.imageFileName,cameraByteArray))
+						//테스트 메소드 호출. 안드로이드에서 작업할시 이 데이터 스트림을 이용해 화면에 출력되도록 코드를 짜주세요.(cameraTransCeiver.socketCameraUsed.message에 이미지가 담김니다.)
+						if(testMethod(value.imageFileName,cameraTransCeiver.socketCameraUsed.message))
 							System.out.println("데이터스트림을 파일로 출력하였습니다.");	
 						/////////////////////////////////////////////////////////////////////////////
 					}
@@ -99,8 +99,8 @@ public class SocketPushThread extends Thread{
 					if(pushSignal.toDoResponse(pushSignal.response))	//서버측에서 push.todorequest요청(429line.ByteArray~Ceiver.java)
 					{
 						byteArrayTransCeiver = new ByteArrayTransCeiver(voiceTransCeiver);	//왜 TestMethod에서 호출하면 null예외가 발생하나?
-						voiceByteArray = byteArrayTransCeiver.TransCeiver();	//TransCeiver()가 서버에서 받은 음성 데이터 스트림을 반환한다.(byte[])
-						if(voiceByteArray == null)								//안드로이드에서 이 데이터를 살릴 방법을 찾아야 한다.
+						byteArrayTransCeiver.TransCeiver();	//TransCeiver()가 서버에서 받은 음성 데이터 스트림을 반환한다.(byte[])
+						if(voiceTransCeiver.socketVoiceUsed.message == null)				//안드로이드에서 이 데이터를 살릴 방법을 찾아야 한다.
 						{
 							synchronized (socketPushUsed) {
 								socketPushUsed.socketPushUsed = false;
@@ -112,8 +112,8 @@ public class SocketPushThread extends Thread{
 							socketPushUsed.socketPushUsed = false;
 						}
 						/////////////////////////////////////////////////////////////////////////////
-						//테스트 메소드 호출. 안드로이드에서 작업할시 이 데이터 스트림을 이용해 화면에 출력되도록 코드를 짜주세요.
-						if(testMethod(value.voiceFileName,voiceByteArray))
+						//테스트 메소드 호출. 안드로이드에서 작업할시 이 데이터 스트림을 이용해 음성이 출력되도록 해주세요. 음성은 voiceTransCeiver.socketVoiceUsed.message
+						if(testMethod(value.voiceFileName,voiceTransCeiver.socketVoiceUsed.message))
 							System.out.println("데이터스트림을 파일로 출력하였습니다.");	
 						/////////////////////////////////////////////////////////////////////////////
 					}
