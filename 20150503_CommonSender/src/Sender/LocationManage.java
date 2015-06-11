@@ -241,6 +241,11 @@ public class LocationManage extends Thread{
 			e.printStackTrace();
 			return false;
 		}
+		catch (java.lang.NullPointerException e)
+		{
+			System.out.println("LocationManage.serverListSender() null예외");
+			return false;
+		}
 		return true;
 	}
 	
