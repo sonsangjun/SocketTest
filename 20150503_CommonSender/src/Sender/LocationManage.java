@@ -70,8 +70,7 @@ public class LocationManage extends Thread{
 							try {
 								Thread.sleep(value.coolTime);
 							} catch (InterruptedException e) {
-								System.out.println("LocationManage 예외, exception : "+e.getMessage());
-								e.printStackTrace();
+								System.out.println("LocationManage.run() (if(signal.toCatchResponse==true)인터럽트예외, exception : "+e.getMessage());
 							}
 							cycle = !cycle;						
 						}
@@ -84,7 +83,7 @@ public class LocationManage extends Thread{
 							try {
 								Thread.sleep(value.coolTime);
 							} catch (InterruptedException e) {
-								System.out.println("Location중 LocationManage 예외, exception : "+e.getMessage());
+								System.out.println("LocationManage.run() (else) 인터럽트예외, exception : "+e.getMessage());
 								e.printStackTrace();
 							}	
 							cycle = !cycle;								
@@ -111,8 +110,7 @@ public class LocationManage extends Thread{
 							try {
 								Thread.sleep(value.coolTime);
 							} catch (InterruptedException e) {
-								System.out.println("LocationList중 LocationManage 예외, exception : "+e.getMessage());
-								e.printStackTrace();
+								System.out.println("LocationManage.run() 예외, exception : "+e.getMessage());								
 							}
 							cycle = !cycle;								
 						}
@@ -125,8 +123,7 @@ public class LocationManage extends Thread{
 							try {
 								Thread.sleep(value.coolTime);
 							} catch (InterruptedException e) {
-								System.out.println("Location중 LocationManage 예외, exception : "+e.getMessage());
-								e.printStackTrace();
+								System.out.println("LocationManage.run() 인터럽트예외, exception : "+e.getMessage());
 							}	
 							cycle = !cycle;							
 						}					
@@ -153,14 +150,12 @@ public class LocationManage extends Thread{
 				outputLocation.flush();					
 			}		
 		} catch (java.net.SocketException e) {
-			System.out.println("소켓이 리셋된거 같아요.");
-			e.printStackTrace();
+			System.out.println("LocationManage.clientsender() SocketException 발생");
 			return false;
 		} 
 		
 		catch (IOException e) {
-			System.out.println("서버에게 위치정보 전송 실패");
-			e.printStackTrace();
+			System.out.println("LocationManage.clientsender() IOException발생");
 			return false;
 		}
 		return true;
@@ -178,13 +173,11 @@ public class LocationManage extends Thread{
 			locationList.latitude = temp.latitude;
 			locationList.longitude= temp.longitude;
 		}catch (java.net.SocketException e) {
-			System.out.println("소켓이 리셋된거 같아요.");
-			e.printStackTrace();
+			System.out.println("LocationManage.clientListReceiver() SocketException 발생");
 			return null;
 		}
 		catch (ClassNotFoundException | IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("LocationManage.clientListReceiver() ClassNotFound or IO Exception 발생");
 			return null;
 		}
 		return locationList;		
@@ -208,13 +201,11 @@ public class LocationManage extends Thread{
 			}
 			return clientLocation;	//혹시 필요할지도 모르니 리턴한다.
 		}catch (java.net.SocketException e) {
-			System.out.println("소켓이 리셋된거 같아요.");
-			e.printStackTrace();
+			System.out.println("LocationManage.serverReceiver() SocketException 발생");
 			return null;
 		}
 		catch (IOException | ClassNotFoundException e) {
-			System.out.println("클라이언트로부터 위치정보 못받음");
-			e.printStackTrace();
+			System.out.println("LocationManage.serverReceiver() SocketException IO or ClassNotFound Exception 발생");
 			return null;
 		}				
 	}	
@@ -224,21 +215,24 @@ public class LocationManage extends Thread{
 	public boolean serverListSender()
 	{		
 		ObjectOutputStream outputLocationList = null;
-		locationList = new RoomDataToArray(roomData.clientManage.clientID, roomData.clientManage.latitude, roomData.clientManage.longitude);
 		try {
+			locationList = new RoomDataToArray(roomData.clientManage.clientID, roomData.clientManage.latitude, roomData.clientManage.longitude);
 			outputLocationList = new ObjectOutputStream(eventSocket.getOutputStream());
 			synchronized (roomData) {
 				outputLocationList.writeObject(locationList);
 				outputLocationList.flush();				
 			}			
 		}catch (java.net.SocketException e) {
-			System.out.println("소켓이 리셋된거 같아요.");
-			e.printStackTrace();
+			System.out.println("LocationManage.serverListSender() SocketException발생");
 			return false;
 		}
 		catch (IOException e) {
-			System.out.println(roomData.roomName+" 방의 위치 정보 전송 못함");
-			e.printStackTrace();
+			System.out.println("LocationManage.serverListSender() IOException발생");
+			return false;
+		}
+		catch(java.lang.NullPointerException e)
+		{
+			System.out.println("LocationManage.serverListSender() NullException발생 ");
 			return false;
 		}
 		return true;

@@ -22,7 +22,6 @@ import java.net.Socket;
  * 	Server(String fileName,int waitTime, int PortNum, int fileSizeIndex)	테스트 생성자
  * 	public void mainServer()												서버의 시작점
  * 	public void standardServer()											정식 서버 메소드
- * 	public void testServer(String fileName)									테스트 서버 메소드
  * 
  */
 public class Server {
@@ -55,45 +54,10 @@ public class Server {
 	public void mainServer()
 	{
 		//일단 테스트 용이므로 테스트서버 메소드를 호출한다.
-		testServer();		
+		standardServer();		
 	}
 	
-	//정식 서버
 	public void standardServer()
-	{
-		try {
-			pushServerSocket = new ServerSocket(portNum-2);
-			broadCastServerSocket = new ServerSocket(portNum-1);
-			eventServerSocket = new ServerSocket(portNum);
-			cameraServerSocket = new ServerSocket(portNum+1);
-			voiceServerSocket = new ServerSocket(portNum+2);			
-		} catch (IOException e1) {
-			System.out.println("서버 소켓 생성중 예외");
-			e1.printStackTrace();
-			return ;
-		}
-		
-		while(true)
-		{
-			try {
-				pushSocket = pushServerSocket.accept();
-				broadCastSocket = broadCastServerSocket.accept();
-				eventSocket = eventServerSocket.accept();
-				cameraSocket = cameraServerSocket.accept();
-				voiceSocket = voiceServerSocket.accept();
-				
-				Thread serverThread = new ServerThread(pushSocket, broadCastSocket, eventSocket, cameraSocket, voiceSocket);
-				
-				serverThread.start();				
-			} catch (IOException e) {
-				e.printStackTrace();
-			}			
-		}	
-		
-	}
-	
-	//테스트 서버
-	public void testServer()
 	{		
 		try {
 			pushServerSocket = new ServerSocket(portNum-2);
@@ -111,24 +75,23 @@ public class Server {
 			System.out.println("서버 연결 대기중");
 			try{
 				pushSocket = pushServerSocket.accept();
-				System.out.println("pushServerSocket연결성공");
-				
 				broadCastSocket = broadCastServerSocket.accept();
-				System.out.println("broadCastServerSocket연결성공");
-				
 				eventSocket = eventServerSocket.accept();
-				System.out.println("eventSocket연결성공");
-				
 				cameraSocket = cameraServerSocket.accept();
-				System.out.println("cameraSocket연결성공");
-				
 				voiceSocket = voiceServerSocket.accept();
-				System.out.println("voiceSocket연결성공");
+				
+				pushSocket.setSoTimeout(value.MaxWaitTime);
+				broadCastSocket.setSoTimeout(value.MaxWaitTime);
+				eventSocket.setSoTimeout(value.MaxWaitTime);
+				cameraSocket.setSoTimeout(value.MaxWaitTime);
+				voiceSocket.setSoTimeout(value.MaxWaitTime);
 				
 				Thread serverThread = new ServerThread(pushSocket, broadCastSocket, eventSocket, cameraSocket, voiceSocket);
 				serverThread.start();
+				System.out.println("Client "+pushSocket.getInetAddress().getHostAddress()+" 와 연결성공");
+				
 			}catch(IOException e) {
-				System.out.println("테스트 서버 IO예외 발생 "+e.getMessage());
+				System.out.println("서버에서 IO예외 발생 "+e.getMessage());
 				e.printStackTrace();
 				return ;
 			}

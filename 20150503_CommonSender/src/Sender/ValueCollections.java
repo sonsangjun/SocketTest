@@ -16,6 +16,7 @@ public class ValueCollections {
 	//final String ServerIP = "192.168.0.3";	//사설IP 서버
 	final int waitTime = 100;					//정말 기다려야 하는 시간
 	final int coolTime = 10000;					//위치 정보등을 받는 주기(interval)
+	final int MaxWaitTime = 60000;				//입력 없을때, 최대 대기시간 60초
 	final int portNum = 9000;
 	final int packetSize = 1;					//한번에 얼마나 보낼지 (기본 1Byte)
 	

@@ -63,10 +63,10 @@ public class SocketBroadCastThread extends Thread{
 							B.newLine();
 							B.flush();			
 						} catch (java.net.SocketException e) {
-							System.out.println("BroadCast Server 예외 발생 (연결문제있는 Client있습니다.)exception : "+e.getMessage());
+							System.out.println("SocketBroadCastThread.run() (메시지 보내는 도중) SocketException발생 : "+e.getMessage());
 							continue;
 						} catch (IOException e) {
-							e.printStackTrace();						
+							System.out.println("SocketBroadCastThread.run() (메시지 보내는 도중) IOException발생 : "+e.getMessage());					
 							continue;
 						}
 					}
@@ -111,11 +111,11 @@ public class SocketBroadCastThread extends Thread{
 					}						
 				}								
 			} catch (IOException | InterruptedException e) {
-				System.out.println("BroadCast 예외 발생 Client 재시작하세요. exception : "+e.getMessage());
+				System.out.println("SocketBroadCastThread.run() (클라이언트 메소드) IO or Interrupted Exception발생 : "+e.getMessage());
 				e.printStackTrace();
 				return ;
 			} catch (java.lang.NullPointerException e) {
-				System.out.println("BroadCast 예외 발생 Client 재시작하세요. exception : "+e.getMessage());
+				System.out.println("SocketBroadCastThread.run() (클라이언트 메소드) NullPointerException발생 : "+e.getMessage());
 				e.printStackTrace();
 				return ;
 			}

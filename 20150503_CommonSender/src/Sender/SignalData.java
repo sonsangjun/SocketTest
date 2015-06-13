@@ -202,15 +202,14 @@ public class SignalData {
 		try {
 			input.read(temp);
 		}catch (java.net.SocketException e) {
-			System.out.println("소켓이 리셋된거 같아요.");
-			e.printStackTrace();
+			System.out.println("SignalData.receiveSignalToByteArray() SocketException발생");
 			return wrong;
 		} catch (java.lang.NullPointerException e)
 		{
 			System.out.println("signal초기화가 필요합니다.(SignalData의 initial()호출바람) exception : "+e.getMessage());
-			e.printStackTrace();
 			return wrong;
 		}catch (IOException e) {
+			System.out.println("SignalData.receiveSignalToByteArray() IOException발생");
 			return wrong;
 		}
 		
@@ -237,35 +236,29 @@ public class SignalData {
 			output.write(wantSignal);		
 			output.flush();
 		}catch (java.net.SocketException e) {
-			System.out.println("소켓이 리셋된거 같아요.");
-			e.printStackTrace();
+			System.out.println("SignalData.toDoRequest() SocketException발생");
 			return false;
 		}
 		catch (IOException e) {
-			System.out.println("Request 예외");
-			e.printStackTrace();
+			System.out.println("SignalData.toDoRequest() IOException발생");
 			return false;
 		}catch (java.lang.NullPointerException e)
 		{
 			System.out.println("signal초기화가 필요합니다.(SignalData의 initial()호출바람");
-			e.printStackTrace();
 			return false;
 		}
 		
 		try {
 			input.read(signalByte);
 		}catch (java.net.SocketException e) {
-			System.out.println("소켓이 리셋된거 같아요.");
-			e.printStackTrace();
+			System.out.println("SignalData.toDoRequest() input도중 SocketException 발생");
 			return false;
 		} catch (IOException e) {
-			System.out.println("Request의 response예외");
-			e.printStackTrace();
+			System.out.println("SignalData.toDoRequest() input도중 IOException 발생");
 			return false;
 		} catch (java.lang.NullPointerException e)
 		{
 			System.out.println("signal초기화가 필요합니다.(SignalData의 initial()호출바람");
-			e.printStackTrace();
 			return false;
 		}				
 		
@@ -289,17 +282,14 @@ public class SignalData {
 		try {
 			input.read(signalByte);
 		}catch (java.net.SocketException e) {
-			System.out.println("소켓이 리셋된거 같아요.");
-			e.printStackTrace();
+			System.out.println("SignalData.toAccept() input도중 SocketException 발생");
 			return false;
 		} catch (IOException e) {
-			System.out.println("response 소켓 입력대기중 예외");
-			e.printStackTrace();
+			System.out.println("SignalData.toAccept() input도중 IOException 발생");
 			return false;
 		} catch (java.lang.NullPointerException e)
 		{
 			System.out.println("signal초기화가 필요합니다.(SignalData의 initial()호출바람");
-			e.printStackTrace();
 			return false;
 		}
 		
@@ -309,17 +299,14 @@ public class SignalData {
 				output.write(response);
 				output.flush();
 			}catch (java.net.SocketException e) {
-				System.out.println("소켓이 리셋된거 같아요.");
-				e.printStackTrace();
+				System.out.println("SignalData.toAccept() signalChecking중 SocketException 발생");
 				return false;
 			} catch (IOException e) {
-				System.out.println("response중 소켓 response보냄 예외");
-				e.printStackTrace();
+				System.out.println("SignalData.toAccept() signalChecking중 IOException 발생");
 				return false;
 			} catch (java.lang.NullPointerException e)
 			{
 				System.out.println("signal초기화가 필요합니다.(SignalData의 initial()호출바람");
-				e.printStackTrace();
 				return false;
 			}
 			return true;
@@ -331,17 +318,14 @@ public class SignalData {
 				output.write(wrong);
 				output.flush();	
 			}catch (java.net.SocketException e) {
-				System.out.println("소켓이 리셋된거 같아요.");
-				e.printStackTrace();
+				System.out.println("SignalData.toAccept() output중 SocketException 발생");
 				return false;
 			} catch (IOException e) {
-				System.out.println("response중 wrong보냄 예외");
-				e.printStackTrace();
+				System.out.println("SignalData.toAccept() output중 IOException 발생");
 			}
 			catch (java.lang.NullPointerException e)
 			{
 				System.out.println("signal초기화가 필요합니다.(SignalData의 initial()호출바람");
-				e.printStackTrace();				
 			}
 			return false;
 		}
@@ -355,18 +339,15 @@ public class SignalData {
 			output.flush();
 			return true;
 		}catch (java.net.SocketException e) {
-			System.out.println("소켓이 리셋된거 같아요.");
-			e.printStackTrace();
+			System.out.println("SignalData.toDoResponse() output중 SocketException 발생");
 			return false;
 		} catch (IOException e) {
-			System.out.println("toConfirm(요청에대한 응답)실패");
-			e.printStackTrace();
+			System.out.println("SignalData.toDoResponse() output중 IOException 발생");
 			return false;
 		}
 		catch (java.lang.NullPointerException e)
 		{
 			System.out.println("signal초기화가 필요합니다.(SignalData의 initial()호출바람");
-			e.printStackTrace();
 			return false;
 		}
 	}
@@ -382,17 +363,14 @@ public class SignalData {
 			else
 				return false;
 		}catch (java.net.SocketException e) {
-			System.out.println("소켓이 리셋된거 같아요.");
-			e.printStackTrace();
+			System.out.println("SignalData.toCatchResponse() input중 SocketException 발생");
 			return false;
 		} catch (IOException e) {
-			System.out.println("toDoResponse신호 받는데 예외");
-			e.printStackTrace();
+			System.out.println("SignalData.toCatchResponse() input중 IOException 발생");
 			return false;
 		} catch (java.lang.NullPointerException e)
 		{
 			System.out.println("signal초기화가 필요합니다.(SignalData의 initial()호출바람");
-			e.printStackTrace();
 			return false;
 		}
 		
