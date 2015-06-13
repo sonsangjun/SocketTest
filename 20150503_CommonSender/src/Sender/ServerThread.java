@@ -102,7 +102,7 @@ public class ServerThread extends Thread {
 			
 			try {
 				eventInput = new BufferedInputStream(eventSocket.getInputStream());
-				eventOutput = new BufferedOutputStream(eventSocket.getOutputStream());
+				eventOutput = new BufferedOutputStream(eventSocket.getOutputStream());				
 			} catch (IOException e) {
 				System.out.println("버퍼 예외");
 				e.printStackTrace();
@@ -196,6 +196,8 @@ public class ServerThread extends Thread {
 			}				
 		}
 		System.out.println("클라이언트에게 ID할당하는데 실패했습니다.");
+		System.out.println(pushSocket.getInetAddress().getHostAddress()+"스레드를 종료합니다.");
+		exitServer();
 		return false;				
 	}
 	
@@ -511,6 +513,10 @@ public class ServerThread extends Thread {
 					socketCameraUsed.socketCameraUsed = true;	//나중에 스레드에서 락을 알아서 풀기 때문에 상관없다.					
 				}			
 				
+				synchronized (socketBroadCastUsed) {
+					socketBroadCastUsed.message= new String("Client ID : "+this.clientID+" 카메라 이미지 전송합니다.");
+				}	
+				
 				//여기에 선언한다. 
 				ByteArrayTransCeiverRule byteArrayTransCeiverRule;
 				byteArrayTransCeiverRule = new ByteArrayTransCeiverRule(clientID, socketCameraUsed, socketPushUsed, roomData);
@@ -538,6 +544,10 @@ public class ServerThread extends Thread {
 					socketVoiceUsed.socketVoiceUsed = true;	//나중에 스레드에서 락을 알아서 풀기 때문에 상관없다.						
 				}
 				
+				synchronized (socketBroadCastUsed) {
+					socketBroadCastUsed.message= new String("Client ID : "+this.clientID+" 무전 전송합니다.");
+				}	
+				
 				//여기에 선언한다. 
 				ByteArrayTransCeiverRule byteArrayTransCeiverRule;
 				byteArrayTransCeiverRule = new ByteArrayTransCeiverRule(clientID, false, socketVoiceUsed, socketPushUsed, roomData);
@@ -555,6 +565,9 @@ public class ServerThread extends Thread {
 			//클라이언트와 연결이 끊어진 경우
 			else	
 			{
+				synchronized (socketBroadCastUsed) {
+					socketBroadCastUsed.message= new String("Client ID : "+this.clientID+" 연결이 끊어졌습니다.");
+				}				
 				break;
 			}
 		}
