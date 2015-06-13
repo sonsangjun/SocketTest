@@ -89,8 +89,7 @@ public class ServerThread extends Thread {
 	//!!핵심!!
 	//스레드 코어(이 부분을 작성해야 서버 스레드가 돌아간다.)
 		public void run()
-		{
-			System.out.println(eventSocket.getInetAddress().getHostName()+"과 연결되었습니다.");
+		{			
 			if(roomDataList.size() < 1)
 			{
 				synchronized (roomDataList) {
@@ -139,7 +138,7 @@ public class ServerThread extends Thread {
 				int totalLogin = 0;
 				roomManage = new RoomManage(yourName, this.clientID, pushSocket ,broadCastSocket, eventSocket, cameraSocket, voiceSocket, roomDataList, signal, socketBroadCastUsed, socketBroadCastThread);
 				
-				System.out.println("방에 참여한 인원은 ");				
+				System.out.println("현재 방 현황 ");				
 				for(RoomData R:roomDataList)
 				{
 					System.out.println(R.roomName+" : "+R.clientManage.clientID.size()+" 명");
@@ -147,7 +146,7 @@ public class ServerThread extends Thread {
 				}
 									
 				
-				System.out.println("총 접속자수는 "+totalLogin);
+				System.out.println("총 접속자 ["+totalLogin+"]");
 			}
 			System.out.println(value.downLine);
 			//여기부터 서버에서 사용될 메소드 호출

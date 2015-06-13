@@ -235,11 +235,6 @@ public class LocationManage extends Thread{
 			System.out.println("LocationManage.serverListSender() NullException발생 ");
 			return false;
 		}
-		catch (java.lang.NullPointerException e)
-		{
-			System.out.println("LocationManage.serverListSender() null예외");
-			return false;
-		}
 		return true;
 	}
 	
