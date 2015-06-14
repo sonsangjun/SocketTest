@@ -207,7 +207,11 @@ public class LocationManage extends Thread{
 		catch (IOException | ClassNotFoundException e) {
 			System.out.println("LocationManage.serverReceiver() SocketException IO or ClassNotFound Exception 발생");
 			return null;
-		}				
+		}catch(java.lang.NullPointerException e) {
+			System.out.println("LocationManage.serverReceiver() NullPointerException 발생	");
+			return null;
+		}
+		
 	}	
 	
 	//방에 참가한 인원의 위치 정보를 보내는자.
