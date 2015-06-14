@@ -240,7 +240,5 @@ public class LocationManage extends Thread{
 			return false;
 		}
 		return true;
-	}
-	
-	
+	}	
 }
