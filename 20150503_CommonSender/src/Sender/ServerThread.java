@@ -239,7 +239,11 @@ public class ServerThread extends Thread {
 			
 			//소켓이 닫히면 연결종료
 			if(eventSocket.isClosed())
+			{
+				System.out.println("Client ID : "+this.clientID+" EventSocket닫힘");
 				break;
+			}
+				
 			
 			//event소켓이 사용중이면 대기
 			if(socketEventUsed.socketEventUsed)
@@ -454,6 +458,16 @@ public class ServerThread extends Thread {
 				synchronized (socketEventUsed) {
 					socketEventUsed.socketEventUsed = true;
 				}
+				//만약 방을 안만들었다면 wrong을 보낸다. 서버측 LocationManage에서 null예외 발생해서.
+				if(roomData == null)
+				{
+					signal.toDoResponse(signal.wrong);
+					synchronized (socketEventUsed) {
+						socketEventUsed.socketEventUsed = false;
+					}
+					continue;
+				}
+				
 				//신호를 받았다는 응답을 보낸다. 아래 메소드가 false를 반환하면 클라와 연결이 끊긴것이다.
 				if(!signal.toDoResponse(signal.response))	break;
 				//신호 응답 끝			
@@ -482,6 +496,17 @@ public class ServerThread extends Thread {
 					socketEventUsed.socketEventUsed = true;
 				}
 				//신호를 받았다는 응답을 보낸다. 아래 메소드가 false를 반환하면 클라와 연결이 끊긴것이다.
+				//만약 방을 안만들었다면 wrong을 보낸다. 서버측 LocationManage에서 null예외 발생해서.
+				if(roomData == null)
+				{
+					signal.toDoResponse(signal.wrong);
+					synchronized (socketEventUsed) {
+						socketEventUsed.socketEventUsed = false;
+					}
+					continue;
+				}
+					
+				
 				if(!signal.toDoResponse(signal.response))	break;
 				//신호 응답 끝	
 				
@@ -495,14 +520,24 @@ public class ServerThread extends Thread {
 				}
 				continue;				
 			}
-			//위치 목록 보내기
+			//위치 목록 보내기 끝
+			
 			
 			//카메라 시작
 			else if(signal.signalChecking(receiveSignal, signal.camera))
 			{
 				//카메라가 이미 사용중이라면 wrong 반환
 				if(socketCameraUsed.socketCameraUsed)
-					signal.toDoResponse(signal.wrong);
+				{
+					if(roomData == null)
+					{
+						signal.toDoResponse(signal.wrong);
+						synchronized (socketEventUsed) {
+							socketEventUsed.socketEventUsed = false;
+						}
+						continue;
+					}
+				}
 				
 				//신호를 받았다는 응답을 보낸다. 아래 메소드가 false를 반환하면 클라와 연결이 끊긴것이다.
 				if(!signal.toDoResponse(signal.response))	break;
@@ -533,7 +568,16 @@ public class ServerThread extends Thread {
 			{
 				//음성이 사용중이면 wrong 반환
 				if(socketVoiceUsed.socketVoiceUsed)
-					signal.toDoResponse(signal.wrong);
+				{
+					if(roomData == null)
+					{
+						signal.toDoResponse(signal.wrong);
+						synchronized (socketEventUsed) {
+							socketEventUsed.socketEventUsed = false;
+						}
+						continue;
+					}
+				}
 				
 				//신호를 받았다는 응답을 보낸다. 아래 메소드가 false를 반환하면 클라와 연결이 끊긴것이다.
 				if(!signal.toDoResponse(signal.response))	break;
