@@ -456,7 +456,10 @@ public class ServerThread extends Thread {
 				}
 				//만약 방을 안만들었다면 wrong을 보낸다. 서버측 LocationManage에서 null예외 발생해서.
 				if(roomData == null)
+				{
 					signal.toDoResponse(signal.wrong);
+					continue;
+				}
 				
 				//신호를 받았다는 응답을 보낸다. 아래 메소드가 false를 반환하면 클라와 연결이 끊긴것이다.
 				if(!signal.toDoResponse(signal.response))	break;
@@ -488,7 +491,11 @@ public class ServerThread extends Thread {
 				//신호를 받았다는 응답을 보낸다. 아래 메소드가 false를 반환하면 클라와 연결이 끊긴것이다.
 				//만약 방을 안만들었다면 wrong을 보낸다. 서버측 LocationManage에서 null예외 발생해서.
 				if(roomData == null)
+				{
 					signal.toDoResponse(signal.wrong);
+					continue;
+				}
+					
 				
 				if(!signal.toDoResponse(signal.response))	break;
 				//신호 응답 끝	
