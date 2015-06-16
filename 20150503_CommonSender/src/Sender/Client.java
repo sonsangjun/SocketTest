@@ -3,18 +3,12 @@ package Sender;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Scanner;
-
-import javax.sound.midi.VoiceStatus;
 
 //20150511
 //클라이언트는 요청 뿐만 아니라 위치 정보등을 받아야 하므로 input , output에 대한 스레드를 만들어야 한다.
@@ -368,7 +362,7 @@ public class Client extends Thread {
 				}								
 			}
 			//명령어 잘못 입력은 채팅으로 끝				
-			
+						
 			//////////////////////////////////////////////////////////////////////////////
 			//테스트(무작위 위치 정보 제공)														//
 			synchronized (myLocation) {													//
@@ -421,7 +415,11 @@ public class Client extends Thread {
 					continue;
 				}					
 				else 
+				{
 					System.out.println("올바르지 않은 명령입니다.");
+					continue;
+				}
+					
 			}
 			else
 			{
@@ -580,6 +578,11 @@ public class Client extends Thread {
 					System.out.println("카메라 프리뷰 전송 성공");			
 				else
 					System.out.println("카메라 프리뷰 전송 실패");
+				//재승이 요청으로 날코드로 한줄 추가(대응되는 코드는 SocketPushThread의 서버측 signal.toDoResponse(signal.camera)
+				SignalData cameraSignal = new SignalData(cameraSocket);
+				cameraSignal.initial();
+				if(cameraSignal.toCatchResponse(signal.camera))
+					System.out.println("Client ID : "+this.clientID+" 서버가 모든 클라이언트에게 사진을 전송했습니다.");
 			}
 			else if(valueString.equals(signal.signalByteToString(signal.voice)))
 			{

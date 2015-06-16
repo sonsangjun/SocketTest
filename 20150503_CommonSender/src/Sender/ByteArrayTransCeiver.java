@@ -2,11 +2,7 @@ package Sender;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.Socket;
-import java.util.ArrayList;
 
 //서버,클라이언트 스레드와 독립적으로 돌아감 .
 //크기가 큰 카메라프리뷰나 음성 송수신에 사용.

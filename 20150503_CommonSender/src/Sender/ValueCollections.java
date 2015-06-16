@@ -24,7 +24,7 @@ public class ValueCollections {
 	final double BasicLongitude = 126.851568;	//기본 경도
 	
 	final boolean _Server = false;				//코드가 서버로 작동하는 경우 true
-	final boolean _ClientByteArray = false;		//클라이언트가 byteArray를 제공하는지.(Top.java테스트)
+	final boolean _ClientByteArray = true;		//클라이언트가 byteArray를 제공하는지.(Top.java테스트)
 	final String imageFileName = "test.jpeg";	//카메라 프리뷰 이미지 전송이 파일 전송과 비슷하므로(테스트 변수)
 	final String voiceFileName = "test.mp3";	//음성 테스트 파일
 }

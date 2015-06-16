@@ -529,6 +529,7 @@ public class ServerThread extends Thread {
 				//카메라가 이미 사용중이라면 wrong 반환
 				if(socketCameraUsed.socketCameraUsed)
 				{		
+					System.out.println("Client ID : "+this.clientID+" 카메라소켓 사용중.");
 					signal.toDoResponse(signal.wrong);
 					synchronized (socketEventUsed) {
 						socketEventUsed.socketEventUsed = false;
@@ -566,6 +567,7 @@ public class ServerThread extends Thread {
 				//음성이 사용중이면 wrong 반환
 				if(socketVoiceUsed.socketVoiceUsed)
 				{
+					System.out.println("Client ID : "+this.clientID+" 음성소켓 사용중.");
 					signal.toDoResponse(signal.wrong);
 					synchronized (socketEventUsed) {
 						socketEventUsed.socketEventUsed = false;

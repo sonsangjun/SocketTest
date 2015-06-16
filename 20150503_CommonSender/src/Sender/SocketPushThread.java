@@ -140,7 +140,23 @@ public class SocketPushThread extends Thread{
 		else			
 		{
 			byteArrayTransCeiver = new ByteArrayTransCeiver(byteArrayTransCeiverRule);
-			if(byteArrayTransCeiver.TransCeiver() != null);
+			
+			//재승이 요청으로 사진 보낸후 서버에서 보냈음 확인을 보냄.
+			if(byteArrayTransCeiver.TransCeiver() != null)
+			{
+				if(byteArrayTransCeiverRule.cameraVoice)
+				{
+					SignalData signal = new SignalData(byteArrayTransCeiverRule.cameraSocket);
+					signal.initial();
+					if(signal.toDoResponse(signal.camera))
+						System.out.println("Client ID : "+byteArrayTransCeiverRule.clientID+" 모든 클라이언트에게 카메라 이미지 전송완료.");
+					else
+						System.out.println("Client ID : "+byteArrayTransCeiverRule.clientID+" 모든 클라이언트에게 카메라 이미지 전송완료 신호 전송 실패.");
+				}
+				else
+					//음성은 안드로이드에서 버튼 터치할때마다 한번씩 전송하므로 클라이언트가 굳이 응답신호를 받을 필요가 없다.
+					System.out.println("Client ID : "+byteArrayTransCeiverRule.clientID+" 모든 클라이언트에게 음성 전송완료.");
+			}
 		}
 		//서버 끝
 		

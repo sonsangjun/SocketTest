@@ -393,7 +393,7 @@ public class RoomManage {
 				if(R.roomName.equals(value.unname))
 				{
 					R.clientManage.clientID.remove(indexClient);
-					System.out.println("Client ID : "+clientID+" 연결이 끊어져 종료했습니다.(대기실)");
+					System.out.println("Client ID : "+clientID+" 연결이 끊어져 대기실에서 강제 퇴장됩니다.");
 					return true;
 											
 				}
@@ -412,7 +412,7 @@ public class RoomManage {
 				
 				//BroadCastThread 제거(byForceExitRoom)
 				synchronized (socketBroadCastUsed) {
-					socketBroadCastUsed.message = new String("Client ID : "+this.clientID+" 연결이 끊겼습니다.");	
+					socketBroadCastUsed.message = new String("Client ID : "+this.clientID+" 연결이 끊어져 방에서 강제퇴장합니다.");	
 				}				
 				try {
 					Thread.sleep(value.waitTime);
@@ -437,8 +437,6 @@ public class RoomManage {
 					}															
 				}				
 				//BroadCastThread 제거(byForceExitRoom)
-				
-				System.out.println("Client ID : "+clientID+" 연결이 끊어져 종료했습니다.");
 				return true;					
 			}
 		}
